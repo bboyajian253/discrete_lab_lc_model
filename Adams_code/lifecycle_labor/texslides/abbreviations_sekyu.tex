@@ -1,0 +1,146 @@
+%\newcommand{\can}{\citeasnoun}
+\newcommand{\can}{\cite}
+
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+
+\newcommand{\be}{\begin{enumerate}}
+\newcommand{\ee}{\end{enumerate}}
+
+\newcommand{\IT}{\item}
+\newcommand{\I}{\item}
+\newcommand{\f}{\item}
+
+\newcommand{\bd}{\begin{displaymath}}
+\newcommand{\ed}{\end{displaymath}}
+\newcommand{\bq}{\begin{equation}}
+\newcommand{\eq}{\end{equation}}
+\newcommand{\bsp}{\begin{split}}
+\newcommand{\esp}{\end{split}}
+
+\newcommand{\bc}{\begin{center}}
+\newcommand{\ec}{\end{center}}
+\newcommand{\ce}{\centering}
+
+\newcommand{\nl}{\textnormal{ln}}
+\newcommand{\nlog}{\textnormal{ln}}
+\newcommand{\tn}{\textnormal}
+
+\newcommand{\ceca}{\centering\caption}
+\newcommand{\bts}{\begin{table}}
+\newcommand{\bt}{\begin{table}[!t]\centering\caption}
+\newcommand{\bth}{\begin{table}[!h]\centering\caption}
+\newcommand{\btb}{\begin{table}[!b]\centering\caption}
+\newcommand{\et}{\end{table}}
+\newcommand{\bfi}{\begin{figure}}
+\newcommand{\bfig}{\begin{figure}[!t]\centering\caption}
+\newcommand{\bfigh}{\begin{figure}[!h]\centering\caption}
+\newcommand{\bfigb}{\begin{figure}[!b]\centering\caption}
+\newcommand{\bfign}{\begin{figure}[!t]\centering}
+\newcommand{\bfignoce}{\begin{figure}[!t]\bc\caption}
+\newcommand{\efig}{\end{figure}}
+\newcommand{\ca}{\caption}
+
+\newcommand{\g}{\includegraphics}
+\newcommand{\np}{\newpage}
+
+\newcommand{\ip}{\input}
+
+\newcommand{\eref}[1]{Equation \eqref{#1}}
+\newcommand{\esref}[1]{Equations \eqref{#1}}
+\newcommand{\earef}[2]{Equations \eqref{#1} and \eqref{#2}}
+\newcommand{\etref}[2]{Equations \eqref{#1} to \eqref{#2}}
+
+\newcommand{\fref}[1]{Figure \ref{#1}}
+\newcommand{\fsref}[1]{Figures \ref{#1}}
+\newcommand{\faref}[2]{Figures \ref{#1} and \ref{#2}}
+\newcommand{\ftref}[2]{Figures \ref{#1} to \ref{#2}}
+
+\newcommand{\tref}[1]{Table \ref{#1}}
+\newcommand{\tsref}[1]{Tables \ref{#1}}
+\newcommand{\taref}[2]{Tables \ref{#1} and \ref{#2}}
+\newcommand{\ttref}[2]{Tables \ref{#1} to \ref{#2}}
+
+\newcommand{\sref}[1]{Section \ref{#1}}
+\newcommand{\ssref}[1]{Sections \ref{#1}}
+\newcommand{\saref}[2]{Sections \ref{#1} and \ref{#2}}
+\newcommand{\stref}[2]{Sections \ref{#1} to \ref{#2}}
+
+\newcommand{\aref}[1]{Appendix \ref{#1}}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cond}[thm]{Condition}
+\newtheorem{res}[thm]{Proposition}
+
+%\newcommand{\pref}[1]{Proposition \ref{#1}}
+\newcommand{\rref}[1]{Proposition \ref{#1}}
+\newcommand{\raref}[2]{Propositions \ref{#1} and \ref{#2}}
+\newcommand{\rtref}[2]{Propositions \ref{#1} to \ref{#2}}
+
+\newcommand{\ttt}[1]{\texttt{#1}}
+%\newcommand{\so}[1]{\sout{#1}}
+
+\def\sa{$\rightarrow$\ }
+\def\la{$\Rightarrow$\ }
+
+\newcommand{\ubi}[1]{\underline{\textbf{{#1}}}}
+
+\newcommand{\fsm}{\small}
+\newcommand{\ffs}{\footnotesize}
+\newcommand{\fss}{\scriptsize}
+\newcommand{\fti}{\tiny}
+\newcommand{\tcr}{\textcolor{red}}
+\newcommand{\tcb}{\textcolor{blue}}
+
+\def\spa{\vspace{-.4cm}}
+\def\spb{\vspace{-.3cm}}
+\newcommand{\spc}[1]{\vspace{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Specific
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\fr}{\frame}
+\newcommand{\bfr}{\begin{frame}[t]}
+% \newcommand{\efr}{\end{frame}}
+%\newcommand{\la}{\I[$\Rightarrow$]}
+%\newcommand{\sa}{\I[$\rightarrow$]}
+\newcommand{\Ib}{\I[$\bullet$]}
+\newcommand{\Il}{\I[-]}
+%\newcommand{\bih}{\begin{itemize}\itemhook}
+%\newcommand{\bihi}{\begin{itemize}\itemhooki}
+\newcommand{\bih}{\begin{itemize}\item}
+\newcommand{\bihi}{\begin{itemize}\item}
+
+
+\newcommand{\bo}{\begin{overprint}}
+\newcommand{\eo}{\end{overprint}}
+\newcommand{\os}{\onslide}
+\newcommand{\vi}{\visible}
+
+\newcommand{\itmz}{\begin{itemize}[<+->]}
+\newcommand{\enm}{\begin{enumerate}[<+->]}
+\newcommand{\vitem}{\vfill \item}
+\newcommand{\vm}{\vfill \item}
+\newcommand{\x}{\vfill \item}
+\newcommand{\vla}{\vm[$\Rightarrow$]}
+\newcommand{\vsa}{\vm[$\rightarrow$]}
+\newcommand{\vha}{\vm[$\hookrightarrow$]}
+\newcommand{\p}{\vfill \item<+->}
+\newcommand{\fx}{ \item<+->}
+\newcommand{\pla}{\p[$\Rightarrow$]}
+\newcommand{\psa}{\p[$\rightarrow$]}
+\newcommand{\pha}{\p[$\hookrightarrow$]}
+\newcommand{\vic}[1]{{\color{red} V: #1}}
+\newcommand{\fs}{\vfill\item[]\tiny}
+\newcommand{\fl}{\vfill\item[]\Large}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Added by Sekyu Choi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\vit}{\vfill \item}
+\newcommand{\ub}{\overline}
+\newcommand{\wt}{\widetilde} 

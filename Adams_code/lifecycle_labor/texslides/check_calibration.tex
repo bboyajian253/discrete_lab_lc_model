@@ -1,0 +1,406 @@
+\documentclass[compress]{beamer}
+%\documentclass[handout,10pt]{beamer}
+%--------------------------
+% \setbeameroption{show notes}
+% \newcommand{\n}[1]{\note[item]<#1>}
+%--------------------------
+\usepackage{amsmath,amssymb,mathrsfs}
+\usepackage{ushort}
+\usepackage{multicol}
+\usepackage{moresize}
+\usepackage{xcolor}
+\usepackage{cmbright}
+\usepackage{ulem}
+%--------------------------
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+\usepackage{dcolumn}
+\usepackage{xcolor}
+\usepackage{csvsimple}
+
+
+\usepackage[english]{babel}
+\usepackage{pgfpages}
+\usepackage{graphicx,bm,color}
+\usepackage[final]{epsfig}
+\usepackage[update,prepend]{epstopdf}
+\usepackage{natbib}
+\usepackage{bbm}
+\usepackage{hyperref}
+%\usepackage{subfigure}
+%\usepackage{tikz}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{enumerate}
+\usepackage{arydshln}
+\usepackage{bibentry}
+\usepackage{lmodern}
+\usepackage{eurosym}
+
+% \usepackage{csvsimple}
+
+\input{abbreviations_sekyu.tex}
+\newcommand{\si}[1]{\x[\bf #1:\hspace{\ha cm}]\hspace{\hb cm}}
+\newcommand{\spi}[1]{\p[\bf #1:\hspace{\ha cm}]\hspace{\hb cm}}
+\newcommand{\tc}{\textcolor}
+\newcommand{\tbf}{\textbf}
+\newcommand{\ff}{\vspace{2mm}\item}
+
+\usetheme{default}
+\beamertemplatenavigationsymbolsempty
+\hypersetup{pdfpagemode=UseNone}
+\usefonttheme{professionalfonts}
+\setbeamersize{text margin left=0.5cm, text margin right=0.5cm}
+
+\definecolor{gred}{RGB}{200,0,25}
+\definecolor{gblue}{RGB}{25,0,200}
+\definecolor{ggreen}{RGB}{25,200,25}
+\definecolor{dgreen}{rgb}{0,0.5,0}
+\definecolor{gpink}{RGB}{255,0,247}
+\definecolor{myblue}{RGB}{36,39,131}
+
+\definecolor{foreground}{RGB}{0,0,0}
+\definecolor{background}{RGB}{255,255,255}
+\definecolor{title}{RGB}{0,0,0}
+\definecolor{gray}{RGB}{155,155,155}
+\definecolor{subtitle}{RGB}{0,0,0}
+\definecolor{hilight}{RGB}{102,255,204}
+\definecolor{vhilight}{RGB}{255,111,207}
+
+\newcommand{\tw}{\textcolor{white} }
+\newcommand{\tblk}{\textcolor{black} }
+\newcommand{\tr}{\textcolor{gred} }
+\newcommand{\trb}[1]{\tr{\textbf{#1}}}
+%\newcommand{\tcb}{\textcolor{blue} }
+\newcommand{\tbb}[1]{\tb{\textbf{#1}}}
+\newcommand{\tcg}{\textcolor{dgreen} }
+\newcommand{\tgb}[1]{\tg{\textbf{#1}}}
+\newcommand{\tp}{\textcolor{gpink} }
+\newcommand{\tmb}{\textcolor{myblue} }
+
+\setbeamercolor{titlelike}{fg=title}
+\setbeamercolor{subtitle}{fg=subtitle}
+\setbeamercolor{institute}{fg=foreground}
+\setbeamercolor{normal text}{fg=foreground,bg=background}
+
+\setbeamertemplate{frametitle}
+{
+	\vspace{0.2cm}
+	\textcolor{myblue}{\insertframetitle} \\
+	\noindent \hspace{-0.2cm} \rule{11.9cm}{0.4pt} \vspace{-.8cm}
+}
+
+
+
+\setbeamercolor{item}{fg=myblue} % color of bullets
+\setbeamercolor{subitem}{fg=myblue}
+\setbeamercolor{subsubitem}{fg=myblue}
+\setbeamercolor{itemize/enumerate subbody}{fg=foreground}
+\setbeamertemplate{itemize item}[circle]
+\setbeamertemplate{itemize subitem}[-]
+\setbeamertemplate{itemize subsubitem}{-}
+% \setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+% \setbeamerfont{itemize/enumerate subitem}{size=\normalsize}
+% \setbeamerfont{itemize/enumerate subsubbody}{size=\small}
+% \setbeamerfont{itemize/enumerate subsubitem}{size=\small}
+
+\setbeamercolor{section in toc}{fg=myblue}
+\setbeamertemplate{section in toc}[circle]
+
+
+\title[\textcolor{myblue}{}]{\textcolor{myblue}{Life-Cycle Labor Supply Model: \\
+Calibration Check}
+}
+%\author[Bick, Blandin, Rogerson]{Alexander Bick  \and  Adam Blandin  \and Richard Rogerson}
+% \institute{Arizona State University \and Virginia Commonwealth University \and Princeton  University}
+\date{\today}
+
+
+\setbeamertemplate{footline}{ \raisebox{3pt}{\makebox[\paperwidth]{\makebox{\tmb{\insertshortauthor}\hspace{9.5cm}\tmb{\ffs\insertframenumber}}}}}
+
+% \useoutertheme[footline=authortitle,subsection=false]{miniframes}
+
+\defbeamertemplate*{headline}{}
+
+
+\AtBeginSection[]
+{
+\begin{frame}<beamer>{Outline}
+\large
+% \footnotesize
+\tableofcontents[currentsection,hideallsubsections]
+%\tableofcontents[currentsubsection,hideothersubsections]
+\end{frame}
+}
+
+
+\begin{document}
+
+\def\figpath{../output/}
+
+%%%%%%%%%%%%%%%%%%
+%titleslide
+{
+\setbeamertemplate{footline}{} % no page number here
+\begin{frame}[noframenumbering]
+\titlepage
+
+\end{frame}
+}
+
+
+
+\section{Summary of Environment}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{Individual's Recursive Problem}
+\frame{{\ltitle}
+	\begin{align*}
+		V_j(k; a) = \max_{c,k',n} \quad &u(c, n) + \beta V_{j+1}(k'; a)\\
+		s.t. \quad &(1+\tau_c)c+k'=Rk+\tau_0(wh_j(a)n)^{1-\tau_1}+T \\
+	\end{align*}
+\vspace{-8mm} \\
+Notation
+\bi \footnotesize
+		\f $a$ is ability
+		\f $k$ is stock of assets
+		\f $c$ is consumption
+		\f $n$ is labor (hours)
+		\f $h_j(a)$ is human capital of type $a$ at age $j$ (full $h_j(a)$ known ex-ante)
+		\f $V_j(k;a)$ is value of being in state $(j,k;a)$
+		\bi \footnotesize
+			\f retirement: for $j\geq J_r$, $n=0$
+			\f final period: require $k'\geq 0$
+		\ei 
+\ei  
+}
+\note[enumerate]{
+	\item point 1
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{Functional Forms}
+\frame{{\ltitle}
+\bi
+	\x \tbf{Preferences}: $u(c, n) = \frac{c^{1-\sigma}-1}{1-\sigma} - \psi \cdot \pi \frac{(n)^{1 + 1/\gamma}}{1 + 1/\gamma}$
+	\x \tbf{Initial conditions}: (fill in)
+	\x \tbf{Measurement error}: classical in hours $h=n+i$ and earnings $e$
+	\begin{itemize}
+		\ff $\tilde n = \exp(\epsilon_n) \cdot n$, $\epsilon_n \sim N(0, \sigma_{mn})$
+		\ff $\tilde e = \exp(\epsilon_e) \cdot e$, $\epsilon_e \sim N(0, \sigma_{me})$
+	\end{itemize}
+	\x \tbf{Shock processes}: (fill in)
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Benchmark Calibration}
+%\def\folder{93/benchmark/0}
+\def\folder{0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frame{{Calibration: Exogenously-Set Parameters}
+\begin{center}
+\scriptsize
+\def\arraystretch{1.3}
+\begin{tabular}{l l l l}
+\hline 
+\input{\figpath\folder/parameters_exog.tex}
+\\ \hline
+\end{tabular}
+\end{center}
+%\bi
+%	\f 
+%\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frame{{Calibration: Endogenously-Set Parameters}
+(fill in)
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{Human Capital}
+\frame{{\ltitle}
+\def\lw{.475}
+\def\ffa{fig_lc_h_}
+\def\ffb{fig_lc_h_log}
+\def\tfa{Level}
+\def\tfb{log}
+\bc
+\begin{tabular}{c c}
+	\tfa & \tfb \\
+	\includegraphics[width=\lw\textwidth]{\figpath\folder/\ffa.pdf}
+	& \includegraphics[width=\lw\textwidth]{\figpath\folder/\ffb.pdf}
+\end{tabular}
+\ec
+\bi
+	\x 
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{Consumption}
+\frame{{\ltitle}
+\def\lw{.475}
+\def\ffa{fig_lc_c_}
+\def\ffb{fig_lc_c_log}
+\def\tfa{Level}
+\def\tfb{log}
+\bc
+\begin{tabular}{c c}
+	\tfa & \tfb \\
+	\includegraphics[width=\lw\textwidth]{\figpath\folder/\ffa.pdf}
+	& \includegraphics[width=\lw\textwidth]{\figpath\folder/\ffb.pdf}
+\end{tabular}
+\ec
+\bi
+	\x 
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{Assets}
+\frame{{\ltitle}
+\def\lw{.475}
+\def\ffa{fig_lc_k_}
+\def\ffb{fig_lc_k_}
+\def\tfa{Level}
+\def\tfb{Level}
+\bc
+\begin{tabular}{c c}
+	\tfa & \tfb \\
+	\includegraphics[width=\lw\textwidth]{\figpath\folder/\ffa.pdf}
+	& \includegraphics[width=\lw\textwidth]{\figpath\folder/\ffb.pdf}
+\end{tabular}
+\ec
+\bi
+	\x 
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{Hours Worked}
+\frame{{\ltitle}
+\def\lw{.475}
+\def\ffa{fig_lc_n_}
+\def\ffb{fig_lc_n_log}
+\def\tfa{Level}
+\def\tfb{log}
+\bc
+\begin{tabular}{c c}
+	\tfa & \tfb \\
+	\includegraphics[width=\lw\textwidth]{\figpath\folder/\ffa.pdf}
+	& \includegraphics[width=\lw\textwidth]{\figpath\folder/\ffb.pdf}
+\end{tabular}
+\ec
+\bi
+	\x 
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{True Hours Worked (No Measurement Error)}
+\frame{{\ltitle}
+\def\lw{.475}
+\def\ffa{fig_lc_n_tru_}
+\def\ffb{fig_lc_n_tru_log}
+\def\tfa{Level}
+\def\tfb{log}
+\bc
+\begin{tabular}{c c}
+	\tfa & \tfb \\
+	\includegraphics[width=\lw\textwidth]{\figpath\folder/\ffa.pdf}
+	& \includegraphics[width=\lw\textwidth]{\figpath\folder/\ffb.pdf}
+\end{tabular}
+\ec
+\bi
+	\x 
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{Earnings }
+\frame{{\ltitle}
+\def\lw{.475}
+\def\ffa{fig_lc_e_}
+\def\ffb{fig_lc_e_log}
+\def\tfa{Level}
+\def\tfb{log}
+\bc
+\begin{tabular}{c c}
+	\tfa & \tfb \\
+	\includegraphics[width=\lw\textwidth]{\figpath\folder/\ffa.pdf}
+	& \includegraphics[width=\lw\textwidth]{\figpath\folder/\ffb.pdf}
+\end{tabular}
+\ec
+\bi
+	\x 
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{True Earnings (No Measurement Error) }
+\frame{{\ltitle}
+\def\lw{.475}
+\def\ffa{fig_lc_e_tru_}
+\def\ffb{fig_lc_e_tru_log}
+\def\tfa{Level}
+\def\tfb{log}
+\bc
+\begin{tabular}{c c}
+	\tfa & \tfb \\
+	\includegraphics[width=\lw\textwidth]{\figpath\folder/\ffa.pdf}
+	& \includegraphics[width=\lw\textwidth]{\figpath\folder/\ffb.pdf}
+\end{tabular}
+\ec
+\bi
+	\x 
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\end{document}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ltitle{}
+\frame{{\ltitle}
+\bi
+	\f
+\ei
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

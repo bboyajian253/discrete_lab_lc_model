@@ -1,0 +1,936 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass scrartcl
+\begin_preamble
+\usepackage{amsmath, amssymb}
+\usepackage{pdfpages}
+
+%for portrait orientation
+\usepackage{blindtext}
+\usepackage{pdflscape}
+
+%for resizing big tables etc.
+\usepackage{graphicx}% http://ctan.org/pkg/graphicx
+\usepackage{booktabs}% http://ctan.org/pkg/booktabs
+
+%for drawing boxes
+\usepackage{tikz}
+\usetikzlibrary{fit}
+\usepackage{nicematrix}
+
+\DeclareMathOperator{\var}{var}
+\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\end_preamble
+\use_default_options true
+\begin_modules
+theorems-ams
+theorems-ams-extended
+graphicboxes
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement H
+\paperfontsize default
+\spacing onehalf
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine biblatex-natbib
+\cite_engine_type authoryear
+\biblio_options maxcitenames=2
+\biblatex_bibstyle authoryear
+\biblatex_citestyle authoryear
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date true
+\justification true
+\use_refstyle 1
+\use_minted 0
+\boxbgcolor #55aaff
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1.25in
+\topmargin 1.25in
+\rightmargin 1.25in
+\bottommargin 1.25in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Simple lifecycle model with mental health
+\end_layout
+
+\begin_layout Author
+Ben Boyajian
+\end_layout
+
+\begin_layout Date
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+today
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+The model
+\end_layout
+
+\begin_layout Standard
+Workers live 
+\begin_inset Formula $T$
+\end_inset
+
+ periods and face a discrete choice of whether to work or not.
+ But in the last period nobody works.
+ Periods are denoted by 
+\begin_inset Formula $t$
+\end_inset
+
+.
+ The labor force participation decision is denoted 
+\begin_inset Formula $n_{t}\in\left\{ 0,1\right\} $
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Individuals derive period utility from consumption and leisure
+\begin_inset Formula 
+\[
+u\left(c_{t},l_{t}\right)=\frac{\left(c_{t}^{\alpha}l_{t}^{1-\alpha}\right)^{1-\sigma}}{1-\sigma}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula 
+\[
+l_{t}=1-\phi_{n}n_{t}-\phi_{H}\boldsymbol{1}_{H_{t}}
+\]
+
+\end_inset
+
+The parameter 
+\begin_inset Formula $\phi_{n}$
+\end_inset
+
+ represents a time cost from labor decision 
+\begin_inset Formula $n_{t}$
+\end_inset
+
+.
+ 
+\begin_inset Formula $\phi_{H}$
+\end_inset
+
+ represents a time cost associated with being in one of four composite health
+ states 
+\begin_inset Formula $H=\left\{ mf\right\} \in\left\{ BB,BG,GB,GG\right\} $
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Consumption is constrained in the following way 
+\begin_inset Formula 
+\[
+c_{t}+a_{t+1}=z_{t}^{H}n_{t}+a_{t}\left(1+r\right);\forall t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+a_{t}>-\kappa;a_{0}=a_{J+1}=0;c_{t},n_{t}\geq0;\forall t
+\]
+
+\end_inset
+
+ Where 
+\begin_inset Formula $z_{t}^{H}$
+\end_inset
+
+ is labor productivity and returns to labor which takes the following form
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+z_{t}^{H}=\lambda_{t}^{H}\exp\left(\nu_{t}\right)\exp\left(\gamma\right).
+\]
+
+\end_inset
+
+Where 
+\begin_inset Formula $\lambda_{t}^{H}$
+\end_inset
+
+ is a deterministic component that depends on age and health status.
+ 
+\begin_inset Formula $\nu_{t}$
+\end_inset
+
+ is a persistent 
+\begin_inset Formula $AR\left(1\right)$
+\end_inset
+
+ shock that takes the form 
+\begin_inset Formula 
+\[
+\nu_{t}=\rho_{\nu}\nu_{t-1}+\varepsilon_{t};\varepsilon_{t}\sim\mathcal{N}\left(0,\sigma_{\varepsilon}\right).
+\]
+
+\end_inset
+
+There will likely be a discrete (Markov?) implementation of this.
+ Finally, 
+\begin_inset Formula $\gamma$
+\end_inset
+
+ is a fixed effect determined at birth.
+\end_layout
+
+\begin_layout Standard
+The composite health state 
+\begin_inset Formula $H$
+\end_inset
+
+ is made up of a mental health component 
+\begin_inset Formula $m$
+\end_inset
+
+ and a physical health component 
+\begin_inset Formula $f$
+\end_inset
+
+.
+ Each of these health components can take on one of two binary states, that
+ is good 
+\begin_inset Formula $G$
+\end_inset
+
+ or bad 
+\begin_inset Formula $B$
+\end_inset
+
+.
+ With a slight abuse of notations 
+\begin_inset Formula $m,f\in\left\{ B,G\right\} $
+\end_inset
+
+.
+ Thus, the composite health state 
+\begin_inset Formula $H$
+\end_inset
+
+ can take on four possible values: 
+\begin_inset Formula $H\in\left\{ BB,BG,GB,GG\right\} $
+\end_inset
+
+.
+ This health state evolves according to the one period Markov probability
+ matrix 
+\begin_inset Formula $\Lambda_{t}$
+\end_inset
+
+.
+ Which for now is just conditional on age and the previous health status.
+\begin_inset Formula 
+\[
+H'\sim\Lambda_{t}\left(H'|H\right);H_{0}\sim\Lambda_{0}\left(H\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+From this set up we can derive equations that fully characterize the solution.
+ These equations are:
+\begin_inset Formula 
+\begin{equation}
+\text{The Euler Eq.: }u_{c_{t}}=\E\beta\left(1+r\right)u_{c_{t+1}}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\text{The static condition: }\phi_{n}u_{l_{t}}=z_{t}^{H}u_{c_{t}}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\text{The budget constraint: }c_{t}+a_{t+1}=z_{t}^{H}n_{t}+\left(1+r\right)a_{t}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+The sequential problem
+\end_layout
+
+\begin_layout Standard
+Knowing that the period budget constraint is as above we can write the problem
+ of the individual over his lifecycle in the following way
+\begin_inset Formula 
+\[
+\max_{\left\{ c_{t},n_{t},a_{t+1}\right\} }\sum_{t=0}^{t=T}\E\beta^{t}u\left(c_{t},1-\phi_{n}n_{t}-\phi_{H}\boldsymbol{1}_{H_{t}}\right)
+\]
+
+\end_inset
+
+s.t.
+\begin_inset Formula 
+\[
+\sum_{t=0}^{t=T}\frac{c_{t}-z_{t}^{H}n_{t}}{\left(1+r\right)^{t}}=0
+\]
+
+\end_inset
+
+or equivalently
+\begin_inset Formula 
+\[
+c_{t}+a_{t+1}=z_{t}^{H}n_{t}+a_{t}\left(1+r\right);\forall t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+a_{0}=a_{J+1}=0;
+\]
+
+\end_inset
+
+ and 
+\begin_inset Formula 
+\[
+a_{t}>-\kappa,\forall t;c_{t},n_{t}\geq0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+H'\sim\Lambda_{t}\left(H'|H\right);H_{0}\sim\Lambda_{0}\left(H\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+The recursive problem
+\end_layout
+
+\begin_layout Standard
+Using the Bellman equation we are able to write this problem recursively.
+ Let the state space be written as 
+\begin_inset Formula $S_{t}=\left\{ a_{t},z_{t}^{H},H_{t}\right\} $
+\end_inset
+
+.
+ Which are all factors known to to the individual at time 
+\begin_inset Formula $t$
+\end_inset
+
+ which effect current utility or the probability distribution of future
+ utilities.
+ Every individual enters at 
+\begin_inset Formula $t=1$
+\end_inset
+
+ and 
+\begin_inset Formula $a_{0}$
+\end_inset
+
+.
+ Health status 
+\begin_inset Formula $H_{0}$
+\end_inset
+
+ is drawn from the initial distribution 
+\begin_inset Formula $\Lambda_{0}\left(H\right)$
+\end_inset
+
+ and labor productivity 
+\begin_inset Formula $z_{0}^{H}$
+\end_inset
+
+ is drawn based on the shock process described above.
+ The recursive problem is thus
+\begin_inset Formula 
+\[
+V_{t}\left(a,z^{H},H\right)=\max_{c,n,a'}\left\{ u\left(c,1-\phi_{n}n-\phi_{H}\boldsymbol{1}_{H}\right)+\beta\E_{z',H'}V_{t+1}\left(a',z'^{H'},H'\right)\right\} 
+\]
+
+\end_inset
+
+s.t 
+\begin_inset Formula 
+\[
+c+a'=z^{H}n+a\left(1+r\right);\forall t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+a_{0}=a_{J+1}=0;
+\]
+
+\end_inset
+
+ and 
+\begin_inset Formula 
+\[
+a_{t}>-\kappa,\text{ and }c_{t},n_{t}\geq0\forall t
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+H'\sim\Lambda_{t}\left(H'|H\right);H_{0}\sim\Lambda_{0}\left(H\right)
+\]
+
+\end_inset
+
+ and 
+\begin_inset Formula $z_{t}^{H}$
+\end_inset
+
+ follows the process described above.
+\end_layout
+
+\begin_layout Subsubsection*
+Some derivatives
+\end_layout
+
+\begin_layout Standard
+Recall
+\begin_inset Formula 
+\[
+u\left(c_{t},l_{t}\right)=\frac{\left(c_{t}^{\alpha}l_{t}^{1-\alpha}\right)^{1-\sigma}}{1-\sigma}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula 
+\[
+l_{t}=1-\phi_{n}n_{t}-\phi_{H}\boldsymbol{1}_{H_{t}}.
+\]
+
+\end_inset
+
+ So the relevant derivatives of the utility function can be written as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{\partial\left(u\right)}{\partial\left(c_{t}\right)}=\alpha c_{t}^{\alpha-1}l_{t}^{1-\alpha}\left(c_{t}^{\alpha}l_{t}^{1-\alpha}\right){}^{-\sigma}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{\partial\left(u\right)}{\partial\left(l_{t}\right)}=(1-\alpha)c_{t}^{\alpha}l_{t}^{-\alpha}\left(c_{t}^{\alpha}l_{t}^{1-\alpha}\right){}^{-\sigma}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\partial\left(u\right)}{\partial\left(n_{t}\right)}=-\phi_{n}\frac{\partial\left(u\right)}{\partial\left(l_{t}\right)}=-\phi_{n}(1-\alpha)c_{t}^{\alpha}l_{t}^{-\alpha}\left(c_{t}^{\alpha}l_{t}^{1-\alpha}\right){}^{-\sigma}
+\]
+
+\end_inset
+
+by the chain rule.
+\end_layout
+
+\begin_layout Subsubsection*
+Using the static condition
+\end_layout
+
+\begin_layout Standard
+We have the within period optimality condition
+\begin_inset Formula 
+\[
+\phi_{n}u_{l}=z^{H}u_{c}
+\]
+
+\end_inset
+
+plugging in our derivatives from above gives
+\begin_inset Formula 
+\[
+\phi_{n}(1-\alpha)c^{\alpha}l^{-\alpha}\left(c^{\alpha}l^{1-\alpha}\right){}^{-\sigma}=z^{H}\alpha c^{\alpha-1}l^{1-\alpha}\left(c^{\alpha}l^{1-\alpha}\right){}^{-\sigma}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\implies\frac{\phi_{n}}{z^{H}}=\frac{\alpha c^{\alpha-1}l^{1-\alpha}\left(c^{\alpha}l^{1-\alpha}\right){}^{-\sigma}}{(1-\alpha)c^{\alpha}l^{-\alpha}\left(c^{\alpha}l^{1-\alpha}\right){}^{-\sigma}}=\frac{\alpha}{\left(1-\alpha\right)}\times\frac{l}{c}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\implies\frac{\phi_{n}}{z^{H}}\frac{\left(1-\alpha\right)}{\alpha}*c=l
+\]
+
+\end_inset
+
+this gives us a simple relationship between current period consumption and
+ leisure (and thus labor also).
+\end_layout
+
+\begin_layout Subsubsection*
+Using the consumption Euler equation
+\end_layout
+
+\begin_layout Standard
+The Euler equation is 
+\begin_inset Formula 
+\[
+u_{c}\left(c,l\right)=\beta\left(1+r\right)\E_{H',z'}\left\{ u_{c'}\left(c',l'\right)\right\} 
+\]
+
+\end_inset
+
+from the above static condition we know we can rewrite both sides as functions
+ of only 
+\begin_inset Formula $c$
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+u_{c}\left(c,l\left(c\right)\right)=\beta\left(1+r\right)\E_{H',z'}\left\{ u_{c'}\left(c',l'\left(c'\right)\right)\right\} 
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula 
+\[
+l\left(c\right)=\frac{\phi_{n}}{z^{H}}\frac{\left(1-\alpha\right)}{\alpha}*c
+\]
+
+\end_inset
+
+we thus have a relationship between this periods consumption 
+\begin_inset Formula $c$
+\end_inset
+
+ and next periods consumption 
+\begin_inset Formula $c'$
+\end_inset
+
+ only in terms of consumption and parameters.
+ 
+\end_layout
+
+\begin_layout Subsubsection*
+Some inverse derivatives
+\end_layout
+
+\begin_layout Paragraph*
+Inverse marginal utility of consumption
+\end_layout
+
+\begin_layout Standard
+A useful function in solving the problem numerically is the inverse of 
+\begin_inset Formula $\frac{\partial u}{\partial c}\equiv\left(\frac{\partial u}{\partial c}\right)^{\left(-1\right)}\equiv\left(u_{c}\right)^{\left(-1\right)}$
+\end_inset
+
+.
+ Let 
+\begin_inset Formula 
+\[
+x=u_{c}=\alpha c^{\alpha-1}l^{1-\alpha}\left(c^{\alpha}l^{1-\alpha}\right){}^{-\sigma}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\implies\frac{c^{\alpha-1}l^{1-\alpha}}{\left(c^{\alpha}l^{1-\alpha}\right){}^{\sigma}}=\frac{x}{\alpha}
+\]
+
+\end_inset
+
+ Which Mathematica solves for 
+\begin_inset Formula $c$
+\end_inset
+
+ as
+\begin_inset Formula 
+\[
+Solve\left[\frac{c^{\alpha-1}l^{1-\alpha}}{\left(c^{\alpha}l^{1-\alpha}\right){}^{\sigma}}==\frac{x}{\alpha},c\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\implies c=\left(\frac{xl^{-((1-\alpha)(1-\sigma))}}{\alpha}\right)^{\frac{1}{\alpha(-\sigma)+\alpha-1}}
+\]
+
+\end_inset
+
+so
+\begin_inset Formula 
+\[
+\left(u_{c}\right)^{-1}=\left(\frac{xl^{-((1-\alpha)(1-\sigma))}}{\alpha}\right)^{\frac{1}{\alpha(-\sigma)+\alpha-1}}
+\]
+
+\end_inset
+
+Which is confirmed analytically.
+ Transform for easy reading into python
+\begin_inset Formula 
+\[
+c=\left(\frac{x}{a*l^{(1-a)*(1-s)}}\right)^{\frac{1}{a-1-s*a}}
+\]
+
+\end_inset
+
+confirming that python reads it in properly:
+\begin_inset Formula 
+\[
+\left(\frac{x}{al^{\left(1-a\right)\left(1-s\right)}}\right)^{1\cdot\frac{1}{-as+a-1}}
+\]
+
+\end_inset
+
+And since 
+\begin_inset Formula $\frac{\phi_{n}}{z^{H}}\frac{\left(1-\alpha\right)}{\alpha}*c=l$
+\end_inset
+
+ we have
+\begin_inset Formula 
+\[
+c=\left(\frac{x\left(\frac{\phi_{n}}{z^{H}}\frac{\left(1-\alpha\right)}{\alpha}*c\right)^{-((1-\alpha)(1-\sigma))}}{\alpha}\right)^{\frac{1}{\alpha(-\sigma)+\alpha-1}}
+\]
+
+\end_inset
+
+again solving for 
+\begin_inset Formula $c$
+\end_inset
+
+
+\begin_inset Formula 
+\[
+Solve\left[c==\left(\frac{x\left(\frac{p}{z}\frac{\left(1-\alpha\right)}{\alpha}*c\right)^{-((1-\alpha)(1-\sigma))}}{\alpha}\right)^{\frac{1}{\alpha(-\sigma)+\alpha-1}},c\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left\{ \left\{ c\to\left(\frac{\alpha\left((1-\alpha)^{\alpha\sigma-\alpha-\sigma}\alpha^{\alpha(-\sigma)+\alpha+\sigma-1}\phi^{\alpha\sigma-\alpha-\sigma+1}z^{\alpha(-\sigma)+\alpha+\sigma-1}-(1-\alpha)^{\alpha\sigma-\alpha-\sigma}\alpha^{\alpha(-\sigma)+\alpha+\sigma}\phi^{\alpha\sigma-\alpha-\sigma+1}z^{\alpha(-\sigma)+\alpha+\sigma-1}\right)}{x}\right)^{\frac{1}{\sigma}}\right\} \right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+or let 
+\begin_inset Formula $K=\frac{\phi_{n}}{z^{H}}\frac{\left(1-\alpha\right)}{\alpha}$
+\end_inset
+
+
+\begin_inset Formula 
+\[
+Solve\left[\frac{c^{\alpha-1}\left(K*c\right)^{1-\alpha}}{\left(c^{\alpha}\left(K*c\right)^{1-\alpha}\right){}^{\sigma}}==\frac{x}{\alpha},c\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left\{ \left\{ c\to\left(\frac{xK^{\alpha(-\sigma)+\alpha+\sigma-1}}{\alpha}\right)^{-1/\sigma}\right\} \right\} 
+\]
+
+\end_inset
+
+so
+\begin_inset Formula 
+\[
+\left(u_{c}\right)^{-1}=\left(\frac{xK^{\alpha(-\sigma)+\alpha+\sigma-1}}{\alpha}\right)^{-1/\sigma}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $K=\frac{\phi_{n}}{z^{H}}\frac{\left(1-\alpha\right)}{\alpha}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Paragraph*
+Inverse marginal utility of leisure
+\end_layout
+
+\begin_layout Standard
+Similarly we have 
+\begin_inset Formula 
+\[
+x=u_{l}=(1-\alpha)c^{\alpha}l^{-\alpha}\left(c^{\alpha}l^{1-\alpha}\right){}^{-\sigma}
+\]
+
+\end_inset
+
+Setting up the equation to solve gives 
+\begin_inset Formula 
+\[
+Solve\left[\frac{x}{\left(1-\alpha\right)}==c^{\alpha}l^{-\alpha}\left(c^{\alpha}l^{1-\alpha}\right){}^{-\sigma},l\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\implies l=\left(\frac{xc^{-\alpha(1-\sigma)}}{1-\alpha}\right)^{\frac{1}{\alpha\sigma-\alpha-\sigma}}
+\]
+
+\end_inset
+
+so
+\begin_inset Formula 
+\[
+\left(u_{l}\right)^{-1}=\left(\frac{xc^{-\alpha(1-\sigma)}}{1-\alpha}\right)^{\frac{1}{\alpha\sigma-\alpha-\sigma}}
+\]
+
+\end_inset
+
+For python
+\begin_inset Formula 
+\[
+\left(\frac{x*c^{-\alpha*(1-\sigma)}}{1-\alpha}\right)^{\frac{1}{\alpha*\sigma-\alpha-\sigma}}
+\]
+
+\end_inset
+
+from python 
+\begin_inset Formula 
+\[
+\left(\frac{c^{-a\left(1-s\right)}x}{1-a}\right)^{1\cdot\frac{1}{as-a-s}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Analytical solutions
+\end_layout
+
+\begin_layout Standard
+Analytically solving for the consumption, leisure and therefore labor decisions
+ given the current asset stock 
+\begin_inset Formula $a_{t}$
+\end_inset
+
+ and the choice of future assets 
+\begin_inset Formula $a_{t+1}$
+\end_inset
+
+ yields
+\begin_inset Formula 
+\[
+c_{t}=\alpha\left[\frac{z_{t}^{H}}{\phi_{n}}\left(1-\phi_{H_{t}}\right)+\left(1+r\right)a_{t}-a_{t+1}\right]
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+l_{t}=\left(1-\alpha\right)\left[\left(1-\phi_{H_{t}}\right)+\frac{\phi_{n}}{z_{H}^{t}}\left(\left(1+r\right)a_{t}-a_{t+1}\right)\right]
+\]
+
+\end_inset
+
+and thus
+\begin_inset Formula 
+\[
+n_{t}=\frac{\alpha}{\phi_{n}}\left(1-\phi_{H_{t}}\right)+\frac{\alpha-1}{z_{H}^{t}}\left(\left(1+r\right)a_{t}-a_{t+1}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph*
+Testing some python latex input output
+\end_layout
+
+\begin_layout Standard
+Input
+\begin_inset Formula 
+\[
+\frac{\partial\left(u\right)}{\partial\left(c_{t}\right)}=\alpha*c_{t}^{\alpha-1}l_{t}^{1-\alpha}\left(c_{t}^{\alpha}l_{t}^{1-\alpha}\right)^{-\sigma}
+\]
+
+\end_inset
+
+output
+\begin_inset Formula 
+\[
+ac^{a-1}l^{1-a}\left(c^{a}l^{1-a}\right)^{-s}
+\]
+
+\end_inset
+
+Input
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{\partial\left(u\right)}{\partial\left(l_{t}\right)}=(1-\alpha)*c_{t}^{\alpha}l_{t}^{-\alpha}\left(c_{t}^{\alpha}l_{t}^{1-\alpha}\right)^{-\sigma}
+\]
+
+\end_inset
+
+output
+\begin_inset Formula 
+\[
+c^{a}l^{-a}\left(c^{a}l^{1-a}\right)^{-s}\left(1-a\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
