@@ -41,13 +41,13 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, la
     return sol_a
 
 @njit
-def solve_j_indiv(myPars : Pars, a_prime, lab_inc, mat_cp_flat_shocks, health, nu) :
+def solve_j_indiv(myPars : Pars, a_prime, lab_inc, c_prime, health) :
     """
     do some voodoo by back substituting and inverting the focs
     """
     # Compute implied c given cc
     # try:
-    c_prime = model.expected_c_prime()
+    #expect = c_prime
     c = model.infer_c(myPars, c_prime, lab_inc)
     # except ZeroDivisionError:
     #     print("ZeroDivisionError occurred at 'infer_c' !!!")
@@ -98,8 +98,8 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
         # but if its not the last period
         else:
             #try:
-            mat_cp_flat_shocks = mat_c_prime[a_ind, :, lab_FE_ind, :]
-            a, c, lab = solve_j_indiv(myPars, a_prime, lab_inc, mat_cp_flat_shocks, health, nu)
+            #mat_cp_flat_shocks = mat_c_prime[a_ind, :, lab_FE_ind, :]
+            a, c, lab = solve_j_indiv(myPars, a_prime, lab_inc, mat_c_prime[a_ind, nu_ind, lab_FE_ind, H_ind], health)
             # except ZeroDivisionError:
             #     print("ZeroDivisionError occurred!!!")
             #     traceback.print_exc()
