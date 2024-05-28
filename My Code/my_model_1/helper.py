@@ -24,7 +24,7 @@ def gen_flat_joint_trans(trans1, trans2):
  
 
 if __name__ == "__main__" :
-    myPars = Pars(print_screen=0)
+    myPars = Pars(print_screen=0, nu_grid_size=5)
     h_ind = 0
     nu_ind = 0
     h_probs = myPars.H_trans[h_ind, :]

@@ -64,7 +64,7 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('interp_eval_points', float64[:]),
                 ('H_by_nu_flat_trans', float64[:]),
                 ('H_by_nu_size', int64),
-                ('wage_grid', float64[:,:,:,:]),
+                # ('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
         ]
@@ -120,7 +120,7 @@ class Pars() :
             a_min = -50, # can think of this as borrowing no more than a_min*1000 dollars
             a_max = 250, # max of the asset grid
             a_grid_growth = 0.025, #detrmines growth rate and thus curvature of asset grid
-            a_grid_size = 10, #set up for gride with curvature
+            a_grid_size = 300, #set up for gride with curvature
             H_grid = np.array([0.0,1.0]),
             H_trans = np.array([[0.7, 0.3],
                                [0.2, 0.8]]), 
@@ -197,7 +197,7 @@ class Pars() :
         self.state_space_shape = np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.J])
         self.state_space_shape_no_j= np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size])
    
-        self.wage_grid = self.gen_wages()
+        # self.wage_grid = self.gen_wages()
          
 
         #value function for all states; 0=age/time, 1=assets, 2=health, 3=fixed effect

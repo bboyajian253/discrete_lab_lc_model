@@ -13,6 +13,22 @@ from numba import njit, guvectorize, prange
 from interpolation import interp
 
 #####define the pieces of the HH problem
+#calculate the deterministic part of the wage
+@njit
+def det_wage(myPars: Pars, age, health) :
+    """returns the deterministic part of the wage"""
+    age_comp = myPars.w_determ_cons + myPars.w_age*age + myPars.w_age_2*age*age + myPars.w_age_3*age*age*age 
+    #gonna ignore average health which is in Capatina and the iniatialization of theis program for now, will work in more health states when i have composite types working.
+    health_comp = myPars.w_good_health*(1-health) + myPars.w_good_health_age*age*(1-health)
+    wage = age_comp + health_comp
+    #print("Comp is ", comp) 
+    return wage
+
+#calculate final wage
+@njit
+def wage(myPars: Pars, age, fixed_effect, health, persistent_shock ) :
+    return exp(det_wage(myPars, age, health)) * exp(fixed_effect) * exp(persistent_shock)
+
 #return leisure given labor choice and health status
 @njit
 def leis_giv_lab(myPars: Pars, labor, health):
@@ -89,10 +105,8 @@ def mat_future_cps(myPars : Pars, mat_cp_flat_shocks) :
     
     #initialize a matrix to store the interpolated c_primes and wages
     interp_c_primes = myPars.interp_c_prime_grid
-    #interp_wages = np.copy(interp_c_primes)
-    #loop the indices/range of the first shock (probably the AR1 since there are more possible states)
-    #loop throught the indices/range of the second shcok i.e. the health shock
-    #or do both at the same time and to the dimension conversions
+   
+   #loop through shock space and interpolate the c_prime for each shock combination
     for ind_shock_comb in prange(myPars.H_by_nu_size):
         H_ind, nu_ind = my_toolbox.D2toD1(ind_shock_comb, myPars.H_grid_size, myPars.nu_grid_size) #might not need depending on structure
         
@@ -109,8 +123,9 @@ def mat_future_cps(myPars : Pars, mat_cp_flat_shocks) :
 
 # take the expecteation over the possible c_primes
 @njit
-def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, mat_wages_flat_shocks, health, nu) :
+def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu) :
     #state_probs = myPars.H_by_nu_flat_trans
+    lab_FE_ind = np.where(myPars.lab_FE_grid == lab_FE)[0][0]
     h_ind = np.where(myPars.H_grid == health)[0][0]
     nu_ind = np.where(myPars.nu_grid == nu)[0][0]
     
@@ -118,23 +133,26 @@ def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, mat_wages_flat_shocks
     nu_probs = myPars.nu_trans[nu_ind, :]
 
     shock_probs = np.outer(h_probs, nu_probs).flatten()
-    possible_wages = mat_wages_flat_shocks.flatten()
-
-
+    
     #maybe there is a slick way to recover wages here... maybe i really do need matrix of them bopping around
-    #otherwise we will need pass in the fixed effect here likely to construct the matrix of possible future wages
-    #that mathces up by index with the possible future c_primes
+    possible_wages = np.zeros(myPars.H_by_nu_size)
+    for i in range(myPars.H_by_nu_size) :
+        H_ind, nu_ind = my_toolbox.D2toD1(i, myPars.H_grid_size, myPars.nu_grid_size)
+        possible_wages[i] = wage(myPars, j+1, lab_FE, myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]) 
+
+    #mat_wages_by_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
+    #possible_wages = mat_wages_by_shocks.flatten()
 
     possible_c_primes = mat_future_cps(myPars, mat_cp_flat_shocks)
-    return np.sum(shock_probs * util_c(myPars, possible_c_primes, possible_wages))
 
-    pass
+
+    return np.sum(shock_probs * util_c(myPars, possible_c_primes, possible_wages))
 
 
 @njit
-def infer_c(myPars : Pars, curr_wage, mat_cp_flat_shocks, mat_wages_flat_shocks, health, nu) :
+def infer_c(myPars : Pars,  curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu) :
     # expect = util_c(myPars, c_prime, wage) #need to change this to actually do expectation over shocks/states 
-    expect = expect_util_c_prime(myPars, mat_cp_flat_shocks, mat_wages_flat_shocks, health, nu )
+    expect = expect_util_c_prime(myPars, mat_cp_flat_shocks, j, lab_FE, health, nu)
     rhs = myPars.beta * (1 + myPars.r) * expect
     return util_c_inv(myPars, rhs, curr_wage)
 
@@ -185,21 +203,7 @@ def l_star(myPars: Pars, a_prime, a, health, wage) :
     leis = leis_giv_lab(myPars, n_star(a_prime, a, health, wage), health)
     return max(myPars.leis_min, leis)
 
-#calculate the deterministic part of the wage
-@njit
-def det_wage(myPars: Pars, age, health) :
-    """returns the deterministic part of the wage"""
-    age_comp = myPars.w_determ_cons + myPars.w_age*age + myPars.w_age_2*age*age + myPars.w_age_3*age*age*age 
-    #gonna ignore average health which is in Capatina and the iniatialization of theis program for now, will work in more health states when i have composite types working.
-    health_comp = myPars.w_good_health*(1-health) + myPars.w_good_health_age*age*(1-health)
-    wage = age_comp + health_comp
-    #print("Comp is ", comp) 
-    return wage
 
-#calculate final wage
-@njit
-def wage(myPars: Pars, age, health, persistent_shock, fixed_effect) :
-    return exp(det_wage(myPars, age, health)) * exp(fixed_effect) * exp(persistent_shock)
 
 
 # use the budget constraint to back out current asset stock given the other partts of the BC

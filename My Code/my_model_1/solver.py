@@ -16,14 +16,15 @@ from sys import maxsize
 
 @njit
 def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, last_per) :
-    print("Entering transform_ap_to_a")
+    #print("Entering transform_ap_to_a")
     #initialie solution shells given current assets a
     mat_ap_a, mat_c_a, mat_lab_a = np.copy(shell_a), np.copy(shell_a), np.copy(shell_a)
-
+    # print("mat_ap_a shape", mat_ap_a.shape)
+    # print("mat_a_ap values", mat_a_ap )
     evals = np.copy(myPars.a_grid)
     evals = evals.reshape(myPars.a_grid_size, 1)
     state_size_no_aj =  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size
-    print("state_size_no_aj", state_size_no_aj)  
+    # print("state_size_no_aj", state_size_no_aj)  
     for state in range(state_size_no_aj) :
         lab_fe_ind, H_ind, nu_ind = my_toolbox.D3toD1(state, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
         #convert soltuions from functions of a_prime to functions of a
@@ -35,22 +36,22 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, la
             mat_ap_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, myPars.a_grid, evals)
     #reinsert mat_aprime_a and the corresponding c and lab solutions into a solutions matrix
     sol_a = [mat_c_a, mat_lab_a, mat_ap_a]
-    print("Exiting transform_ap_to_a")
+    #print("Exiting transform_ap_to_a")
     return sol_a
 
 @njit
-def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks,  mat_wages_flat_shocks, health, nu) :
+def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu) :
     """
     do some voodoo by back substituting and inverting the focs
     """
-    print("Entering solve_j_indiv")
+    #print("Entering solve_j_indiv")
     # Compute implied c given cc
     #c_prime = model.expect_util_c_prime(myPars, mat_cp_flat_shocks, possible_wages, health, nu)
-    c = model.infer_c(myPars, curr_wage, mat_cp_flat_shocks, mat_wages_flat_shocks, health, nu)
-    print("infered c", c)
+    c = model.infer_c(myPars, curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu)
+    #print("infered c", c)
 
     lab, a = model.solve_lab_a(myPars, a_prime, c, curr_wage, health)
-
+    #print("Exiting solve_j_indiv")
     return a, c, lab 
     
 
@@ -58,13 +59,13 @@ def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks,  mat_wa
 #do i need c_prime to be a matrix here?
 # @njit(parallel=True)
 
-@njit()
+@njit(parallel=True)
 def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
-    print("Entering solve_per_j_iter", j)
+    #print("Entering solve_per_j_iter", j)
     #initilaize solutions shells
     mat_a_sols, mat_c_sols, mat_lab_sols = np.copy(shell_a_prime), np.copy(shell_a_prime), np.copy(shell_a_prime)
-    for state in range(myPars.a_grid_size *  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size) :
-        print("Begin state", state)
+    for state in prange(myPars.a_grid_size *  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size) :
+        #print("Begin state", state)
         
         a_ind, lab_FE_ind, H_ind, nu_ind = my_toolbox.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
 
@@ -75,46 +76,48 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
         #get ar1 shock
         nu = myPars.nu_grid[nu_ind]
         #get labor fixed effect
-        #lab_FE = myPars.lab_FE_grid[lab_FE_ind]
+        lab_FE = myPars.lab_FE_grid[lab_FE_ind]
          
         #get the wage for this state...
-        curr_wage = myPars.wage_grid[j, lab_FE_ind, H_ind, nu_ind] 
-        print("Current wage", curr_wage)
+        #curr_wage = myPars.wage_grid[j, lab_FE_ind, H_ind, nu_ind]
+        curr_wage = model.wage(myPars, j, lab_FE, health, nu) 
+        #print("Current wage", curr_wage)
         #If its the last period we know
         if last_per:
-            print("Last period")
+            #print("Last period")
             #set this periods assets = to this asset point
             a = a_prime
             lab = model.n_star(myPars, 0, a, health, curr_wage)
-            print("lab", lab)
+            #print("lab", lab)
             # use the BC to back out consumption
             c = max(myPars.c_min, a * (1 + myPars.r) + lab * curr_wage)
-            print("c", c)
+            #print("c", c)
        
         else:  # but if its not the last period
             #this line here is likely to cause trouble I want the 2D matrix that remains after taking into account the current assets a and the lab fixed effect
-            print("Not Last period")
+            #print("Not Last period", j)
             mat_cp_flat_shocks = mat_c_prime[a_ind, lab_FE_ind, :,  :]
-            mat_wages_flat_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
+            #mat_wages_flat_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
             
 
-            a, c, lab = solve_j_indiv(myPars, a_prime, curr_wage, mat_cp_flat_shocks, mat_wages_flat_shocks, health, nu)
+            a, c, lab = solve_j_indiv(myPars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu)
 
 
         #store the state specific results
-        mat_a_sols[a_ind, nu_ind, lab_FE_ind, H_ind] = a
-        mat_c_sols[a_ind, nu_ind, lab_FE_ind, H_ind] = c
-        mat_lab_sols[a_ind, nu_ind, lab_FE_ind, H_ind] = lab
-        print("Stored state specific results for state", state)
+        #print("a_ind", a_ind, "nu_ind", nu_ind, "lab_FE_ind", lab_FE_ind, "H_ind", H_ind)
+        mat_a_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = a
+        mat_c_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = c
+        mat_lab_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = lab
+        #print("Stored state specific results for state", state)
     
-    print("Exiting solve_per_j_iter")
+    #print("Exiting solve_per_j_iter")
     return mat_a_sols, mat_c_sols, mat_lab_sols
 
 
 # if i try to jit this i get some typing issues initializing shell_a_prime
 #@njit
 def solve_per_j(myPars : Pars, j, mat_c_prime, last_per) :
-    print("Entering solve_per_j", j)
+    #print("Entering solve_per_j", j)
     #Initialize cell for full period solutions
     # set to large negative values, why?
     
@@ -123,8 +126,10 @@ def solve_per_j(myPars : Pars, j, mat_c_prime, last_per) :
 
     #compute solution to individuals problems
     mat_a_ap, mat_c_ap, mat_lab_ap = solve_per_j_iter(myPars, shell_a_prime, j, mat_c_prime, last_per)
-    print("Solved per j iter successfully")
+
+    
     #transform these from being indexed by a_prime = ap to being indexed by this periods assets a?
+    #print("About to start transform_ap_to_a")
     mat_c, mat_lab, mat_a_prime = transform_ap_to_a(myPars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, last_per)
   
     #return [mat_a_ap, mat_c_ap, mat_lab_ap]
@@ -153,7 +158,7 @@ def solve_lc(myPars : Pars):
 
         #solve the period choice  solutions and return a period solution list
         #store the solution for each state in the column that corresponds to the choice in the state_solutions container
-        print("Attempting to solve period", j)
+        #print("Attempting to solve period", j)
         per_sol_list = solve_per_j(myPars, j, mat_c_prime, last_per)
         
         #update the maximizing choice of the key choices assets/consumptions
@@ -172,10 +177,14 @@ if __name__ == "__main__":
     print("Running main")
     start_time = time.time()
     
-    myPars = Pars(a_grid_size=50, nu_grid_size=5)
+    myPars = Pars(a_grid_size=100, nu_grid_size=5)
     print("Pars initialized") 
     
     solve_lc(myPars)
+    my_toolbox.print_exec_time("First lifecycle solved in", start_time)
+
+    solve_lc(myPars)
+    my_toolbox.print_exec_time("Second lifecycle solved in", start_time)
 
     end_time = time.time()
     execution_time = end_time - start_time
