@@ -12,6 +12,7 @@ from math import exp,sqrt,log
 from numba import njit, guvectorize, float64, int64, types, prange
 from numba.experimental import jitclass
 import time
+import my_toy_ls_model as model
 
 #a big list of parameter values for the model
 
@@ -63,12 +64,24 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('interp_eval_points', float64[:]),
                 ('H_by_nu_flat_trans', float64[:]),
                 ('H_by_nu_size', int64),
+                ('wages', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
         ]
 
 @jitclass(pars_spec)
 class Pars() :
+    
+    def gen_wages(self):
+        #initialize the wage grid
+        wages = np.zeros((self.J, self.H_grid_size, self.nu_grid_size, self.lab_FE_grid_size))
+        for j in prange(self.J):        
+            for h_ind, health in enumerate(self.H_grid) :
+                for nu_ind, nu in enumerate(self.nu_grid):  
+                    for fe_ind, lab_FE in enumerate(self.lab_FE_grid):
+                        wages[j, h_ind, nu_ind, fe_ind] = model.wage(self, j, health, nu, lab_FE)
+        return wages
+         
     def __init__(self,     
             # earnings parameters
             #(a lot of these are more like shocks and will be drawn in simulation)
@@ -194,8 +207,8 @@ class Pars() :
 
         self.state_space_shape = np.array([self.a_grid_size, self.nu_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.J])
         self.state_space_shape_no_j= np.array([self.a_grid_size, self.nu_grid_size, self.lab_FE_grid_size, self.H_grid_size])
-
-
+   
+        self.wages = self.gen_wages()
          
 
         #value function for all states; 0=age/time, 1=assets, 2=health, 3=fixed effect
@@ -236,7 +249,7 @@ if __name__ == "__main__":
         start_time = time.time()
         
         myPars = Pars() 
-        #print(myPars.state_space_shape)  
+        print(myPars.wages)  
 
         # myShocks = Shocks(myPars)
         # print(myShocks)
