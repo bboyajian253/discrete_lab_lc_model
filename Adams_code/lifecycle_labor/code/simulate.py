@@ -58,16 +58,27 @@ def sim_lc(state_solns, r, w, par, par2, shock):
     """
 
     # initialize shells for life-cycle solutions
+    #this is the list of results/moments we want to simulate
     vlist = ['e_tru', 'eph_tru', 'n_tru', 'k', 'h','n', 'c', 'heff', 'y', 'tax', 'taxe', 'taxc']
     # **NOTE** DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN sim_lc_jit
+
+    #create dictionary where each v in varlist is a key and the value is a np array of -9999s with shape par2.shapesim
     sim = {v: -9999 * np.ones(par2.shapesim) for v in vlist}
-    sim['k'][:, :, 0] = 0.0  # start everyone with zero assets
+    # start everyone with zero assets
+    sim['k'][:, :, 0] = 0.0  
 
     # simulate life-cycle outcomes
+    # get the initial values of the simulations as a list
     list1 = list(sim.values())
+    # get the values of the state solutions as a list
     list2 = list(state_solns.values())
+
+    # call the jit-ted function sim_lc_jit to simulate the life-cycle outcomes
+    #given the shell of simulation values and the state solutions as well as the grid_intrp_sim = UCGrid((par.gridk[0], par.gridk[-1], par.Nk)) and parameters
     sim_list = sim_lc_jit(list1, list2, par2.grid_intrp_sim, r, w, par)
-    # par2.grid_intrp_sim appears to return a tupple that looks like (par.gridk[0], par.gridk[-1], par.Nk) that has been asserted to be a valid range and size
+
+    # store simulation results in dictionary with matching keys
+    # and return it below
     sim = {v: s for v, s in zip(sim.keys(), sim_list)}
 
     # add measurement error
