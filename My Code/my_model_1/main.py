@@ -31,7 +31,7 @@ my_toolbox.print_exec_time("Pars 2 initialized in", new_start_time)
 
 new_start_time = time()
 solver.solve_lc(myPars)
-my_toolbox.print_exec_time("Solver 1 for pars 2 compiled and ran after", new_start_time) 
+my_toolbox.print_exec_time("Solver 1 for pars 2 ran after", new_start_time) 
 
 new_start_time = time()
 solver.solve_lc(myPars)
