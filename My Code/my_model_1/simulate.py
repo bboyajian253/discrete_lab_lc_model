@@ -59,7 +59,7 @@ def sim_lc(myPars : Pars, myShocks : Shocks, state_sols):
 
     # initialize shells for life-cycle solutions
     #this is the list of results/moments we want to simulate
-    vlist = ['a', 'lab ', 'c'] # could add interesting moments:, 'wage', 'leisure', 'health', 'income'
+    vlist = ['a', 'lab', 'c'] # could add interesting moments:, 'wage', 'leisure', 'health', 'income'
     # **NOTE** DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN sim_lc_jit
 
     #create dictionary where each v in varlist is a key and the value is a np array of -9999s with shape par2.shapesim

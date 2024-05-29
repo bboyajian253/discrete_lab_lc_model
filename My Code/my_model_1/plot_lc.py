@@ -46,7 +46,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc, path) :
             #iterate through labor fixed effect groups (this is basically ability groups)
             for lab_fe_ind in range(myPars.lab_FE_grid_size):    
                 #get the mean of the values over the labor fixed effect 
-                lc_mean = np.average(lc[lab_fe_ind, :, :, :], axis=1)
+                lc_mean = np.average(lc[lab_fe_ind, :, :, :], axis=(0, 1, 2))
                 ax.plot(age, lc_mean, label=myPars.lab_FE_grid[lab_fe_ind])
             
             #specify axes and legend

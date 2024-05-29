@@ -152,7 +152,7 @@ def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu
 
 @njit
 def infer_c(myPars : Pars,  curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu) :
-    # expect = util_c(myPars, c_prime, wage) #need to change this to actually do expectation over shocks/states 
+    #expect = util_c(myPars, c_prime, wage) #need to change this to actually do expectation over shocks/states 
     expect = expect_util_c_prime(myPars, mat_cp_flat_shocks, j, lab_FE, health, nu)
     rhs = myPars.beta * (1 + myPars.r) * expect
     return util_c_inv(myPars, rhs, curr_wage)

@@ -57,7 +57,8 @@ def simulate_test(start_time):
     my_toolbox.print_exec_time("Simulate 1 for pars 1 ran after", new_start_time)
 
     new_start_time = time()
-    plot_lc.plot_lc_profiles(myPars, sim_lc, "../output/")
+    myPath = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_1/output/"
+    plot_lc.plot_lc_profiles(myPars, sim_lc, myPath)
     my_toolbox.print_exec_time("Plot 1 for pars 1 ran after", new_start_time)
 
 start_time = time()
