@@ -11,6 +11,7 @@ import toolbox
 
 @njit
 def sim_lc_jit(sim_list, state_solns, grid_intrp_sim, r, w, par):
+    #par2.grid_intrp_sim = UCGrid((par.gridk[0], par.gridk[-1], par.Nk))
     """
     jit-ted portion of sim_lc: simulate life-cycle profiles given state solutions and shock processes
     """

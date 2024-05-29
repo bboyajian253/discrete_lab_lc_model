@@ -9,7 +9,7 @@ by @author Ben Boyajian
 import my_toolbox
 import numpy as np
 from math import exp,sqrt,log
-from numba import njit, guvectorize, float64, int64, types, prange
+from numba import njit, guvectorize, float64, int64, prange, types
 from numba.experimental import jitclass
 import time
 
@@ -51,19 +51,21 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('H_trans', float64[:,:]), #matrix of health transition probabilities
                 ('state_space_shape', int64[:]), #the shape/dimensions of the full state space with time/age J
                 ('state_space_shape_no_j', int64[:]), #the shape/dimensions of the period state space with out time/age J
+                ('state_space_shape_sims', int64[:]), #the shape/dimensions of the period state space for simulations
                 ('lab_min', float64 ), #minimum possible choice for labor, cannot pick less than 0 hours
                 ('lab_max', float64), # max possible for labor choice
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
                 ('leis_min', float64), #min possible choice for leisure
                 ('leis_max', float64), #max possible choice for leisure 
                 ('dt', int64),              # number of monte-carlo integration draws
-                ('dtdraws', int64),       # number of simulation draws
+                ('sim_draws', int64),       # number of simulation draws
                 ('J', int64),                 # number of time periods -1 (period 0 is first
                 ('print_screen', int64),  #indicator for what type of printing to do... may drop
                 ('interp_c_prime_grid', float64[:]),
                 ('interp_eval_points', float64[:]),
                 ('H_by_nu_flat_trans', float64[:]),
                 ('H_by_nu_size', int64),
+                ('sim_interp_grid_spec', types.Tuple((float64, float64, int64))),
                 # ('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
@@ -133,7 +135,7 @@ class Pars() :
 
             # number of draws and other procedural parameters
             dt = 2500,              # number of monte-carlo integration draws
-            dtdraws = 15000 ,       # number of simulation draws
+            sim_draws = 1000 ,       # number of simulation draws
             J = 50,                 # number of time periods -1 (period 0 is first)
 
             # printing level (defines how much to print)
@@ -191,14 +193,17 @@ class Pars() :
         self.leis_min,self.leis_max = leis_min, leis_max
 
         ###initialize time/age, number of draws and other procedural parameters
-        self.dt,self.dtdraws,self.J = dt,dtdraws,J
+        self.dt,self.J = dt,J
+        self.sim_draws = sim_draws
         self.print_screen = print_screen
 
-        self.state_space_shape = np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.J])
-        self.state_space_shape_no_j= np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size])
-   
-        # self.wage_grid = self.gen_wages()
-         
+        self.state_space_shape = np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.J]) 
+        self.state_space_shape_no_j = np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size])
+        self.state_space_shape_sims = np.array([self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.sim_draws, self.J + 1])
+
+        self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
+
+        # self.wage_grid = self.gen_wages() 
 
         #value function for all states; 0=age/time, 1=assets, 2=health, 3=fixed effect
         #self._VF = np.zeros((self.nt+1,self.a_grid_size,2,2))
@@ -265,7 +270,7 @@ if __name__ == "__main__":
         start_time = time.time()
         
         myPars = Pars() 
-        print(myPars.wage_grid)  
+        print(myPars.state_space_shape_sims)  
 
         # myShocks = Shocks(myPars)
         # print(myShocks)

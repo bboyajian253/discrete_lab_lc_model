@@ -154,3 +154,11 @@ class Shocks:
         merr_e = norm()
         merr_e.random_state = np.random.RandomState(seed=me.seed_me_e)
         me.me_e = me.par.σ_me_e * merr_e.rvs(size=N_shocks).reshape(me.par2.shapesim)
+
+if __name__ == "__main__":
+    # Define parameters
+    par1 = Params_numba(np.zeros((3, 3)))
+    par2 = Params_nonumba(par1, 'path')
+    print(par2.grid_intrp_sim)
+    print(len(par2.grid_intrp_sim))
+    print(type(par2.grid_intrp_sim))
