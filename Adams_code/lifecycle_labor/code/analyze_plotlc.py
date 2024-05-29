@@ -28,7 +28,9 @@ def plot_lcprofiles(simlc, par, par2):
         age = par2.age[:jj]
 
         # prep sim variable for estimation
+        # for each var get the the array of choices for the last age
         v = simlc[vlbls][:, :, :jj]
+        # log these results replace negatives with a very small number
         lv = np.log(np.where(v > 0, v, 1e-3))
 
         # Plot life-cycle profiles
@@ -38,11 +40,15 @@ def plot_lcprofiles(simlc, par, par2):
 
             if stat == 'log':
                 lc = lv
+                # if we need to normalize the data to match the model
                 if vlbls == 'eph' or vlbls == 'e' or vlbls == 'n' or vlbls == 'n_tru':
-                    lc = lc + np.log(par2.model_mult[vlbls])
+                    # model_mult[vlbls] is a dictionary that contains the normalization values to match the data
+                    lc = lc + np.log(par2.model_mult[vlbls]) 
             else:
                 lc = v
+                # if we need normalization
                 if vlbls == 'eph' or vlbls == 'e' or vlbls == 'n' or vlbls == 'n_tru':
+                    # then perform normalization values to match the data
                     lc = lc * par2.model_mult[vlbls]
 
             # iterate through ability groups

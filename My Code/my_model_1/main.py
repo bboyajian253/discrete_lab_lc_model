@@ -10,6 +10,7 @@ import simulate
 import pars_shocks_and_wages 
 import numpy as np
 from time import time
+import plot_lc
 
 def solver_test_main1() :
     myPars = pars_shocks_and_wages.Pars(print_screen=0, a_grid_size=100)
@@ -40,7 +41,7 @@ def simulate_test(start_time):
     my_toolbox.print_exec_time("Beginning to initilize pars", start_time)
 
     new_start_time = time()
-    myPars = pars_shocks_and_wages.Pars(print_screen=0, a_grid_size=300)
+    myPars = pars_shocks_and_wages.Pars(print_screen=0, a_grid_size=10)
     my_toolbox.print_exec_time("Pars 1 compiled and initialized in", new_start_time)
 
     new_start_time = time()
@@ -52,10 +53,12 @@ def simulate_test(start_time):
     my_toolbox.print_exec_time("Solver 1 for pars 1 ran after", new_start_time) 
 
     new_start_time = time()
-    simulate.sim_lc(myPars, myShocks, state_sols)
+    sim_lc = simulate.sim_lc(myPars, myShocks, state_sols)
     my_toolbox.print_exec_time("Simulate 1 for pars 1 ran after", new_start_time)
 
-
+    new_start_time = time()
+    plot_lc.plot_lc_profiles(myPars, sim_lc, "../output/")
+    my_toolbox.print_exec_time("Plot 1 for pars 1 ran after", new_start_time)
 
 start_time = time()
 print("Running main")

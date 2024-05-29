@@ -138,7 +138,8 @@ def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu
     possible_wages = np.zeros(myPars.H_by_nu_size)
     for i in range(myPars.H_by_nu_size) :
         H_ind, nu_ind = my_toolbox.D2toD1(i, myPars.H_grid_size, myPars.nu_grid_size)
-        possible_wages[i] = wage(myPars, j+1, lab_FE, myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]) 
+        next_age = myPars.start_age + j + 1
+        possible_wages[i] = wage(myPars, next_age, lab_FE, myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]) 
 
     #mat_wages_by_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
     #possible_wages = mat_wages_by_shocks.flatten()

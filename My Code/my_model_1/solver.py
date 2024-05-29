@@ -80,7 +80,8 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
          
         #get the wage for this state...
         #curr_wage = myPars.wage_grid[j, lab_FE_ind, H_ind, nu_ind]
-        curr_wage = model.wage(myPars, j, lab_FE, health, nu) 
+        age = myPars.start_age + j
+        curr_wage = model.wage(myPars, age, lab_FE, health, nu) 
         #print("Current wage", curr_wage)
         #If its the last period we know
         if last_per:

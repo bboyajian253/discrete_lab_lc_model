@@ -66,7 +66,10 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('H_by_nu_flat_trans', float64[:]),
                 ('H_by_nu_size', int64),
                 ('sim_interp_grid_spec', types.Tuple((float64, float64, int64))),
-                # ('wage_grid', float64[:,:,:,:]),
+                ('start_age', int64), #age to start the model at
+                ('end_age', int64), #age to end the model at
+                ('age_grid', int64[:]), #grid of ages 
+                #('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
         ]
@@ -137,6 +140,7 @@ class Pars() :
             dt = 2500,              # number of monte-carlo integration draws
             sim_draws = 1000 ,       # number of simulation draws
             J = 50,                 # number of time periods -1 (period 0 is first)
+            start_age = 25, #age to start the model at
 
             # printing level (defines how much to print)
             print_screen = 2  
@@ -194,6 +198,11 @@ class Pars() :
 
         ###initialize time/age, number of draws and other procedural parameters
         self.dt,self.J = dt,J
+
+        self.start_age = start_age
+        self.end_age = start_age + J + 1
+        self.age_grid = np.arange(start_age, self.end_age, 1)
+
         self.sim_draws = sim_draws
         self.print_screen = print_screen
 
