@@ -2,8 +2,8 @@
 simulate.py
 
 Desc:
-Takes X, returs Y
-Simulates dtuf etc.
+Takes X, returns Y
+Simulates stuff etc.
 
 Created on 2024-05-21 21:47:16
 
@@ -13,35 +13,41 @@ Created on 2024-05-21 21:47:16
 #import stuff
 from pars_shocks_and_wages import Pars, Shocks
 import my_toy_ls_model as model
-from interpolation.splines import eval_linear
+from interpolation.splines import eval_linear 
 import numpy as np
 from numba import njit, prange
-from interpolation import interp
+from interpolation import interp # i use this for interpolation instead of eval_linear
 
 @njit(parallel=True)
 def sim_lc_numba(myPars : Pars, sim_vals_list, state_sols_list):
     [sim_a, sim_lab, sim_c]  = sim_vals_list
     [c_lc, lab_lc, a_prime_lc] = state_sols_list
 
-    # simulate-forward life-cycle outcomes 
+    # simulate-forward life-cycle outcomes
+    # loop over all the dimensions of the simulation space 
     for j in prange(myPars.J):
         for lab_fe_ind in prange(myPars.lab_FE_grid_size):
             for h_ind in prange(myPars.H_grid_size):        
                 for nu_ind in prange(myPars.nu_grid_size):
                     for sim_ind in prange(myPars.sim_draws):
+                        # get the value of a from the previous period
                         a = sim_a[lab_fe_ind, h_ind, nu_ind, sim_ind, j]
-                        #wage = model.
+                        # if we want to return the wage moments also we can calculate that here
+                        # or maybe we can just pull the wage from the state solutions or another precomputed array
+                        #wage = model. 
                         #evals = np.array([a])
+                        # set evals to a, its clearer name and matches adams legacy code
                         evals = a
 
+                        # interp the value of c, labor, and a_prime from the state solutions
                         c = interp(myPars.a_grid, c_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
                         lab = interp(myPars.a_grid, lab_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
                         a_prime = interp(myPars.a_grid, a_prime_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
                         
+                        # store the values of c, labor, and a_prime in the simulation arrays
                         sim_c[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = c
                         sim_lab[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = lab
                         sim_a[lab_fe_ind, h_ind, nu_ind, sim_ind, j + 1] = a_prime
-
 
     return [sim_a, sim_lab, sim_c]
 
@@ -69,13 +75,9 @@ def sim_lc(myPars : Pars, myShocks : Shocks, state_sols):
     state_sols_list = list(state_sols.values())
 
     # call the jit-ted function sim_lc_jit to simulate the life-cycle outcomes
-    #given the shell of simulation values and the state solutions as well as the grid_intrp_sim = UCGrid((par.gridk[0], par.gridk[-1], par.Nk)) and parameters
-    #  I need one of these in my Pars class: par2.grid_intrp_sim,
+    #given the shell of simulation values and the state solutions and the parameters
     sim_list = sim_lc_numba(myPars, sim_vals_list, state_sols_list)
 
-    # store simulation results in dictionary with matching keys
-    # and return it below
+    # store simulation results in dictionary with matching keys and return
     sim = {v: s for v, s in zip(sim.keys(), sim_list)}
-
-
     return sim

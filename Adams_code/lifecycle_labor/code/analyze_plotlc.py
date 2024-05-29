@@ -6,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import toolbox
 
-
 def plot_lcprofiles(simlc, par, par2):
     """
     Output life-cycle simulations.
