@@ -25,6 +25,7 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, la
     evals = evals.reshape(myPars.a_grid_size, 1)
     state_size_no_aj =  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size
     # print("state_size_no_aj", state_size_no_aj)  
+    
     for state in range(state_size_no_aj) :
         lab_fe_ind, H_ind, nu_ind = my_toolbox.D3toD1(state, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
         #convert soltuions from functions of a_prime to functions of a
