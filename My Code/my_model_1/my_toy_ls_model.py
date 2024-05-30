@@ -138,7 +138,7 @@ def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu
     possible_wages = np.zeros(myPars.H_by_nu_size)
     for i in range(myPars.H_by_nu_size) :
         H_ind, nu_ind = my_toolbox.D2toD1(i, myPars.H_grid_size, myPars.nu_grid_size)
-        next_age = myPars.start_age + j + 1
+        next_age = j + 1
         possible_wages[i] = wage(myPars, next_age, lab_FE, myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]) 
 
     #mat_wages_by_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
@@ -151,9 +151,10 @@ def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu
 
 
 @njit
-def infer_c(myPars : Pars,  curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu) :
+def infer_c(myPars : Pars,  curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu, c_prime_test) :
     #expect = util_c(myPars, c_prime, wage) #need to change this to actually do expectation over shocks/states 
-    expect = expect_util_c_prime(myPars, mat_cp_flat_shocks, j, lab_FE, health, nu)
+    #expect = expect_util_c_prime(myPars, mat_cp_flat_shocks, j, lab_FE, health, nu)
+    expect = util_c(myPars, c_prime_test, wage(myPars, j+1, lab_FE, health, nu))
     rhs = myPars.beta * (1 + myPars.r) * expect
     return util_c_inv(myPars, rhs, curr_wage)
 

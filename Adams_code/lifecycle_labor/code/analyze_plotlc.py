@@ -28,7 +28,7 @@ def plot_lcprofiles(simlc, par, par2):
         age = par2.age[:jj]
 
         # prep sim variable for estimation
-        # for each var get the the array of choices for the last age
+        # for each var get the the array of choices up to the last age
         v = simlc[vlbls][:, :, :jj]
         # log these results replace negatives with a very small number
         lv = np.log(np.where(v > 0, v, 1e-3))

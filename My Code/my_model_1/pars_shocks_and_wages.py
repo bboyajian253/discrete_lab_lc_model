@@ -130,9 +130,9 @@ class Pars() :
             H_trans = np.array([[0.7, 0.3],
                                [0.2, 0.8]]), 
 
-            lab_min = 0.0,
+            lab_min = 0.0001,
             lab_max = 1.0,
-            c_min = 0.0,
+            c_min = 0.0001,
             leis_min = 0.0,
             leis_max = 1.0,    
 
@@ -164,7 +164,8 @@ class Pars() :
         self.lab_FE_grid_size = len(self.lab_FE_grid)
 
         ###iniatlize utlity parameters###
-        self.beta,self.alpha,self.sigma_util = beta,alpha,sigma_util
+        self.alpha,self.sigma_util = alpha,sigma_util
+       
         #iniatlize health and time cost parameters
         self.phi_n,self.phi_H = phi_n,phi_H
         #health transition probabilities toy examples
@@ -172,6 +173,7 @@ class Pars() :
 
         ###interest rate and maybe taxes later
         self.r = r
+        self.beta = 1/(1 + r)
 
         ###intialie grid(s)
         ###define asset grid###

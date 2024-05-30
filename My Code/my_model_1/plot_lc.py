@@ -30,7 +30,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc, path) :
         age = myPars.age_grid[:j_last]
 
         #prep the sim variable for estimation
-        values = sim_lc[short_name][:, :, :, :, :j_last] # for each var get the the array of choices for the last age
+        values = sim_lc[short_name][:, :, :, :, :j_last] # for each var get the the array of choices until the last age
         log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
 
         #Plot life-cycle profiles
@@ -46,7 +46,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc, path) :
             #iterate through labor fixed effect groups (this is basically ability groups)
             for lab_fe_ind in range(myPars.lab_FE_grid_size):    
                 #get the mean of the values over the labor fixed effect 
-                lc_mean = np.average(lc[lab_fe_ind, :, :, :], axis=(0, 1, 2))
+                lc_mean = np.average(lc[lab_fe_ind, 0, 0, :], axis=(0))
                 ax.plot(age, lc_mean, label=myPars.lab_FE_grid[lab_fe_ind])
             
             #specify axes and legend
@@ -59,12 +59,15 @@ def plot_lc_profiles(myPars : Pars, sim_lc, path) :
             fullpath = path + f'fig_lc_{short_name}_{modifier}.png'
             fig.savefig(fullpath, bbox_inches='tight')
             plt.close()
-            with open(path + f'fig_lc_{short_name}_{modifier}.csv', 'w', newline='') as file:
+
+            #save the data
+            fullpath = path + f'fig_lc_{short_name}_{modifier}.csv'
+            with open(fullpath, 'w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(['age'] + list(age))
-                writer.writerows(['model'] + list(lc))
+                for row in lc:
+                    writer.writerows(['model'] + list(lc))
 
 
-
-
+if __name__ == "__main__":
     pass
