@@ -15,7 +15,7 @@ from numba import njit, guvectorize, prange
 from interpolation import interp
 
 #convert labor to leisure within period
-#@njit
+@njit
 def leis_giv_lab(myPars : Pars, labor : float, health : float) -> float:
     """
     encodes the time endowment constraint
@@ -24,7 +24,8 @@ def leis_giv_lab(myPars : Pars, labor : float, health : float) -> float:
     leisure = min(myPars.leis_max, leisure)
     return max(myPars.leis_min, leisure)
 
-#@njit
+#convert leisure to labor within period
+@njit
 def lab_giv_leis(myPars : Pars, leisure : float, health : float) -> float:
     """
     encodes the time endowment constraint
@@ -33,9 +34,8 @@ def lab_giv_leis(myPars : Pars, leisure : float, health : float) -> float:
     labor = min(myPars.lab_max, labor)
     return max(myPars.lab_min, labor)
 
-
 #convert labor to consumption within period
-#@njit
+@njit
 def leis_giv_c(myPars: Pars, c: float, wage: float) -> float:
     """
     To do this we want to leverage the static equation:
@@ -47,7 +47,7 @@ def leis_giv_c(myPars: Pars, c: float, wage: float) -> float:
     return constant * c
 
 #converty leisure to consumption within period
-#@njit
+@njit
 def c_giv_leis(myPars: Pars,  leis: float, wage: float) -> float:
     """
     To do this we want to leverage the static equation:
@@ -58,7 +58,7 @@ def c_giv_leis(myPars: Pars,  leis: float, wage: float) -> float:
     return constant * leis
 
 #utility function given leisure and consumption
-#@njit
+@njit
 def util_giv_leis(myPars : Pars, c : float, leis : float) -> float:
     """
     utility function
@@ -68,7 +68,7 @@ def util_giv_leis(myPars : Pars, c : float, leis : float) -> float:
     return (1/(1-sig)) * ((c**alpha) * (leis**(1-alpha))) ** (1-sig)
 
 #derivative of utility function with respect to consumption given consumption and leisure
-#@njit
+@njit
 def util_c_giv_leis(myPars: Pars, c: float, leis: float) -> float:
     """
     derivative of utility function with respect to consumption
@@ -78,7 +78,7 @@ def util_c_giv_leis(myPars: Pars, c: float, leis: float) -> float:
     return alpha*c**(alpha - 1)*leis**(1 - alpha)/(c**alpha*leis**(1 - alpha))**sig #this denom is 0 if c or leis is 0
 
 #deriveative of utility function with respect to consumption given consumption and health
-#@njit
+@njit
 def util_c(myPars: Pars, c: float, wage: float) -> float:
     """
     derivative of utility function with respect to consumption
@@ -87,7 +87,7 @@ def util_c(myPars: Pars, c: float, wage: float) -> float:
     return util_c_giv_leis(myPars, c, leis)
 
 #inverse of the derivative of the utility function with respect to consumption
-#@njit
+@njit
 def util_c_inv(myPars : Pars, u: float, wage: float) ->float:
     """
     given a marginal utility u and a current wage return the consumption that yields that utility
@@ -132,7 +132,7 @@ def infer_c(myPars : Pars, curr_wage : float, age : int, lab_fe : float, health 
     return c  
 
 # given current choice of c and a_prime, as well the state's wage and health 
-#@njit
+@njit
 def solve_lab_a(myPars : Pars, c : float, a_prime : float,  curr_wage : float, health : float) -> float:
     """
     solve for labor and assets given consumption and wage
