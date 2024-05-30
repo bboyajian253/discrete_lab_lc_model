@@ -47,5 +47,6 @@ c_star_str = r"\alpha\left[\frac{z_{t}^{H}}{\phi_{n}}\left(1-\phi_{H_{t}}\right)
 u_c_inv_str = r"\left(\frac{x}{a*l^{(1-a)*(1-s)}}\right)^{\frac{1}{a-1-s*a}}"
 u_l_inv_str = r"\left(\frac{x*c^{-\alpha*(1-\sigma)}}{1-\alpha}\right)^{\frac{1}{\alpha*\sigma-\alpha-\sigma}}"
 leis_giv_c_str = r"\frac{p}{z}*\frac{\left(1-\alpha\right)}{\alpha}*c"
+util_c_giv_leis_str = r"\alpha c^{\alpha-1}l^{1-\alpha}\left(c^{\alpha}l^{1-\alpha}\right)^{-\sigma}"
 
-print_test_IO(leis_giv_c_str)
+print_test_IO(util_c_giv_leis_str)

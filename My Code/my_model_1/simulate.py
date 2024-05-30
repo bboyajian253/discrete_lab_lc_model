@@ -12,7 +12,7 @@ Created on 2024-05-21 21:47:16
 
 #import stuff
 from pars_shocks_and_wages import Pars, Shocks
-import my_toy_ls_model as model
+#import my_toy_ls_model as model
 from interpolation.splines import eval_linear 
 import numpy as np
 from numba import njit, prange

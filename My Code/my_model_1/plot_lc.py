@@ -56,7 +56,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc, path) :
             ax.legend()
 
             #save the figure
-            fullpath = path + f'fig_lc_{short_name}_{modifier}.png'
+            fullpath = path + f'fig_lc_{short_name}_{modifier}.pdf'
             fig.savefig(fullpath, bbox_inches='tight')
             plt.close()
 

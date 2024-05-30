@@ -3,7 +3,8 @@ Created on 2024-05-19 22:39:56
 
 @author: Ben Boyaian
 """
-import my_toy_ls_model as model
+#import my_toy_ls_model as model
+import basic_model_no_uncert as model
 import my_toolbox
 from pars_shocks_and_wages import Pars
 import traceback
@@ -14,7 +15,7 @@ from numba import njit, prange, float64
 from interpolation.splines import eval_linear
 from sys import maxsize
 
-@njit
+#@njit
 def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, last_per) :
     #print("Entering transform_ap_to_a")
     #initialie solution shells given current assets a
@@ -40,7 +41,7 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, la
     #print("Exiting transform_ap_to_a")
     return sol_a
 
-@njit
+#@njit
 def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu, c_prime_test) :
     """
     do some voodoo by back substituting and inverting the focs
@@ -49,25 +50,18 @@ def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_
     # Compute implied c given cc
     #c_prime = model.expect_util_c_prime(myPars, mat_cp_flat_shocks, possible_wages, health, nu)
     #print(c_prime_test)
-    c = model.infer_c(myPars, curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu, c_prime_test)
-    #print("infered c", c)
+    c = model.infer_c(myPars, curr_wage, j, lab_FE, health, nu, c_prime_test)
 
-    lab, a = model.solve_lab_a(myPars, a_prime, c, curr_wage, health)
-    #print("Exiting solve_j_indiv")
+    lab, a = model.solve_lab_a(myPars, c, a_prime, curr_wage, health)
     return a, c, lab 
     
 
-#this is for iterating over the state space quickly within a given j
-#do i need c_prime to be a matrix here?
-# @njit(parallel=True)
-
-@njit(parallel=True)
+#@njit(parallel=True)
 def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
-    #print("Entering solve_per_j_iter", j)
     #initilaize solutions shells
     mat_a_sols, mat_c_sols, mat_lab_sols = np.copy(shell_a_prime), np.copy(shell_a_prime), np.copy(shell_a_prime)
+
     for state in prange(myPars.a_grid_size *  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size) :
-  
         #get the state specific indices
         a_ind, lab_FE_ind, H_ind, nu_ind = my_toolbox.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
 
@@ -90,11 +84,10 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
             lab = 0
             # use the BC to back out consumption
             c = max(myPars.c_min, a * (1 + myPars.r) + lab * curr_wage)
-            #print("c", c)
+            print("Last per c:", c)
        
         else:  # but if its not the last period
             #this line here is likely to cause trouble I want the 2D matrix that remains after taking into account the current assets a and the lab fixed effect
-            #print("Not Last period", j)
             mat_cp_flat_shocks = mat_c_prime[a_ind, lab_FE_ind, :,  :]
             #mat_wages_flat_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
             
@@ -103,13 +96,9 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
 
 
         #store the state specific results
-        #print("a_ind", a_ind, "nu_ind", nu_ind, "lab_FE_ind", lab_FE_ind, "H_ind", H_ind)
         mat_a_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = a
         mat_c_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = c
         mat_lab_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = lab
-        #print("Stored state specific results for state", state)
-    
-    #print("Exiting solve_per_j_iter")
     return mat_a_sols, mat_c_sols, mat_lab_sols
 
 
