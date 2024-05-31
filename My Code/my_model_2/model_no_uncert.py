@@ -158,13 +158,16 @@ def wage(myPars : Pars,  age : int, lab_fe : float, health : float,  nu : float)
     """
     wage process
     """
-    return det_wage(myPars, health, age) * np.exp(lab_fe) * np.exp(nu)
+    #det_wage = det_wage(myPars, health, age)
+    det_wage = 1.0
+    nu = 0.0
+    return  det_wage* np.exp(lab_fe) * np.exp(nu) 
 
 if __name__ == "__main__":
     #initialize the parameters
     myPars = Pars()
 
-    myWage : float = 25.0
+    #myWage : float = 25.0
     health : float = 1.0
 
     matc = np.linspace(0.0, 10.0, 10)
@@ -176,5 +179,5 @@ if __name__ == "__main__":
         for j in range(myPars.J):
             for nu in myPars.nu_grid:
                 for lab_fe in myPars.lab_FE_grid:
-                   myWage = wage(myPars, health, j, lab_fe, nu)
+                   myWage = wage(myPars, j, lab_fe, health, nu)
                    print(f'The wage for state health={health}, age={j}, lab_fe ={lab_fe}, nu = {nu} is \n {myWage}')
