@@ -1,7 +1,7 @@
 """
-My Model 1 - Basic Model
+My Model 2 - basic model no uncertainty
 
-This script implements a basic model for the My Model 1 project.
+Contains the model equations and derivatives to be used by solver.py and others
 
 Author: Ben Boyajian
 Date: 2024-05-29 20:16:01
@@ -18,7 +18,7 @@ import sys
 
 #convert labor to leisure within period
 @njit
-def leis_giv_lab(myPars : Pars, labor : float, health : float) -> float:
+def leis_giv_lab(myPars: Pars, labor: float, health: float) -> float:
     """
     encodes the time endowment constraint
     """
@@ -28,7 +28,7 @@ def leis_giv_lab(myPars : Pars, labor : float, health : float) -> float:
 
 #convert leisure to labor within period
 @njit
-def lab_giv_leis(myPars : Pars, leisure : float, health : float) -> float:
+def lab_giv_leis(myPars: Pars, leisure: float, health: float) -> float:
     """
     encodes the time endowment constraint
     """
@@ -61,7 +61,7 @@ def c_giv_leis(myPars: Pars,  leis: float, wage: float) -> float:
 
 #utility function given leisure and consumption
 @njit
-def util_giv_leis(myPars : Pars, c : float, leis : float) -> float:
+def util_giv_leis(myPars: Pars, c: float, leis: float) -> float:
     """
     utility function
     """
@@ -90,7 +90,7 @@ def util_c(myPars: Pars, c: float, wage: float) -> float:
 
 #inverse of the derivative of the utility function with respect to consumption
 @njit
-def util_c_inv(myPars : Pars, u: float, wage: float) ->float:
+def util_c_inv(myPars: Pars, u: float, wage: float) ->float:
     """
     given a marginal utility u and a current wage return the consumption that yields that utility
     """
@@ -105,7 +105,7 @@ def util_c_inv(myPars : Pars, u: float, wage: float) ->float:
 
 # infer what current consumption should be given future consumption, curr wage, and the curr state space
 #@njit
-def infer_c(myPars : Pars, curr_wage : float, age : int, lab_fe : float, health : float, nu : float, c_prime : float ) -> float: 
+def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: float, nu: float, c_prime: float ) -> float: 
     """
     calculated expectation on rhs of euler, calc the rest of the rhs, then invert util_c to get the curr c on the lhs
     """
@@ -132,12 +132,12 @@ def infer_c(myPars : Pars, curr_wage : float, age : int, lab_fe : float, health 
         print("util_c_inverse: Cannot divide by zero.")
         print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
         sys.exit()
-        
+
     return c  
 
 # given current choice of c and a_prime, as well the state's wage and health 
 @njit
-def solve_lab_a(myPars : Pars, c : float, a_prime : float,  curr_wage : float, health : float) -> float:
+def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, health: float) -> float:
     """
     solve for labor and assets given consumption and wage
     """
@@ -148,7 +148,7 @@ def solve_lab_a(myPars : Pars, c : float, a_prime : float,  curr_wage : float, h
 
 #calulate deterministic part of the wage given health and age 
 @njit
-def det_wage(myPars : Pars, health : float, age : int) -> float:
+def det_wage(myPars: Pars, health: float, age: int) -> float:
     """
     deterministic part of the wage process
     """
@@ -158,7 +158,7 @@ def det_wage(myPars : Pars, health : float, age : int) -> float:
 
 #calculate the wage given health, age, lab_fe, and nu i.e. the shocks
 @njit
-def wage(myPars : Pars,  age : int, lab_fe : float, health : float,  nu : float) -> float:
+def wage(myPars: Pars,  age: int, lab_fe: float, health: float,  nu: float) -> float:
     """
     wage process
     """
@@ -171,8 +171,8 @@ if __name__ == "__main__":
     #initialize the parameters
     myPars = Pars()
 
-    #myWage : float = 25.0
-    health : float = 1.0
+    #myWage: float = 25.0
+    health: float = 1.0
 
     matc = np.linspace(0.0, 10.0, 10)
     c = 5.0

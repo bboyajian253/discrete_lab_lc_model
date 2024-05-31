@@ -1,5 +1,7 @@
 """
-Createdon 2024-05-18 01:09:42
+pars_shocks_and_wages.py
+
+Created on 2024-05-18 01:09:42
 
 by @author Ben Boyajian
 
@@ -10,8 +12,12 @@ import my_toolbox
 import numpy as np
 from math import exp,sqrt,log
 from numba import njit, guvectorize, float64, int64, prange, types
+from numba.core.types import unicode_type
 from numba.experimental import jitclass
 import time
+
+
+
 
 
 #a big list of parameter values for the model
@@ -68,7 +74,8 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('sim_interp_grid_spec', types.Tuple((float64, float64, int64))),
                 ('start_age', int64), #age to start the model at
                 ('end_age', int64), #age to end the model at
-                ('age_grid', int64[:]), #grid of ages 
+                ('age_grid', int64[:]), #grid of ages
+                ('path', unicode_type), #path to save results to
                 #('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
@@ -76,7 +83,7 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
 
 @jitclass(pars_spec)
 class Pars() :      
-    def __init__(self,     
+    def __init__(self, path,     
             # earnings parameters
             #(a lot of these are more like shocks and will be drawn in simulation)
             # either from data or randomly from a distribution
@@ -213,6 +220,8 @@ class Pars() :
         self.state_space_shape_sims = np.array([self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.sim_draws, self.J + 1])
 
         self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
+
+        self.path = path
 
         # self.wage_grid = self.gen_wages() 
 

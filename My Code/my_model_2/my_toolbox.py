@@ -176,7 +176,7 @@ def interpolate_coord(x, xq, xqi, xqpi):
 
 
 ####everything below comes from Blandin
-# i feel like this dimension index transformations should be renamed
+# i feel like these dimension index transformations should be renamed
 # since D2toD1 is returns 2 coordinates it should really be called 1Dto2D i think
 @njit
 def D2toD1(n, N0, N1):

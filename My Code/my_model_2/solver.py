@@ -12,7 +12,25 @@ import model_no_uncert as model
 from pars_shocks_and_wages import Pars
 from numba import njit, prange, float64
 
+
+
 def solv_lc( myPars: Pars)  :
     #start status csv
     pass
-def solve_per_j( myPars: Pars)
+
+# this may need to be not jitted
+@njit
+def solve_per_j( myPars: Pars) :
+    pass
+
+@njit
+def solve_per_j_iter( myPars: Pars) :
+    pass
+
+@njit
+def solve_j_indiv( myPars: Pars) :
+    pass
+
+@njit
+def trans_ap_to_a( myPars: Pars) :
+    pass
