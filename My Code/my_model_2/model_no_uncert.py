@@ -7,6 +7,7 @@ Author: Ben Boyajian
 Date: 2024-05-29 20:16:01
 """
 
+# Import packages
 import time
 import numpy as np
 from pars_shocks_and_wages import Pars
