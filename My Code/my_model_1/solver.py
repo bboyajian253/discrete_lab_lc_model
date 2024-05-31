@@ -4,7 +4,7 @@ Created on 2024-05-19 22:39:56
 @author: Ben Boyaian
 """
 #import my_toy_ls_model as model
-import basic_model_no_uncert as model
+import model_no_uncert as model
 import my_toolbox
 from pars_shocks_and_wages import Pars
 import traceback
@@ -51,6 +51,7 @@ def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_
     #c_prime = model.expect_util_c_prime(myPars, mat_cp_flat_shocks, possible_wages, health, nu)
     #print(c_prime_test)
     c = model.infer_c(myPars, curr_wage, j, lab_FE, health, nu, c_prime_test)
+    #c = max(myPars.c_min, c) # this is a bad hack should be fixed
 
     lab, a = model.solve_lab_a(myPars, c, a_prime, curr_wage, health)
     return a, c, lab 
@@ -84,7 +85,9 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
             lab = 0
             # use the BC to back out consumption
             c = max(myPars.c_min, a * (1 + myPars.r) + lab * curr_wage)
-            print("Last per c:", c)
+            if c < myPars.c_min:
+                print("Assets:", a)
+                print("Last per c:", c)
        
         else:  # but if its not the last period
             #this line here is likely to cause trouble I want the 2D matrix that remains after taking into account the current assets a and the lab fixed effect
