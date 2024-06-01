@@ -116,7 +116,8 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
         else:
             c_prime = mat_c_prime[ind_tuple]
             c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE, H, nu, c_prime)
-            print("State:", state, "C_prime:", c_prime, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
+            print("Indices:", ind_tuple, "State:", state) 
+            print("C_prime:", c_prime, "C:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
         # Store state specific solutions
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a
         
