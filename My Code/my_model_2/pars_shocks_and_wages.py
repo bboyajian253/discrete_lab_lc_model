@@ -10,9 +10,9 @@ by @author Ben Boyajian
 
 import my_toolbox
 import numpy as np
-from math import exp,sqrt,log
+from math import exp,sqrt,log,prod
 from numba import njit, guvectorize, float64, int64, prange, types
-from numba.core.types import unicode_type
+from numba.core.types import unicode_type, UniTuple
 from numba.experimental import jitclass
 import time
 
@@ -55,9 +55,11 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
                 ('H_trans', float64[:,:]), #matrix of health transition probabilities
-                ('state_space_shape', int64[:]), #the shape/dimensions of the full state space with time/age J
-                ('state_space_shape_no_j', int64[:]), #the shape/dimensions of the period state space with out time/age J
-                ('state_space_shape_sims', int64[:]), #the shape/dimensions of the period state space for simulations
+                ('state_space_shape', UniTuple(int64, 5)), #the shape/dimensions of the full state space with time/age J
+                #('state_space_shape_no_j', int64[:]), #the shape/dimensions of the period state space with out time/age J
+                ('state_space_shape_no_j', UniTuple(int64, 4)),
+                ('state_space_no_j_size', int64), #size of the state space with out time/age J
+                ('state_space_shape_sims', UniTuple(int64, 5)), #the shape/dimensions of the period state space for simulations
                 ('lab_min', float64 ), #minimum possible choice for labor, cannot pick less than 0 hours
                 ('lab_max', float64), # max possible for labor choice
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
@@ -137,7 +139,7 @@ class Pars() :
             H_trans = np.array([[0.7, 0.3],
                                [0.2, 0.8]]), 
 
-            lab_min = 0.0001,
+            lab_min = 0.00,
             lab_max = 1.0,
             c_min = 0.0001,
             leis_min = 0.0,
@@ -215,9 +217,10 @@ class Pars() :
         self.sim_draws = sim_draws
         self.print_screen = print_screen
 
-        self.state_space_shape = np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.J]) 
-        self.state_space_shape_no_j = np.array([self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size])
-        self.state_space_shape_sims = np.array([self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.sim_draws, self.J + 1])
+        self.state_space_shape = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.J) 
+        self.state_space_shape_no_j = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size)
+        self.state_space_shape_sims = (self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.sim_draws, self.J + 1)
+        self.state_space_no_j_size = self.a_grid_size * self.lab_FE_grid_size * self.H_grid_size * self.nu_grid_size
 
         self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
 
@@ -288,8 +291,8 @@ class Shocks:
 if __name__ == "__main__":
         print("Running main")
         start_time = time.time()
-        
-        myPars = Pars() 
+        path = "C:/Users/benja/Documents/My Code/my_model_2"
+        myPars = Pars(path) 
         print(myPars.beta * (1 + myPars.r))  
 
         # myShocks = Shocks(myPars)

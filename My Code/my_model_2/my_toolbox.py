@@ -16,6 +16,29 @@ import csv
 import matplotlib.pyplot as plt
 from time import time
 
+@njit
+def create_increasing_array(shape):
+    # Calculate the total number of elements in the array
+    tot_elem = 1
+    for dim in shape:
+        tot_elem *= dim
+    
+    # Create a 1D array with increasing values starting from 1
+    values = np.arange(1, tot_elem + 1)
+    
+    # Reshape the array to the desired shape
+    array = values.reshape(shape)
+    
+    return array
+
+
+def write_nd_array(writer, array, depth=0):
+    if array.ndim == 1:
+        writer.writerow(['  ' * depth + str(element) for element in array])
+    else:
+        for sub_array in array:
+            write_nd_array(writer, sub_array, depth + 1)
+            writer.writerow([])  # Blank row for separation at each level
 
 @njit(parallel=True)
 def manual_kron(a, b):

@@ -126,10 +126,9 @@ def solve_lc(r, w, par, par2):
     vlist = ['c', 'n', 'kk']
     #use the shape of the statespace to generate the shape of the container for each choice solutions
     state_solns = {v: np.empty(par2.shapestatesolns) for v in vlist}
-    ###Note: DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN par.sim_lc_jit
+    ###Note: DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN simulate.sim_lc_jit
 
     # Set values for period J+1 which imply zero (no benefit to saving in last period)
-    # define container for max c which is very large in the last period
     mc = 9e9 * np.ones(par2.shape_j) #this is a very big number
 
     # Solve life-cycle via backward induction

@@ -104,36 +104,37 @@ def util_c_inv(myPars: Pars, u: float, wage: float) ->float:
     return c
 
 # infer what current consumption should be given future consumption, curr wage, and the curr state space
-#@njit
+@njit
 def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: float, nu: float, c_prime: float ) -> float: 
     """
     calculated expectation on rhs of euler, calc the rest of the rhs, then invert util_c to get the curr c on the lhs
     """
-    try:
-        fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
-    except ZeroDivisionError:
-        print("wage: Cannot divide by zero.")
-        print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
-        sys.exit()
+    #try:
+    fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
+    # except ZeroDivisionError:
+    #     print("wage: Cannot divide by zero.")
+    #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
+    #     sys.exit()
         
-    try:
-        util = util_c(myPars, c_prime, fut_wage)
-    except ZeroDivisionError:
-        print("util_c: Cannot divide by zero.")
-        print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
-        sys.exit()
+    # try:
+    util = util_c(myPars, c_prime, fut_wage)
+    # except ZeroDivisionError:
+    #     print("util_c: Cannot divide by zero.")
+    #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
+    #     sys.exit()
     
     expect = util
     rhs = myPars.beta *(1 + myPars.r) * expect
     
-    try:
-        c = util_c_inv(myPars, rhs, curr_wage)
-    except ZeroDivisionError:
-        print("util_c_inverse: Cannot divide by zero.")
-        print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
-        sys.exit()
+    #try:
+    c = util_c_inv(myPars, rhs, curr_wage)
+    # except ZeroDivisionError:
+    #     print("util_c_inverse: Cannot divide by zero.")
+    #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
+    #     sys.exit()
 
-    return c  
+    #return c
+    return max(myPars.c_min, c)  
 
 # given current choice of c and a_prime, as well the state's wage and health 
 @njit
@@ -142,11 +143,23 @@ def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, healt
     solve for labor and assets given consumption and wage
     """
     lab = lab_giv_leis(myPars, leis_giv_c(myPars, c, curr_wage), health)
-    a = (c + a_prime - curr_wage*lab)/(1 + myPars.r) 
+    lab = min(myPars.lab_max, lab)
+    lab = max(myPars.lab_min, lab)
+
+    a = (c + a_prime - curr_wage*lab)/(1 + myPars.r)
+    a = max(myPars.a_min, a)
+    a = min(myPars.a_max, a) 
     return lab, a
 
-
+# return the optimal labor decision given an asset choice a_prime and a current asset level, health status, and wage
+@njit
+def lab_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float)-> float:
+    lab =  ( (myPars.alpha/myPars.phi_n)*(1 - myPars.phi_H*health)
+            + ((myPars.alpha - 1)/wage)*((1 + myPars.r)*a - a_prime))
+    
+    return max(myPars.lab_min, lab)
 #calulate deterministic part of the wage given health and age 
+
 @njit
 def det_wage(myPars: Pars, health: float, age: int) -> float:
     """
