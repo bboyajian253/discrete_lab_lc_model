@@ -12,12 +12,12 @@ import old_simulate as simulate
 import old_plot_lc as plot_lc
 import numpy as np
 
-main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output"
+main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
 
 def main():
     print("Running main")
 
-    myPars = ps.Pars(main_path, J=50, a_grid_size=50, a_min= -15.0, a_max = 15.0, lab_FE_grid=np.array([0.0, 0.5, 1.0]), H_grid=np.array([0.0]), nu_grid_size=1)
+    myPars = ps.Pars(main_path, J=10, a_grid_size=10, a_min= -15.0, a_max = 15.0, lab_FE_grid=np.array([0.0, 0.5, 1.0]), H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.25)
 
     myShocks = ps.Shocks(myPars)
     print("Path:", myPars.path)
@@ -25,5 +25,5 @@ def main():
     sim_lc = simulate.sim_lc(myPars, myShocks, sols)
     plot_lc.plot_lc_profiles(myPars, sim_lc)
 
-#run stuff
+#run stuff here
 main()

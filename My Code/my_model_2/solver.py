@@ -108,11 +108,15 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
         # Get  period solutions
         if last_per: # Consume everything and work as little as possible though i could put model.lab_star here with a_prime = 0
             lab, a = myPars.lab_min, a_prime
-            c =  max(myPars.c_min, a * (1 + myPars.r) + lab * curr_wage)
+            c = a * (1 + myPars.r) + lab * curr_wage
+            #if c < myPars.c_min:
+            print("State:", state, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
+            c =  max(myPars.c_min, c)
+            print("State:", state, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
         else:
             c_prime = mat_c_prime[ind_tuple]
             c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE, H, nu, c_prime)
-    
+            print("State:", state, "C_prime:", c_prime, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
         # Store state specific solutions
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a
         
