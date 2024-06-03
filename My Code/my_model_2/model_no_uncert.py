@@ -109,6 +109,7 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: flo
     """
     calculated expectation on rhs of euler, calc the rest of the rhs, then invert util_c to get the curr c on the lhs
     """
+    #return max(myPars.c_min, c_prime)
     #try:
     fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
     # except ZeroDivisionError:
@@ -133,7 +134,7 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: flo
     #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
     #     sys.exit()
 
-    #return c
+    c = c_prime
     return max(myPars.c_min, c)  
 
 # given current choice of c and a_prime, as well the state's wage and health 
@@ -143,6 +144,7 @@ def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, healt
     solve for labor and assets given consumption and wage
     """
     lab = lab_giv_leis(myPars, leis_giv_c(myPars, c, curr_wage), health)
+    #lab = invert_lab(myPars, c, curr_wage, health)
     lab = min(myPars.lab_max, lab)
     lab = max(myPars.lab_min, lab)
 
@@ -150,6 +152,32 @@ def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, healt
     a = max(myPars.a_min, a)
     a = min(myPars.a_max, a) 
     return lab, a
+
+@njit
+def invert_lab (myPars : Pars, c: float, curr_wage: float, health: float) -> float:
+    """
+    invert the foc to get labor given consumption and wage
+    """
+    rhs = (curr_wage/myPars.phi_n) * util_c(myPars, c, curr_wage)
+    leis = util_leis_inv(myPars, rhs, c)
+    lab = lab_giv_leis(myPars, leis, health)
+    return lab
+
+@njit
+def util_leis_inv(myPars: Pars, u: float, c: float) -> float:
+    """
+    invert the utility function with respect to leisure
+    """
+    alpha = myPars.alpha
+    sigma = myPars.sigma_util
+    phi_n = myPars.phi_n
+    phi_H = myPars.phi_H
+
+    out_exp = 1 / (alpha*sigma - alpha - sigma)
+    inside =(u * c ** (-alpha * (1-sigma)))/(1 - alpha)
+    return inside ** out_exp
+    
+
 
 # return the optimal labor decision given an asset choice a_prime and a current asset level, health status, and wage
 @njit
@@ -178,7 +206,7 @@ def wage(myPars: Pars,  age: int, lab_fe: float, health: float,  nu: float) -> f
     #det_wage = det_wage(myPars, health, age)
     det_wage = 1.0
     nu = 0.0
-    return  det_wage* np.exp(lab_fe) * np.exp(nu) 
+    return  det_wage* np.exp(lab_fe) * np.exp(nu)  
 
 if __name__ == "__main__":
     #initialize the parameters

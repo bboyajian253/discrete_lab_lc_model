@@ -21,7 +21,7 @@ from interpolation import interp # i use this for interpolation instead of eval_
 #@njit(parallel=True)
 @njit
 def sim_lc_numba(myPars : Pars, sim_vals_list, state_sols_list):
-    [sim_a, sim_lab, sim_c]  = sim_vals_list
+    [sim_c, sim_lab, sim_a]  = sim_vals_list
     [c_lc, lab_lc, a_prime_lc] = state_sols_list
 
     # simulate-forward life-cycle outcomes
@@ -50,7 +50,7 @@ def sim_lc_numba(myPars : Pars, sim_vals_list, state_sols_list):
                         sim_lab[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = lab
                         sim_a[lab_fe_ind, h_ind, nu_ind, sim_ind, j + 1] = a_prime
 
-    return [sim_a, sim_lab, sim_c]
+    return [sim_c, sim_lab, sim_a]
 
 
 def sim_lc(myPars : Pars, myShocks : Shocks, state_sols):
@@ -60,7 +60,7 @@ def sim_lc(myPars : Pars, myShocks : Shocks, state_sols):
 
     # initialize shells for life-cycle solutions
     #this is the list of results/moments we want to simulate
-    vlist = ['a', 'lab', 'c'] # could add interesting moments:, 'wage', 'leisure', 'health', 'income'
+    vlist = ['c', 'lab', 'a'] # could add interesting moments:, 'wage', 'leisure', 'health', 'income'
     # **NOTE** DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN sim_lc_jit
 
     #create dictionary where each v in varlist is a key and the value is a np array of -9999s with shape par2.shapesim

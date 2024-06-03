@@ -15,6 +15,7 @@ import numpy as np
 import csv
 from math import inf
 from typing import Tuple
+from interpolation.splines import eval_linear
 
 
 #solve the whole lifecycle for the given parameters return a dictionary of solutions
@@ -67,7 +68,7 @@ def solve_lc( myPars: Pars)-> dict:
 # Solve the individual period problem given the parameters and the period sates
 # this may need to be not jitted
 # we must always return the consumption first in the solve_per_j function
-@njit
+#@njit
 def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray)-> list:
     """
     solve for c, lab, and a_prime for a given period j
@@ -77,16 +78,17 @@ def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray)-
     shell_a_prime =  -inf * np.ones(shell_shape)
     shell_a = np.zeros(shell_shape)
 
-    mat_c, mat_lab, mat_a_prime = solve_per_j_iter(myPars, j, shell_a_prime, mat_c_prime, last_per)
+    mat_c_ap, mat_lab_ap, mat_a_prime_ap = solve_per_j_iter(myPars, j, shell_a_prime, mat_c_prime, last_per)
 
     ## Transform variables z(a, kk) to variables z(a, k) using k(a, kk) or something like that?
+    mat_c, mat_lab, mat_a_prime = transform_ap_to_a(myPars, shell_a, mat_c_ap, mat_lab_ap, mat_a_prime_ap, last_per)
 
     #mat_c, mat_lab, mat_a_prime = tb.create_increasing_array(myPars.state_space_shape_no_j), tb.create_increasing_array(myPars.state_space_shape_no_j), tb.create_increasing_array(myPars.state_space_shape_no_j) 
     return [mat_c, mat_lab, mat_a_prime]
 
 # Iterate over individual states
 #@njit(parallel=True)
-@njit
+#@njit
 def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prime: np.ndarray, last_per: bool)-> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Iterate over individual states.
@@ -129,7 +131,7 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
     
     return mat_c_ap, mat_lab_ap, mat_a_ap
 
-@njit
+#@njit
 def solve_j_indiv( myPars: Pars, a_prime: float, curr_wage: float, j: int, lab_fe: float, H: float, nu: float, c_prime: float)-> Tuple[float, float, float]:
     #c, lab, a = 1,2,3
 
@@ -142,11 +144,38 @@ def solve_j_indiv( myPars: Pars, a_prime: float, curr_wage: float, j: int, lab_f
 
     return c, lab, a
 
-@njit
-def trans_ap_to_a( myPars: Pars) :
-    pass
+#@njit
+def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, last_per) :
+  
+    mat_ap_a, mat_c_a, mat_lab_a = np.copy(shell_a), np.copy(shell_a), np.copy(shell_a)
+
+    evals = np.copy(myPars.a_grid)
+    evals = evals.reshape(myPars.a_grid_size, 1)
+    state_size_no_aj =  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size 
+    
+    for state in range(state_size_no_aj) :
+        lab_fe_ind, H_ind, nu_ind = tb.D3toD1(state, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
+        #convert soltuions from functions of a_prime to functions of a
+        points = (mat_a_ap[:, lab_fe_ind, H_ind, nu_ind],)
+        
+        # Debugging statements
+        print(f"state: {state} lab_fe_ind: {lab_fe_ind} H_ind: {H_ind} nu_ind: {nu_ind}")
+        print(f"points: {points}")
+        print(f"mat_c_ap[:, lab_FE_ind, H_ind, nu_ind]: {mat_c_ap[:, lab_fe_ind, H_ind, nu_ind]}")
+        print(f"evals: {evals}")
+
+        mat_c_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, mat_c_ap[:, lab_fe_ind, H_ind, nu_ind], evals)
+        mat_lab_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, mat_lab_ap[:, lab_fe_ind, H_ind, nu_ind], evals)
+
+        if not last_per: # default value is zero from shell_a, which is correct for last period
+            mat_ap_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, myPars.a_grid, evals)
+ 
+    sol_a = [mat_c_a, mat_lab_a, mat_ap_a]
+
+    return sol_a
+
 
 if __name__ == "__main__":
-    path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output"
-    myPars = Pars(path, J=3, a_grid_size=50, a_min= -15.0, a_max = 15.0, lab_FE_grid=np.array([0.0]), H_grid=np.array([0.0]), nu_grid_size=1)
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output"
+    myPars = Pars(main_path, J=25, a_grid_size=5, a_min= -5.0, a_max = 5.0, lab_FE_grid=np.array([0.0, 0.5, 1.0]), H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.5, )
     solve_lc(myPars)
