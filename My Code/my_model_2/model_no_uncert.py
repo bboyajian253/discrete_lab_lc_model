@@ -33,6 +33,7 @@ def lab_giv_leis(myPars: Pars, leisure: float, health: float) -> float:
     encodes the time endowment constraint
     """
     labor = (1.0 - leisure - (1-health)*myPars.phi_H) / myPars.phi_n #this denom should never be zero, phi_n != 0
+    #return labor
     labor = min(myPars.lab_max, labor)
     return max(myPars.lab_min, labor)
 
@@ -46,7 +47,12 @@ def leis_giv_c(myPars: Pars, c: float, wage: float) -> float:
     """
 
     constant = (myPars.phi_n * (1 - myPars.alpha)) / (wage * myPars.alpha) #this denom should !=0, wage is a product of exp != 0  
-    return constant * c
+    leis = constant * c
+    #leis = min(myPars.leis_max, leis)
+    #return max(myPars.leis_min, leis)
+    return leis
+   
+    
 
 #converty leisure to consumption within period
 @njit
@@ -111,20 +117,21 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: flo
     """
     #return max(myPars.c_min, c_prime)
     #try:
-    fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
+    #fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
+    fut_wage = curr_wage
     # except ZeroDivisionError:
     #     print("wage: Cannot divide by zero.")
     #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
     #     sys.exit()
         
     # try:
-    util = util_c(myPars, c_prime, fut_wage)
+    util_c_prime = util_c(myPars, c_prime, fut_wage)
     # except ZeroDivisionError:
     #     print("util_c: Cannot divide by zero.")
     #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
     #     sys.exit()
     
-    expect = util
+    expect = util_c_prime
     rhs = myPars.beta *(1 + myPars.r) * expect
     
     #try:
@@ -134,7 +141,8 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: flo
     #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
     #     sys.exit()
 
-    c = c_prime
+    #c = c_prime
+    #return c
     return max(myPars.c_min, c)  
 
 # given current choice of c and a_prime, as well the state's wage and health 
@@ -143,14 +151,18 @@ def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, healt
     """
     solve for labor and assets given consumption and wage
     """
-    lab = lab_giv_leis(myPars, leis_giv_c(myPars, c, curr_wage), health)
+    leis = leis_giv_c(myPars, c, curr_wage) 
+    leis = min(myPars.leis_max, leis)
+    leis = max(myPars.leis_min, leis)
+
+    lab = lab_giv_leis(myPars, leis, health)
     #lab = invert_lab(myPars, c, curr_wage, health)
     lab = min(myPars.lab_max, lab)
     lab = max(myPars.lab_min, lab)
 
     a = (c + a_prime - curr_wage*lab)/(1 + myPars.r)
-    a = max(myPars.a_min, a)
-    a = min(myPars.a_max, a) 
+    #a = min(myPars.a_max, a)
+    #a = max(myPars.a_min, a)
     return lab, a
 
 @njit
@@ -182,12 +194,12 @@ def util_leis_inv(myPars: Pars, u: float, c: float) -> float:
 # return the optimal labor decision given an asset choice a_prime and a current asset level, health status, and wage
 @njit
 def lab_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float)-> float:
-    lab =  ( (myPars.alpha/myPars.phi_n)*(1 - myPars.phi_H*health)
+    lab =  ( (myPars.alpha/myPars.phi_n)*(1 - myPars.phi_H*(1-health))
             + ((myPars.alpha - 1)/wage)*((1 + myPars.r)*a - a_prime))
-    
+    lab = min(myPars.lab_max, lab)
     return max(myPars.lab_min, lab)
-#calulate deterministic part of the wage given health and age 
 
+#calulate deterministic part of the wage given health and age 
 @njit
 def det_wage(myPars: Pars, health: float, age: int) -> float:
     """
@@ -208,21 +220,39 @@ def wage(myPars: Pars,  age: int, lab_fe: float, health: float,  nu: float) -> f
     nu = 0.0
     return  det_wage* np.exp(lab_fe) * np.exp(nu)  
 
+
+
+
 if __name__ == "__main__":
     #initialize the parameters
-    myPars = Pars()
+    path = "SomePath"
+    myPars = Pars(path)
 
-    #myWage: float = 25.0
+    myWage: float = 25.0
     health: float = 1.0
 
     matc = np.linspace(0.0, 10.0, 10)
     c = 5.0
     mat_leis = np.linspace(myPars.leis_min, myPars.leis_max, 10)
     mat_c = np.linspace(myPars.c_min, 10 + myPars.c_min, 10)
+    for c in mat_c:
+        #print(f'Consumption: {c}, Leisure: {leis_giv_c(myPars, c, myWage)}')
+        util = util_c(myPars, c, myWage)
+        rhs = myPars.beta *(1 + myPars.r) * util
+        #print(f'Consumption: {c}, Utility: {util}')
+        c_recovered = util_c_inv(myPars, rhs, myWage)
+        print(f'Consumption: {c}, Utility: {util}, RHS: {rhs}, Recovered Consumption: {c_recovered}')
+
+
 
     for health in myPars.H_grid:
         for j in range(myPars.J):
             for nu in myPars.nu_grid:
                 for lab_fe in myPars.lab_FE_grid:
-                   myWage = wage(myPars, j, lab_fe, health, nu)
-                   print(f'The wage for state health={health}, age={j}, lab_fe ={lab_fe}, nu = {nu} is \n {myWage}')
+                    for c_prime in mat_c:
+                        c = infer_c(myPars, myWage, j, lab_fe, health, nu, c_prime)
+                        print(f'C_prime {c_prime}, recoverred C {c}')
+
+                    #myWage = wage(myPars, j, lab_fe, health, nu)
+                    #print(f'The wage for state health={health}, age={j}, lab_fe ={lab_fe}, nu = {nu} is \n {myWage}')
+                    

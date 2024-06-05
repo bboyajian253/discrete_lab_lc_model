@@ -58,8 +58,8 @@ def solve_lc( myPars: Pars)-> dict:
         with open(fullpath, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([f'solved period {j} of {myPars.J}'])
-            writer.writerow([f'consumption {j} of {myPars.J}'])
-            tb.write_nd_array(writer, mat_c, 1)
+            #writer.writerow([f'consumption {j} of {myPars.J}'])
+            #tb.write_nd_array(writer, mat_c, 1)
             print(f'solved period {j} of {myPars.J}')
             #print(mat_c)
     
@@ -68,7 +68,7 @@ def solve_lc( myPars: Pars)-> dict:
 # Solve the individual period problem given the parameters and the period sates
 # this may need to be not jitted
 # we must always return the consumption first in the solve_per_j function
-#@njit
+@njit
 def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray)-> list:
     """
     solve for c, lab, and a_prime for a given period j
@@ -88,7 +88,7 @@ def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray)-
 
 # Iterate over individual states
 #@njit(parallel=True)
-#@njit
+@njit
 def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prime: np.ndarray, last_per: bool)-> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Iterate over individual states.
@@ -97,7 +97,7 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
     mat_c_ap, mat_lab_ap, mat_a_ap = np.copy(shell_a_prime), np.copy(shell_a_prime), np.copy(shell_a_prime)
     
     # Iterate over states
-    for state in range(myPars.state_space_no_j_size): #can be parellized with prange messes up order of any printings in the loop
+    for state in prange(myPars.state_space_no_j_size): #can be parellized with prange messes up order of any printings in the loop
         
         # Get state indices and values
         a_prime_ind, lab_FE_ind, H_ind, nu_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
@@ -107,19 +107,33 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
         # Get current wage ***AND FUTURE WAGE IF WAGE VARIES?***
         curr_wage = model.wage(myPars, j, lab_FE, H, nu)
         
+        #fullpath = myPars.path + '/status.csv'
+
         # Get  period solutions
         if last_per: # Consume everything and work as little as possible though i could put model.lab_star here with a_prime = 0
-            lab, a = myPars.lab_min, a_prime
+            #lab = myPars.lab_min
+            lab = model.lab_star(myPars, 0, a_prime, H, curr_wage)
+            a = a_prime
             c = a * (1 + myPars.r) + lab * curr_wage
-            #if c < myPars.c_min:
-            print("State:", state, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
             c =  max(myPars.c_min, c)
-            print("State:", state, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
+           
+           #print("State:", state, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab) 
+            # with open(fullpath, mode='a', newline='') as file:
+            #     writer = csv.writer(file)
+            #     #writer.writerow([f'solved period {j} of {myPars.J}'])
+            #     writer.writerow(["State:", state, "Assets in:", a, "Curr wage", curr_wage, "Consumption:", c, "Lab:", lab])
+        
         else:
             c_prime = mat_c_prime[ind_tuple]
             c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE, H, nu, c_prime)
-            print("Indices:", ind_tuple, "State:", state) 
-            print("C_prime:", c_prime, "C:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
+        
+            # print("Indices:", ind_tuple, "State:", state) 
+            # print("C_prime:", c_prime, "C:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
+            # with open(fullpath, mode='a', newline='') as file:
+            #     writer = csv.writer(file)
+            #     #writer.writerow([f'solved period {j} of {myPars.J}'])
+            #     writer.writerow(["State:", state, "Assets out:", a, "Curr wage", curr_wage, "Consumption:", c, "Lab:", lab])
+
         # Store state specific solutions
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a
         
@@ -131,7 +145,7 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
     
     return mat_c_ap, mat_lab_ap, mat_a_ap
 
-#@njit
+@njit
 def solve_j_indiv( myPars: Pars, a_prime: float, curr_wage: float, j: int, lab_fe: float, H: float, nu: float, c_prime: float)-> Tuple[float, float, float]:
     #c, lab, a = 1,2,3
 
@@ -144,7 +158,7 @@ def solve_j_indiv( myPars: Pars, a_prime: float, curr_wage: float, j: int, lab_f
 
     return c, lab, a
 
-#@njit
+@njit
 def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, last_per) :
   
     mat_ap_a, mat_c_a, mat_lab_a = np.copy(shell_a), np.copy(shell_a), np.copy(shell_a)
@@ -159,10 +173,10 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, la
         points = (mat_a_ap[:, lab_fe_ind, H_ind, nu_ind],)
         
         # Debugging statements
-        print(f"state: {state} lab_fe_ind: {lab_fe_ind} H_ind: {H_ind} nu_ind: {nu_ind}")
-        print(f"points: {points}")
-        print(f"mat_c_ap[:, lab_FE_ind, H_ind, nu_ind]: {mat_c_ap[:, lab_fe_ind, H_ind, nu_ind]}")
-        print(f"evals: {evals}")
+        # print(f"state: {state} lab_fe_ind: {lab_fe_ind} H_ind: {H_ind} nu_ind: {nu_ind}")
+        # print(f"points: {points}")
+        # print(f"mat_c_ap[:, lab_FE_ind, H_ind, nu_ind]: {mat_c_ap[:, lab_fe_ind, H_ind, nu_ind]}")
+        # print(f"evals: {evals}")
 
         mat_c_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, mat_c_ap[:, lab_fe_ind, H_ind, nu_ind], evals)
         mat_lab_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, mat_lab_ap[:, lab_fe_ind, H_ind, nu_ind], evals)

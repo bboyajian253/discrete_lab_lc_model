@@ -14,7 +14,7 @@ from scipy.stats import multivariate_normal as mvn
 from scipy.stats import norm
 import csv
 import matplotlib.pyplot as plt
-from time import time
+import time
 
 @njit
 def create_increasing_array(shape):
@@ -58,7 +58,7 @@ def gen_flat_joint_trans(trans1, trans2):
     return joint_transition.flatten()
 
 def print_exec_time ( mess : str , start_time) :    
-    end_time = time()
+    end_time = time.perf_counter()
     execution_time = end_time - start_time
     print(mess, execution_time, "seconds")
 

@@ -200,12 +200,13 @@ class Pars() :
         self.interp_c_prime_grid = np.zeros(self.H_by_nu_size)
         self.interp_eval_points = np.zeros(1)
 
-        self.lab_min = lab_min
-        self.lab_max = lab_max
-
         self.c_min = c_min
 
         self.leis_min,self.leis_max = leis_min, leis_max
+
+
+        self.lab_min = lab_min
+        self.lab_max = leis_max / self.phi_n
 
         ###initialize time/age, number of draws and other procedural parameters
         self.dt,self.J = dt,J
