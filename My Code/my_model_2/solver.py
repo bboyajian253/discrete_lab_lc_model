@@ -54,14 +54,29 @@ def solve_lc( myPars: Pars)-> dict:
         mat_c = per_sol_list[0] #this means we must always return the consumption first in the solve_per_j function
         
         # Print status of life-cycle solution both to the terminal and store in the status.csv file
+        print(f'solved period {j} of {myPars.J}')
         fullpath = myPars.path + '/status.csv'
         with open(fullpath, mode='a', newline='') as file:
-            writer = csv.writer(file)
+            writer = csv.writer(file, quoting=csv.QUOTE_NONE, escapechar='\\')
             writer.writerow([f'solved period {j} of {myPars.J}'])
-            #writer.writerow([f'consumption {j} of {myPars.J}'])
-            #tb.write_nd_array(writer, mat_c, 1)
-            print(f'solved period {j} of {myPars.J}')
-            #print(mat_c)
+            
+            if myPars.print_screen >= 2:
+                for state in range(np.prod(myPars.state_space_shape_no_j)):
+                    a_ind, lab_FE_ind, H_ind, nu_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
+                    ind_tuple = (a_ind, lab_FE_ind, H_ind, nu_ind, j) # also incorporate j in the tuple
+                    # Create row elements without using f-strings
+                    state_row = ['state:', state, 
+                                'a:', myPars.a_grid[a_ind], 
+                                'lab_FE:', myPars.lab_FE_grid[lab_FE_ind], 
+                                'H:', myPars.H_grid[H_ind], 
+                                'nu:', myPars.nu_grid[nu_ind], 
+                                'j:', j]
+                    writer.writerow(state_row)
+                    
+                    # Create solution row elements without using f-strings
+                    solution_row = ['c:', state_sols["c"][ind_tuple], 'lab:', state_sols["lab"][ind_tuple], 'a_prime:', state_sols["a_prime"][ind_tuple]]
+                    writer.writerow(solution_row)
+
     
     return state_sols
     
