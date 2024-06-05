@@ -115,7 +115,7 @@ class Pars() :
             lab_FE_grid = np.array([0.0,0.051]),
                         # utility parameters
             beta = 0.95, # discount factor
-            alpha = 0.987925, #.5, # cobb douglass returns to consumption
+            alpha = 0.70, #.5, # cobb douglass returns to consumption
             sigma_util = 3, # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
 
             # time costs and health costs
