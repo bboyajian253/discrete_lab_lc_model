@@ -602,8 +602,15 @@ def plot_histogram(partition,
             pen.writerow([lbl2, mn2, sd2] + list(mult2 * data2))
 
 @njit
-def quadratic(j, params):
+def quadratic(j: int, params: np.ndarray) -> float:
     """
     evaluate quadratic in j given parameters params = [p0, p1, p2]
     """
     return params[0] + params[1] * j + params[2] * j ** 2
+
+@njit
+def cubic(j : int, params : np.ndarray) -> float:
+    """
+    evaluate cubic in j given parameters params = [p0, p1, p2, p3]
+    """
+    return params[0] + params[1] * j + params[2] * j ** 2 + params[3] * j ** 3

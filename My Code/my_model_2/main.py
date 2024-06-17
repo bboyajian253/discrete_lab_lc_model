@@ -10,7 +10,7 @@ import model_no_uncert as model
 import my_toolbox as tb
 import solver
 import old_simulate as simulate
-import old_plot_lc as plot_lc
+import plot_lc as plot_lc
 import numpy as np
  
 
@@ -20,11 +20,18 @@ def simulate_test(start_time, main_path):
 
     new_start_time = time.perf_counter()
     #fe_grid = np.arange(6.0)
-    fe_grid = np.array([2.30259,2.99573,3.4012]) #calibrated so that wages = 10, 20, 30 respectively
-    #fe_grid = np.arange(0.0, 4.0, 0.5) #roughly approximates 0.5 spacing from above wage calibration
-    #what should alpha be 0.45 or 0.70?
+    FE_grid = np.array([2.30259,2.99573,3.4012]) #calibrated so that wages = 10, 20, 30 respectively
+    num_FE_types = len(FE_grid)
+    w_coeff_grid = np.zeros([num_FE_types, 4])
+    w_coeff_grid[0, :] = [10.0, 0.0, 0.0, 0.0]
+    w_coeff_grid[1, :] = [20.0, 0.0, 0.0, 0.0]
+    w_coeff_grid[2, :] = [30.0, 0.0, 0.0, 0.0]
+    #should alpha be 0.45 or 0.70?
     myPars = ps.Pars(main_path, J=50, a_grid_size=100, a_min= -15.0, a_max = 15.0, 
-                     lab_FE_grid=fe_grid, H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.70, sim_draws=1000, print_screen=3)
+                     lab_FE_grid=FE_grid, H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, 
+                     wage_coeff_grid=w_coeff_grid,
+                     print_screen=3)
+    
     tb.print_exec_time("Pars 1 compiled and initialized in", new_start_time)
 
     new_start_time = time.perf_counter()

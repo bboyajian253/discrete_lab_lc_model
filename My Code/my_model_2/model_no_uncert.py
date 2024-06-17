@@ -11,7 +11,7 @@ Date: 2024-05-29 20:16:01
 import time
 import numpy as np
 from pars_shocks_and_wages import Pars
-import my_toolbox
+import my_toolbox as tb
 from numba import njit, guvectorize, prange 
 from interpolation import interp
 import sys
@@ -211,14 +211,16 @@ def det_wage(myPars: Pars, health: float, age: int) -> float:
 
 #calculate the wage given health, age, lab_fe, and nu i.e. the shocks
 @njit
-def wage(myPars: Pars,  age: int, lab_fe: float, health: float,  nu: float) -> float:
+def wage(myPars: Pars,  age: int, lab_fe_ind: int, health: float,  nu: float) -> float:
     """
     wage process
     """
+    return tb.cubic(age, myPars.wage_coeff_grid[lab_fe_ind])
+    
     #det_wage = det_wage(myPars, health, age)
-    det_wage = 1.0
-    nu = 0.0
-    return  det_wage* np.exp(lab_fe) * np.exp(nu)  
+    # det_wage = 1.0
+    # nu = 0.0
+    # return  det_wage* np.exp(lab_fe) * np.exp(nu)  
 
 
 
