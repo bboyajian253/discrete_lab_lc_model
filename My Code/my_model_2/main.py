@@ -24,10 +24,10 @@ def simulate_test(start_time, main_path):
     num_FE_types = len(FE_grid)
     w_coeff_grid = np.zeros([num_FE_types, 4])
     w_coeff_grid[0, :] = [10.0, 0.0, 0.0, 0.0]
-    w_coeff_grid[1, :] = [20.0, 0.0, 0.0, 0.0]
-    w_coeff_grid[2, :] = [30.0, 0.0, 0.0, 0.0]
+    w_coeff_grid[1, :] = [20.0, 1.0, 0.0, 0.0]
+    w_coeff_grid[2, :] = [30.0, 2.0, 0.0, 0.0]
     #should alpha be 0.45 or 0.70?
-    myPars = ps.Pars(main_path, J=50, a_grid_size=100, a_min= -15.0, a_max = 15.0, 
+    myPars = ps.Pars(main_path, J=10, a_grid_size=100, a_min= -15.0, a_max = 15.0, 
                      lab_FE_grid=FE_grid, H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, 
                      wage_coeff_grid=w_coeff_grid,
                      print_screen=3)
