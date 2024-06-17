@@ -19,14 +19,17 @@ def simulate_test(start_time, main_path):
     tb.print_exec_time("Beginning to initilize pars", start_time)
 
     new_start_time = time.perf_counter()
-    #fe_grid = np.arange(6.0)
-    FE_grid = np.array([2.30259,2.99573,3.4012]) #calibrated so that wages = 10, 20, 30 respectively
+
+    #FE_grid = np.array([2.30259,2.99573,3.4012]) #calibrated so that wages = 10, 20, 30 respectively
+    FE_grid = np.array([1.0, 2.0, 3.0])
     num_FE_types = len(FE_grid)
+
     w_coeff_grid = np.zeros([num_FE_types, 4])
-    w_coeff_grid[0, :] = [10.0, 0.0, 0.0, 0.0]
-    w_coeff_grid[1, :] = [20.0, .5, 0.0, 0.0]
-    w_coeff_grid[2, :] = [30.0, 1.0, 0.0, 0.0]
-    #should alpha be 0.45 or 0.70?
+    w_coeff_grid[0, :] = [10.0, 0.0, -0.00, 0.0]
+    w_coeff_grid[1, :] = [20.0, .5, -0.010, 0.0]
+    w_coeff_grid[2, :] = [30.0, 1.0, -0.020, 0.0]
+
+    #should alpha be 0.45 or 0.70? Seems like 0.45 is the correct value will calibrate
     myPars = ps.Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, 
                      lab_FE_grid=FE_grid, H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, 
                      wage_coeff_grid=w_coeff_grid,
