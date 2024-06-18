@@ -32,8 +32,8 @@ def calib_alpha(myPars : Pars, main_path : str) -> float:
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     plot_lc.plot_lc_profiles(myPars, sim_lc)
     
-    labor_sims = sim_lc['c']
-    #print(labor_sims)
+    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
+    print(labor_sims)
     # get the mean labor worked across all labor fixed effect groups
     
     mean_lab = np.mean(labor_sims)
@@ -171,8 +171,8 @@ if __name__ == "__main__":
                     H_grid=np.array([1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
                     print_screen=3)
         
-        #calib_alpha(myPars, main_path)
-        print_params_to_csv(myPars, main_path)
-        print_exog_params_to_tex(myPars, main_path)
-        print_endog_params_to_tex(myPars, main_path)
-        print_wage_coeffs_to_tex(myPars, main_path)
+        calib_alpha(myPars, main_path)
+        #print_params_to_csv(myPars, main_path)
+        #print_exog_params_to_tex(myPars, main_path)
+        #print_endog_params_to_tex(myPars, main_path)
+        #print_wage_coeffs_to_tex(myPars, main_path)
