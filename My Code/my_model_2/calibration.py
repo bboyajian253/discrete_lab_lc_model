@@ -50,12 +50,29 @@ def print_endog_params_to_tex(myPars: Pars, main_path: str):
     '''this generates a latex table of the parameters'''
     tab = ["\\begin{tabular}{l l l l} \n"]
     tab.append("\\hline \n")
-    tab.append("Parameter & Description & Value & Source \\\\ \n") 
+    tab.append("Parameter & Description & Value & Target \\\\ \n") 
     tab.append("\\hline \n")   
     tab.append(f"$\\alpha$ & Capital share & {np.round(myPars.alpha, 4)} & Mean Hours Worked \\\\ \n") 
+    tab.append(f"$\\kappa$ & Borrowing constraint & {np.round(-myPars.a_min, 4)} & Unconstrained \\\\ \n") 
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     fullpath = main_path + 'parameters_endog.tex'
+    with open(fullpath, 'w', newline='\n') as pen:
+        for row in tab:
+            pen.write(row)
+
+def print_wage_coeffs_to_tex(myPars: Pars, main_path: str):
+    '''this generates a latex table of the parameters'''
+    tab = ["\\begin{tabular}{l l l l l l} \n"]
+    tab.append("\\hline \n")
+    tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & Description & Source \\\\ \n") 
+    tab.append("\\hline \n")   
+    tab.append(f"$\\beta_{{0\\gamma}}$ & {myPars.wage_coeff_grid[0][0]} &  {myPars.wage_coeff_grid[1][0]} & {myPars.wage_coeff_grid[2][0]} & Constant & Benchmark \\\\ \n")
+    tab.append(f"$\\beta_{{1\\gamma}}$ & {myPars.wage_coeff_grid[0][1]} &  {myPars.wage_coeff_grid[1][1]} & {myPars.wage_coeff_grid[2][1]} & Linear Coeff. & Benchmark \\\\ \n")
+    tab.append(f"$\\beta_{{2\\gamma}}$ & {myPars.wage_coeff_grid[0][2]} &  {myPars.wage_coeff_grid[1][2]} & {myPars.wage_coeff_grid[2][2]} & Quadratic Coeff. & Benchmark \\\\ \n")
+    tab.append("\\hline \n")
+    tab.append(f"\\end{{tabular}}")
+    fullpath = main_path + 'wage_coeffs.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
             pen.write(row)
@@ -68,7 +85,7 @@ def print_exog_params_to_tex(myPars: Pars, main_path: str):
     tab.append("Parameter & Description & Value & Source \\\\ \n") 
     tab.append("\\hline \n")
     tab.append(f"$R$ & Gross interest rate  & {np.round(1 + myPars.r, 4)} & Benchmark \\\\ \n")
-    tab.append(f"$\\beta$ & Patience & {np.round(myPars.beta, 4)} & $1/\\beta$ \\\\ \n")
+    tab.append(f"$\\beta$ & Patience & {np.round(myPars.beta, 4)} & $1/R$ \\\\ \n")
     tab.append(f"$\\sigma$ & CRRA & {np.round(myPars.sigma_util, 4)} & Benchmark \\\\ \n")
     tab.append(f"$\\phi_n$ & Labor time-cost & {np.round(myPars.phi_n, 4)} & Benchmark \\\\ \n")
     tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
@@ -158,3 +175,4 @@ if __name__ == "__main__":
         print_params_to_csv(myPars, main_path)
         print_exog_params_to_tex(myPars, main_path)
         print_endog_params_to_tex(myPars, main_path)
+        print_wage_coeffs_to_tex(myPars, main_path)
