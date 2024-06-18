@@ -239,6 +239,20 @@ class Pars() :
         #self._VF = np.zeros((self.nt+1,self.a_grid_size,2,2))
 
     #calculate the deterministic part of the wage
+    # def to_dict(self) -> dict:
+    #     return [('w_determ_cons', self.w_determ_cons), ('w_age', self.w_age), ('w_age_2', self.w_age_2), ('w_age_3', self.w_age_3), ('w_avg_good_health', self.w_avg_good_health), 
+    #             ('w_avg_good_health_age', self.w_avg_good_health_age), ('w_good_health', self.w_good_health), ('w_good_health_age', self.w_good_health_age), ('rho_nu', self.rho_nu), 
+    #             ('sigma_eps_2', self.sigma_eps_2), ('sigma_nu0_2', self.sigma_nu0_2), ('nu_grid', self.nu_grid), ('nu_grid_size', self.nu_grid_size), ('nu_trans', self.nu_trans),
+    #             ('sigma_gamma_2', self.sigma_gamma_2), ('lab_FE_grid', self.lab_FE_grid), ('lab_FE_grid_size', self.lab_FE_grid_size), ('beta', self.beta), ('alpha', self.alpha),
+    #             ('sigma_util', self.sigma_util), ('phi_n', self.phi_n), ('phi_H', self.phi_H), ('B2B', self.B2B), ('G2G', self.G2G), ('r', self.r), ('a_min', self.a_min), 
+    #             ('a_max', self.a_max), ('a_grid_growth', self.a_grid_growth), ('a_grid', self.a_grid), ('a_grid_size', self.a_grid_size), ('H_grid', self.H_grid), 
+    #             ('H_grid_size', self.H_grid_size), ('state_space_shape', self.state_space_shape), ('state_space_shape_no_j', self.state_space_shape_no_j), 
+    #             ('state_space_no_j_size', self.state_space_no_j_size), ('state_space_shape_sims', self.state_space_shape_sims), ('lab_min', self.lab_min),
+    #             ('lab_max', self.lab_max), ('c_min', self.c_min), ('leis_min', self.leis_min), ('leis_max', self.leis_max), ('dt', self.dt), ('sim_draws', self.sim_draws),
+    #             ('J', self.J), ('print_screen', self.print_screen), ('interp_c_prime_grid', self.interp_c_prime_grid), ('interp_eval_points', self.interp_eval_points),
+    #             ('H_by_nu_flat_trans', self.H_by_nu_flat_trans), ('H_by_nu_size', self.H_by_nu_size), ('sim_interp_grid_spec', self.sim_interp_grid_spec),
+    #             ('start_age', self.start_age), ('end_age', self.end_age), ('age_grid', self.age_grid), ('path', self.path), ('wage_coeff_grid', self.wage_coeff_grid)]
+            
 
     def det_wage(self, age, health) :
         """returns the deterministic part of the wage"""
