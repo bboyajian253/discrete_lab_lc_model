@@ -46,6 +46,7 @@ def calib_alpha(myPars : Pars, main_path : str) -> float:
     # if it is within a certain tolerance then return the alpha
     # if not then adjust alpha and repeat
     pass
+
 def print_params_to_tex(myPars: Pars, main_path: str):
     '''this generates a latex table of the parameters'''
     tab = ["\\begin{tabular}{l l l l} \n"]
@@ -55,6 +56,7 @@ def print_params_to_tex(myPars: Pars, main_path: str):
     tab.append(f"$R$ & Gross interest rate  & {np.round(1 + myPars.r, 4)} & Benchmark \\\\ \n")
     tab.append(f"$\\beta$ & Patience & {np.round(myPars.beta, 4)} & $1/\\beta$ \\\\ \n")
     tab.append(f"$\\sigma$ & CRRA & {np.round(myPars.sigma_util, 4)} & Benchmark \\\\ \n")
+    tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     fullpath = main_path + 'parameters_exog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
