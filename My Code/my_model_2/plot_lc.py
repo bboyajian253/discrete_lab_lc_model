@@ -53,7 +53,6 @@ def plot_lc_profiles(myPars : Pars, sim_lc) :
             ax.set_xlabel('Age')
             ax.set_xlim([age[0] - 2, age[-1] + 2]) #set the x axis limits
             ax.set_ylabel(modifier + ' ' + label)
-            
             if short_name == 'lab' and modifier != 'log':
                 ax.set_ylim([0, 1])
             # elif short_name == 'a' and modifier != 'log':
@@ -73,6 +72,20 @@ def plot_lc_profiles(myPars : Pars, sim_lc) :
                 writer.writerow(['age'] + list(age))
                 for row in lc:
                     writer.writerows(['model'] + list(lc))
+
+def plot_c_by_a(myPars : Pars, sim_lc):
+    pass
+    # fig, ax = plt.subplots()
+    # for lab_FE_ind in range(myPars.lab_FE_grid_size):
+    #     c_mean = np.average(sim_lc['c'][lab_FE_ind, 0, 0, :, :], axis=(0))
+    #     ax.plot(myPars.a_grid, label = f'Age: {age}')
+
+    
+    
+    
+    
+        
+  
 
 
 if __name__ == "__main__":

@@ -27,6 +27,13 @@ def create_incr_arr_test():
     my_arr = tb.create_increasing_array(myPars.state_space_shape_no_j)
     print(my_arr)
 
+def gen_wage_coeff_grid_test():
+    
+    # w_coeff_grid = np.zeros([num_FE_types, 4])
+    # for i in range(num_FE_types):
+    #     w_coeff_grid[i, :] = [10.0*(i+1), 0.5*(i), -0.010*(i), 0.0]
+    
+    pass
 
 
 

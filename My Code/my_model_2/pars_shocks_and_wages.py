@@ -104,7 +104,7 @@ class Pars() :
             w_good_health = 0.149000, # wage coeff on good health
             w_good_health_age = 0.000750, # wage coeff on good health X age
 
-            wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.0,0.0,0.0], [30.0,0.0,0.0,0.0]]),
+            wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0]]),
 
             # nu_t persistent AR(1) shock
             rho_nu = 0.9472, # the autocorrelation coefficient for the earnings shock nu
@@ -115,7 +115,7 @@ class Pars() :
             # gamma fixed productiviy drawn at birth
             sigma_gamma_2 = 0.051, # variance of initial dist of fixed effect on labor prod
             #a discrete list of productivities to use for testing
-            lab_FE_grid = np.array([0.0,0.051]),
+            lab_FE_grid = np.array([1.0, 2.0, 3.0]),
                         # utility parameters
             beta = 0.95, # discount factor
             alpha = 0.70, #.5, # cobb douglass returns to consumption
