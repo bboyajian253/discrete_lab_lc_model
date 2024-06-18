@@ -46,8 +46,22 @@ def calib_alpha(myPars : Pars, main_path : str) -> float:
     # if it is within a certain tolerance then return the alpha
     # if not then adjust alpha and repeat
     pass
+def print_endog_params_to_tex(myPars: Pars, main_path: str):
+    '''this generates a latex table of the parameters'''
+    tab = ["\\begin{tabular}{l l l l} \n"]
+    tab.append("\\hline \n")
+    tab.append("Parameter & Description & Value & Source \\\\ \n") 
+    tab.append("\\hline \n")   
+    tab.append(f"$\\alpha$ & Capital share & {np.round(myPars.alpha, 4)} & Mean Hours Worked \\\\ \n") 
+    tab.append("\\hline \n")
+    tab.append(f"\\end{{tabular}}")
+    fullpath = main_path + 'parameters_endog.tex'
+    with open(fullpath, 'w', newline='\n') as pen:
+        for row in tab:
+            pen.write(row)
 
-def print_params_to_tex(myPars: Pars, main_path: str):
+
+def print_exog_params_to_tex(myPars: Pars, main_path: str):
     '''this generates a latex table of the parameters'''
     tab = ["\\begin{tabular}{l l l l} \n"]
     tab.append("\\hline \n")
@@ -56,13 +70,14 @@ def print_params_to_tex(myPars: Pars, main_path: str):
     tab.append(f"$R$ & Gross interest rate  & {np.round(1 + myPars.r, 4)} & Benchmark \\\\ \n")
     tab.append(f"$\\beta$ & Patience & {np.round(myPars.beta, 4)} & $1/\\beta$ \\\\ \n")
     tab.append(f"$\\sigma$ & CRRA & {np.round(myPars.sigma_util, 4)} & Benchmark \\\\ \n")
+    tab.append(f"$\\phi_n$ & Labor time-cost & {np.round(myPars.phi_n, 4)} & Benchmark \\\\ \n")
+    tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     fullpath = main_path + 'parameters_exog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
             pen.write(row)
-    pass
 
 def print_params_to_csv(myPars: Pars, main_path: str):
     # store params in a csv 
@@ -141,4 +156,5 @@ if __name__ == "__main__":
         
         #calib_alpha(myPars, main_path)
         print_params_to_csv(myPars, main_path)
-        print_params_to_tex(myPars, main_path)
+        print_exog_params_to_tex(myPars, main_path)
+        print_endog_params_to_tex(myPars, main_path)
