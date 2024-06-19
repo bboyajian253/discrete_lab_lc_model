@@ -96,10 +96,10 @@ def print_exog_params_to_tex(myPars: Pars, main_path: str):
         for row in tab:
             pen.write(row)
 
-def print_params_to_csv(myPars: Pars, main_path: str):
+def print_params_to_csv(myPars: Pars):
     # store params in a csv 
     # print a table of the calibration results
-    my_path = main_path + "parameters.csv"
+    my_path = myPars.path + "parameters.csv"
     with open(my_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Parameter", "Value"])
