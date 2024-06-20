@@ -32,7 +32,8 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
     var_list = ['c', 'lab', 'a_prime']
     ### **NOTE:** DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN simulate.sim_lc_jit
     state_sols = {var: np.empty(myPars.state_space_shape) for var in var_list} 
-    print("state_sols shape", state_sols['c'].shape)
+    if myPars.print_screen >= 1:
+        print("state_sols shape", state_sols['c'].shape)
     
     # Set initial mat_c_prime = mat_c to a large number will be replaced anyways
     mat_c = inf * np.ones(myPars.state_space_shape_no_j) #this is a very big number
@@ -56,7 +57,8 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
         mat_c = per_sol_list[0] #this means we must always return the consumption first in the solve_per_j function
         
         # Print status of life-cycle solution both to the terminal and store in the status.csv file
-        print(f'solved period {j} of {myPars.J}')
+        if myPars.print_screen >= 2:
+            print(f'solved period {j} of {myPars.J}')
         fullpath = myPars.path + '/status.csv'
         with open(fullpath, mode='a', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_NONE, escapechar='\\')

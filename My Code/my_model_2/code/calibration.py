@@ -12,6 +12,7 @@ Date: 2024-06-17 15:01:32
 import numpy as np
 import csv
 from typing import Tuple, List, Dict
+import time
 
 # My code
 import my_toolbox as tb
@@ -30,34 +31,41 @@ def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, la
     sim_lc = {}
     
     for i in range(max_iters):
+        print(f"iteration {i} with alpha = {alpha_guess}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
         # solve model for a given alpha
-        mean_lab, state_sols, sim_lc = solve_giv_alpha(myPars, main_path, alpha_guess)
+        mean_lab, state_sols, sim_lc = solve_ret_mean_lab(myPars, main_path)
+        
         # compare mean labor worked to target mean labor worked
         # if within tolerance then return alpha
+        step_size = 0.005
         if np.abs(mean_lab - lab_targ) < lab_tol:
-            return alpha_guess, mean_lab, lab_targ, state_sols, sim_lc
+            print(f"Calibration complete after {i} iterations: converged to alpha = {alpha_guess}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
+            print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
+            plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
+            return alpha_guess, mean_lab, state_sols, sim_lc
         # if not then adjust alpha and repeat
         elif mean_lab < lab_targ:
-            alpha_guess += 0.01
+            alpha_guess += step_size 
         else:
-            alpha_guess -= 0.01
+            alpha_guess -= step_size
+        myPars.alpha = alpha_guess # is this the way to do this? is myPars mutable?
 
-    print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
     # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
+    print(f"Calibration did not converge after {max_iters} iterations: alpha = {alpha_guess}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
+    print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
+    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     return alpha_guess, mean_lab, state_sols, sim_lc
     
 
-def solve_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def solve_ret_mean_lab(myPars : Pars, main_path : str) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
         this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
         and the model solutions and simulations
     ''' 
     # solve, simulate and plot model for a given alpha
-    myPars.alpha = new_alpha # is this the way to do this? is myPars mutable?
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
     mean_lab = np.mean(labor_sims)
 
@@ -186,16 +194,17 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
     }
 #put a run if main function here
 if __name__ == "__main__":
+        start_time = time.perf_counter()
         main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
         myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, 
                     H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
-                    print_screen=3)
+                    print_screen=0)
         
         alpha_iters = 10
-        lab_tol = 0.001
+        lab_tol = 0.005
         lab_targ = 0.40
         alpha, mean_labor, state_sols, sims = calib_alpha(myPars, main_path, alpha_iters, lab_tol, lab_targ)
-        print(alpha, mean_labor, lab_targ)
+        tb.print_exec_time("Calibration main ran in", start_time)
 
         #mean_labor, state_sols, sims = solve_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)
         #print_params_to_csv(myPars, main_path)

@@ -252,10 +252,6 @@ class Pars() :
     #             ('J', self.J), ('print_screen', self.print_screen), ('interp_c_prime_grid', self.interp_c_prime_grid), ('interp_eval_points', self.interp_eval_points),
     #             ('H_by_nu_flat_trans', self.H_by_nu_flat_trans), ('H_by_nu_size', self.H_by_nu_size), ('sim_interp_grid_spec', self.sim_interp_grid_spec),
     #             ('start_age', self.start_age), ('end_age', self.end_age), ('age_grid', self.age_grid), ('path', self.path), ('wage_coeff_grid', self.wage_coeff_grid)]
-            
-
-    def set_alpha(self, alpha: float)-> None:
-        self.alpha = alpha
 
     def det_wage(self, age: int, health: float) -> float:
         """returns the deterministic part of the wage"""

@@ -18,7 +18,7 @@ sigma_gamma_2,0.051
 lab_FE_grid,[1. 2. 3.]
 lab_FE_grid_size,3
 beta,0.9803921568627451
-alpha,0.48000000000000004
+alpha,0.47000000000000003
 sigma_util,3.0
 phi_n,1.125
 phi_H,0.1
@@ -63,7 +63,7 @@ leis_max,1.0
 dt,2500
 sim_draws,1000
 J,50
-print_screen,3
+print_screen,0
 interp_c_prime_grid,[0. 0.]
 interp_eval_points,[0.]
 H_by_nu_flat_trans,"[0.68152 0.01848 0.29208 0.00792 0.01848 0.68152 0.00792 0.29208 0.19472

@@ -42,7 +42,8 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
 
         #Plot life-cycle profiles
         for modifier in ['', 'log']:
-            print(modifier, label)
+            if myPars.print_screen >= 2:
+                print(modifier, label)
             fig, ax = plt.subplots()
 
             if modifier == 'log':
