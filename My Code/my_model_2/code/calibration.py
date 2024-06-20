@@ -22,7 +22,7 @@ from pars_shocks_and_wages import Pars, Shocks
 import old_simulate as simulate
 import plot_lc as plot_lc
 
-def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, lab_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
     
     alpha_guess= myPars.alpha
@@ -30,38 +30,29 @@ def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, la
     state_sols = {}
     sim_lc = {}
     
-    for i in range(max_iters):
-        print(f"iteration {i} with alpha = {alpha_guess}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
-        # solve model for a given alpha
-        mean_lab, state_sols, sim_lc = solve_ret_mean_lab(myPars, main_path)
-        
-        # compare mean labor worked to target mean labor worked
-        # if within tolerance then return alpha
-        step_size = 0.005
-        if np.abs(mean_lab - lab_targ) < lab_tol:
-            print(f"Calibration complete after {i} iterations: converged to alpha = {alpha_guess}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
-            print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
-            plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
-            return alpha_guess, mean_lab, state_sols, sim_lc
-        # if not then adjust alpha and repeat
-        elif mean_lab < lab_targ:
-            alpha_guess += step_size 
-        else:
-            alpha_guess -= step_size
-        myPars.alpha = alpha_guess # is this the way to do this? is myPars mutable?
+    
+    # define the lambda function to find the zero of     
+    get_mean_lab_diff = lambda new_alpha: solve_mean_lab_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
+    # search for the alpha that is the zero of the lambda function
+    calib_alpha = tb.bisection_search(get_mean_lab_diff, 0.0001, 1.0, lab_tol, max_iters) 
 
-    # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
-    print(f"Calibration did not converge after {max_iters} iterations: alpha = {alpha_guess}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
+    # set the parameter to the calibrated value then solve, simulate and plot model for the calibrated alpha
+    myPars.alpha = calib_alpha # myPars is mutable
+    mean_lab, state_sols, sim_lc = solve_mean_lab_giv_alpha(myPars, main_path, calib_alpha)
+    print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
     print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
     plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
-    return alpha_guess, mean_lab, state_sols, sim_lc
+    
+    # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
+    return calib_alpha, mean_lab, state_sols, sim_lc
     
 
-def solve_ret_mean_lab(myPars : Pars, main_path : str) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def solve_mean_lab_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
         this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
         and the model solutions and simulations
     ''' 
+    myPars.alpha = new_alpha
     # solve, simulate and plot model for a given alpha
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
@@ -200,10 +191,10 @@ if __name__ == "__main__":
                     H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
                     print_screen=0)
         
-        alpha_iters = 10
-        lab_tol = 0.005
+        max_iters = 100
+        lab_tol = 0.00001
         lab_targ = 0.40
-        alpha, mean_labor, state_sols, sims = calib_alpha(myPars, main_path, alpha_iters, lab_tol, lab_targ)
+        alpha, mean_labor, state_sols, sims = calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
         tb.print_exec_time("Calibration main ran in", start_time)
 
         #mean_labor, state_sols, sims = solve_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)

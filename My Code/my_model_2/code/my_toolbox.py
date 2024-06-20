@@ -18,9 +18,34 @@ import time
 from typing import List, Dict, Tuple, Callable
 
 #function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
-# this is a simple bisection method
-def bisection_search(func: Callable, min: float, max: float, tol: float, max_iter: int, guess: float) -> float:
-    pass
+# this is a simple bisection method but this take advantage of the monotoniciy of the function to speed up the search?
+def bisection_search(func: Callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
+    x0 = min_val
+    x1 = max_val
+    f0 = func(x0)
+    f1 = func(x1)
+    
+    if f0 * f1 >= 0:
+        raise ValueError("Function values at the endpoints have the same sign. Bisection method cannot be applied.")
+    
+    for i in range(max_iter):
+        x_mid = (x0 + x1) / 2
+        f_mid = func(x_mid)
+        if print_screen > 0:
+            print(f"iteration {i}: x_mid = {x_mid}, f_mid = {f_mid}")
+        
+        if abs(f_mid) < tol:
+            return x_mid
+        
+        if f_mid * f0 < 0:
+            x1 = x_mid
+            f1 = f_mid
+        else:
+            x0 = x_mid
+            f0 = f_mid
+    
+    print("Bisection method did not converge within the specified number of iterations.")
+    return x_mid
 
 @njit
 def create_increasing_array(shape):
