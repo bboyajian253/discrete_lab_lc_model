@@ -51,10 +51,10 @@ a_grid,"[-500.         -489.8989899  -479.7979798  -469.6969697  -459.5959596
 a_grid_size,100
 H_grid,[0. 1.]
 H_grid_size,2
-state_space_shape,"(100, 3, 2, 1, 5)"
+state_space_shape,"(100, 3, 2, 1, 50)"
 state_space_shape_no_j,"(100, 3, 2, 1)"
 state_space_no_j_size,600
-state_space_shape_sims,"(3, 2, 1, 1000, 6)"
+state_space_shape_sims,"(3, 2, 1, 1000, 51)"
 lab_min,0.0
 lab_max,0.8888888888888888
 c_min,0.0001
@@ -62,7 +62,7 @@ leis_min,0.0
 leis_max,1.0
 dt,2500
 sim_draws,1000
-J,5
+J,50
 print_screen,3
 interp_c_prime_grid,[0. 0.]
 interp_eval_points,[0.]
@@ -71,8 +71,10 @@ H_by_nu_flat_trans,"[0.68152 0.01848 0.29208 0.00792 0.01848 0.68152 0.00792 0.2
 H_by_nu_size,2
 sim_interp_grid_spec,"(-500.0, 500.0, 100)"
 start_age,25
-end_age,31
-age_grid,[25 26 27 28 29 30]
+end_age,76
+age_grid,"[25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
+ 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72
+ 73 74 75]"
 path,C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/
 wage_coeff_grid,"[[ 1.e+01  0.e+00  0.e+00  0.e+00]
  [ 2.e+01  5.e-01 -1.e-02  0.e+00]

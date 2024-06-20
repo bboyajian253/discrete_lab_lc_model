@@ -7,15 +7,22 @@ Created by Ben Boyaian
 plots life-cycle simulations of calibrated model 
 
 """
-from pars_shocks_and_wages import Pars
+# import packages
+# General
 import numpy as np
 import matplotlib.pyplot as plt
 import my_toolbox
+from typing import List, Dict
+
+# My code
+from pars_shocks_and_wages import Pars
 import csv
 
-def plot_lc_profiles(myPars : Pars, sim_lc) :
+def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
     
     #define path
+    if path is None:
+        path = myPars.path
     #Generate variable labels lists
     var_lables = ['Consumption', 'Labor', 'Assets']
     #Generate the short names for the variables i think this should be their keys in the sim_lc dictionary
@@ -61,12 +68,12 @@ def plot_lc_profiles(myPars : Pars, sim_lc) :
             ax.legend()
 
             #save the figure
-            fullpath = myPars.path + f'fig_lc_{short_name}_{modifier}.pdf'
+            fullpath = path + f'fig_lc_{short_name}_{modifier}.pdf'
             fig.savefig(fullpath, bbox_inches='tight')
             plt.close()
 
             #save the data
-            fullpath = myPars.path + f'fig_lc_{short_name}_{modifier}.csv'
+            fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
             with open(fullpath, 'w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(['age'] + list(age))

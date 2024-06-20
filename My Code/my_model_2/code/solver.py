@@ -19,9 +19,11 @@ from interpolation.splines import eval_linear
 
 
 #solve the whole lifecycle for the given parameters return a dictionary of solutions
-def solve_lc( myPars: Pars)-> dict:
+def solve_lc(myPars: Pars, path: str = None )-> dict:
     # Start status csv
-    fullpath = myPars.path + "/status.csv"
+    if path is None:
+        path = myPars.path
+    fullpath = path + "/status.csv"
     with open(fullpath, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([f'solve_lc started'])

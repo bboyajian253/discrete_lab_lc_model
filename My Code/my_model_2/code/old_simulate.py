@@ -11,16 +11,18 @@ Created on 2024-05-21 21:47:16
 """
 
 #import stuff
-from pars_shocks_and_wages import Pars, Shocks
-#import my_toy_ls_model as model
-from interpolation.splines import eval_linear 
+# General
 import numpy as np
 from numba import njit, prange
+from interpolation.splines import eval_linear 
 from interpolation import interp # i use this for interpolation instead of eval_linear
+from typing import List, Dict
+# My code
+from pars_shocks_and_wages import Pars, Shocks
 
 #@njit(parallel=True)
 @njit
-def sim_lc_numba(myPars : Pars, sim_vals_list, state_sols_list):
+def sim_lc_numba(myPars : Pars, sim_vals_list: List[np.ndarray], state_sols_list: List[np.ndarray]) -> List[np.ndarray]:
     [sim_c, sim_lab, sim_a]  = sim_vals_list
     [c_lc, lab_lc, a_prime_lc] = state_sols_list
 
@@ -53,7 +55,7 @@ def sim_lc_numba(myPars : Pars, sim_vals_list, state_sols_list):
     return [sim_c, sim_lab, sim_a]
 
 
-def sim_lc(myPars : Pars, myShocks : Shocks, state_sols):
+def sim_lc(myPars : Pars, myShocks : Shocks, state_sols: Dict[str, np.ndarray])-> Dict[str, np.ndarray]:
     """
     simulate life-cycle profiles given state solutions (and shock processes if they exist)
     """
