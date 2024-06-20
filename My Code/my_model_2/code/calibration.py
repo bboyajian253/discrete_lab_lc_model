@@ -187,8 +187,23 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
 if __name__ == "__main__":
         start_time = time.perf_counter()
         main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
-        myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, 
+        
+        my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+        lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
+        quad_wage_coeffs = [-0.000, -0.020, -0.020, -0.020] 
+        cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
+
+        num_FE_types = len(my_lab_FE_grid)
+        w_coeff_grid = np.zeros([num_FE_types, 4])
+        
+        w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
+        w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
+        w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
+        w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
+
+        myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
                     H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
+                    wage_coeff_grid = w_coeff_grid,
                     print_screen=0)
         
         max_iters = 100
