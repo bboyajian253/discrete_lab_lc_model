@@ -15,6 +15,12 @@ from scipy.stats import norm
 import csv
 import matplotlib.pyplot as plt
 import time
+from typing import List, Dict, Tuple, Callable
+
+#function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
+# this is a simple bisection method
+def bisection_search(func: Callable, min: float, max: float, tol: float, max_iter: int, guess: float) -> float:
+    pass
 
 @njit
 def create_increasing_array(shape):
