@@ -22,31 +22,46 @@ import old_simulate as simulate
 import plot_lc as plot_lc
 
 def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, lab_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    for i in range(max):
+    print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
+    
+    alpha_guess= myPars.alpha
+    mean_lab = -999.999
+    state_sols = {}
+    sim_lc = {}
+    
+    for i in range(max_iters):
         # solve model for a given alpha
+        mean_lab, state_sols, sim_lc = solve_giv_alpha(myPars, main_path, alpha_guess)
         # compare mean labor worked to target mean labor worked
         # if within tolerance then return alpha
+        if np.abs(mean_lab - lab_targ) < lab_tol:
+            return alpha_guess, mean_lab, lab_targ, state_sols, sim_lc
         # if not then adjust alpha and repeat
-        # return the alpha, the resulting mean labor worked, and the target mean labor worked
-        pass
-    pass
+        elif mean_lab < lab_targ:
+            alpha_guess += 0.01
+        else:
+            alpha_guess -= 0.01
 
-def solve_giv_alpha(myPars : Pars, main_path : str, start_alpha: float, lab_tol: float, lab_targ) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
+    # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
+    return alpha_guess, mean_lab, state_sols, sim_lc
+    
+
+def solve_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
         this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
         and the model solutions and simulations
     ''' 
-    # solve model for a given alpha
+    # solve, simulate and plot model for a given alpha
+    myPars.alpha = new_alpha # is this the way to do this? is myPars mutable?
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
-    
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
     mean_lab = np.mean(labor_sims)
 
     # write parameters to a file
-    print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
     return mean_lab, state_sols, sim_lc
 
 def print_endog_params_to_tex(myPars: Pars, main_path: str)-> None:
@@ -176,11 +191,13 @@ if __name__ == "__main__":
                     H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
                     print_screen=3)
         
-        alpha_iters = 100
-        lab_tol = 0.01
+        alpha_iters = 10
+        lab_tol = 0.001
         lab_targ = 0.40
+        alpha, mean_labor, state_sols, sims = calib_alpha(myPars, main_path, alpha_iters, lab_tol, lab_targ)
+        print(alpha, mean_labor, lab_targ)
 
-        mean_labor, state_sols, sims = solve_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)
+        #mean_labor, state_sols, sims = solve_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)
         #print_params_to_csv(myPars, main_path)
         #print_exog_params_to_tex(myPars, main_path)
         #print_endog_params_to_tex(myPars, main_path)

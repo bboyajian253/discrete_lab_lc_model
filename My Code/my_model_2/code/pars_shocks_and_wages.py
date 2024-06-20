@@ -254,7 +254,10 @@ class Pars() :
     #             ('start_age', self.start_age), ('end_age', self.end_age), ('age_grid', self.age_grid), ('path', self.path), ('wage_coeff_grid', self.wage_coeff_grid)]
             
 
-    def det_wage(self, age, health) :
+    def set_alpha(self, alpha: float)-> None:
+        self.alpha = alpha
+
+    def det_wage(self, age: int, health: float) -> float:
         """returns the deterministic part of the wage"""
         age_comp = self.w_determ_cons + self.w_age*age + self.w_age_2*age*age + self.w_age_3*age*age*age 
         #gonna ignore average health which is in Capatina and the iniatialization of theis program for now, will work in more health states when i have composite types working.
@@ -269,7 +272,7 @@ class Pars() :
         return exp(self.det_wage(age, health)) * exp(fixed_effect) * exp(persistent_shock)    
         
     #generate the wage grid
-    def gen_wages(self):
+    def gen_wages(self) -> np.ndarray:
         #initialize the wage grid
         wages = np.zeros((self.J, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size))
         for j in prange(self.J):        
