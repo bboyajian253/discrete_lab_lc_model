@@ -23,21 +23,21 @@ import old_simulate as simulate
 import plot_lc as plot_lc
 
 def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
+    print_params_to_csv(myPars, file_name = "pre_alpha_calib_params.csv", path = main_path)
     
     alpha_guess= myPars.alpha
     mean_lab = -999.999
     state_sols = {}
     sim_lc = {}
     
-    
     # define the lambda function to find the zero of     
     get_mean_lab_diff = lambda new_alpha: solve_mean_lab_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
     # search for the alpha that is the zero of the lambda function
-    calib_alpha = tb.bisection_search(get_mean_lab_diff, 0.0001, 1.0, lab_tol, max_iters) 
-
-    # set the parameter to the calibrated value then solve, simulate and plot model for the calibrated alpha
-    myPars.alpha = calib_alpha # myPars is mutable
+    calib_alpha = tb.bisection_search(get_mean_lab_diff, myPars.lab_min + 0.0001, myPars.lab_max, lab_tol, max_iters) 
+    #set the parameter to the calibrated value then 
+    myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
+    
+    # solve, simulate and plot model for the calibrated alpha
     mean_lab, state_sols, sim_lc = solve_mean_lab_giv_alpha(myPars, main_path, calib_alpha)
     print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
     print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
