@@ -19,7 +19,7 @@ import my_toolbox as tb
 import solver
 import pars_shocks_and_wages as ps
 from pars_shocks_and_wages import Pars, Shocks
-import old_simulate as simulate
+import simulate
 import plot_lc as plot_lc
 
 def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:

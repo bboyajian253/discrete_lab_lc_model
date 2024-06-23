@@ -17,7 +17,7 @@ from typing import List, Dict
 # My code
 import my_toolbox as tb
 import solver
-import old_simulate as simulate
+import simulate as simulate
 import calibration as calib
 import plot_lc as plot_lc
 from pars_shocks_and_wages import Pars, Shocks
@@ -41,9 +41,9 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         tb.print_exec_time("Solver ran in", start_time)
     
     #always load state specific solutions
-    labels = ['c', 'lab', 'a_prime']
+    sol_labels = ['c', 'lab', 'a_prime']
     state_sols = {}
-    for label in labels:
+    for label in sol_labels:
         state_sols[label] = np.load(myPars.path + label + '_lc.npy')
 
     #if no_calibrate_but_sim, simulate without calibrating
@@ -55,9 +55,9 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         tb.print_exec_time("Simulate ran in", start_time)
 
     #always load simulated life cycles
-    labels = ['c', 'lab', 'a']
+    sim_labels = ['c', 'lab', 'a', 'wage', 'lab_income']
     sim_lc = {}
-    for label in labels:
+    for label in sim_labels:
         sim_lc[label] = np.load(myPars.path + f'sim{label}.npy')
 
     #if output, output the results

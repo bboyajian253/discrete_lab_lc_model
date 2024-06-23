@@ -9,7 +9,7 @@ import pars_shocks_and_wages as ps
 import model_no_uncert as model
 import my_toolbox as tb
 import solver
-import old_simulate as simulate
+import simulate as simulate
 import plot_lc as plot_lc
 import numpy as np
  
