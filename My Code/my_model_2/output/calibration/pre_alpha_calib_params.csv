@@ -77,6 +77,6 @@ age_grid,"[25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 
  73 74 75]"
 path,C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/
 wage_coeff_grid,"[[ 1.e+01  0.e+00 -0.e+00  0.e+00]
- [ 2.e+01  1.e+00 -2.e-02  0.e+00]
- [ 3.e+01  1.e+00 -2.e-02  0.e+00]
- [ 4.e+01  1.e+00 -2.e-02  0.e+00]]"
+ [ 2.e+01  1.e+00 -3.e-02  0.e+00]
+ [ 3.e+01  1.e+00 -3.e-02  0.e+00]
+ [ 4.e+01  1.e+00 -3.e-02  0.e+00]]"
