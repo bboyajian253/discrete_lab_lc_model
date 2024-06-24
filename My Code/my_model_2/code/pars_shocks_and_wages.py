@@ -79,7 +79,7 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('age_grid', int64[:]), #grid of ages
                 ('path', unicode_type), #path to save results to
                 ('wage_coeff_grid', float64[:,:]), #grid to hold the wage coefficients
-                ('wage_grid', float64[:,:,:,:]),
+                #('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
         ]
@@ -104,7 +104,7 @@ class Pars() :
             w_good_health = 0.149000, # wage coeff on good health
             w_good_health_age = 0.000750, # wage coeff on good health X age
 
-            wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0]]),
+            wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0], [40.0,1.5,-0.03,0.0]]),
 
             # nu_t persistent AR(1) shock
             rho_nu = 0.9472, # the autocorrelation coefficient for the earnings shock nu
@@ -233,7 +233,7 @@ class Pars() :
 
         self.path = path
 
-        self.wage_grid = self.gen_wages() 
+        #self.wage_grid = self.gen_wages() 
 
         #value function for all states; 0=age/time, 1=assets, 2=health, 3=fixed effect
         #self._VF = np.zeros((self.nt+1,self.a_grid_size,2,2))
@@ -279,7 +279,7 @@ class Pars() :
             for h_ind, health in enumerate(self.H_grid) :
                 for nu_ind, nu in enumerate(self.nu_grid):  
                     for lab_FE_ind, lab_FE in enumerate(self.lab_FE_grid):
-                        wages[j, lab_FE_ind, h_ind, nu_ind] = self.wage(j, lab_FE_ind, health, nu)
+                        wages[lab_FE_ind, h_ind, nu_ind, j] = self.wage(j, lab_FE_ind, health, nu)
         return wages
 
 shock_spec = [

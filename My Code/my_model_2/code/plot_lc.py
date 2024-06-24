@@ -24,9 +24,9 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
     if path is None:
         path = myPars.path
     #Generate variable labels lists
-    var_lables = ['Consumption', 'Labor', 'Assets']
+    var_lables = ['Consumption', 'Labor', 'Assets', 'Wage', 'Labor Income']
     #Generate the short names for the variables i think this should be their keys in the sim_lc dictionary
-    var_names_short = ['c', 'lab', 'a']
+    var_names_short = ['c', 'lab', 'a', 'wage', 'lab_income']
     #for each variable in the variable list zip the short names and label names together and loop through them
     for label, short_name in zip(var_lables, var_names_short):
         #initialize the life-cycle shells

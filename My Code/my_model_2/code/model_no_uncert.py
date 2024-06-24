@@ -211,7 +211,7 @@ def det_wage(myPars: Pars, health: float, age: int) -> float:
 
 #calculate the wage given health, age, lab_fe, and nu i.e. the shocks
 @njit
-def wage(myPars: Pars,  age: int, lab_fe_ind: int, health: float,  nu: float) -> float:
+def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: float,  nu_ind: float) -> float:
     """
     wage process
     """
@@ -220,10 +220,28 @@ def wage(myPars: Pars,  age: int, lab_fe_ind: int, health: float,  nu: float) ->
     #det_wage = det_wage(myPars, health, age)
     # det_wage = 1.0
     # nu = 0.0
-    # return  det_wage* np.exp(lab_fe) * np.exp(nu)  
+    # return  det_wage* np.exp(lab_fe) * np.exp(nu)
+@njit
+def gen_wages(myPars: Pars) -> np.ndarray:
+    """
+    generate the wage grid
+    """
+    #initialize the wage grid
+    wage_grid = np.zeros((myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size, myPars.J))
+    #loop through the wage grid
+    for j in range(myPars.J):
+        for h_ind in range(myPars.H_grid_size):
+            for nu_ind in range(myPars.nu_grid_size):
+                for lab_fe_ind in range(myPars.lab_FE_grid_size):
+                    wage_grid[lab_fe_ind, h_ind, nu_ind, j] = wage(myPars, j, lab_fe_ind, h_ind, nu_ind)
+    return wage_grid
 
-
-
+@njit
+def recover_wage(myPars: Pars, c: float, lab: float, a_prime: float, a: float) -> float: #this will divide by zero if lab = 0
+    """
+    recover the wage given consumption, labor, and assets
+    """
+    return (c + a_prime - (1 + myPars.r)*a) / lab
 
 if __name__ == "__main__":
     #initialize the parameters

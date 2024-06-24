@@ -17,85 +17,51 @@ import time
 # My code
 import my_toolbox as tb
 import solver
+import model_no_uncert as model
 import pars_shocks_and_wages as ps
 from pars_shocks_and_wages import Pars, Shocks
 import simulate
 import plot_lc as plot_lc
 
-def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    print_params_to_csv(myPars, file_name = "pre_alpha_calib_params.csv", path = main_path)
-    
-    alpha_guess= myPars.alpha
-    mean_lab = -999.999
-    state_sols = {}
-    sim_lc = {}
-    
-    # define the lambda function to find the zero of     
-    get_mean_lab_diff = lambda new_alpha: solve_mean_lab_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
-    # search for the alpha that is the zero of the lambda function
-    calib_alpha = tb.bisection_search(get_mean_lab_diff, myPars.lab_min + 0.0001, myPars.lab_max, lab_tol, max_iters) 
-    #set the parameter to the calibrated value then 
-    myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
-    
-    # solve, simulate and plot model for the calibrated alpha
-    mean_lab, state_sols, sim_lc = solve_mean_lab_giv_alpha(myPars, main_path, calib_alpha)
-    print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {lab_targ}")
-    print_params_to_csv(myPars, file_name = "alpha_calib_params.csv", path = main_path)
-    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
-    
-    # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
-    return calib_alpha, mean_lab, state_sols, sim_lc
-    
-
-def solve_mean_lab_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    '''
-        this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
-        and the model solutions and simulations
-    ''' 
-    myPars.alpha = new_alpha
-    # solve, simulate and plot model for a given alpha
-    shocks = Shocks(myPars)
-    state_sols = solver.solve_lc(myPars, main_path)
-    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
-    mean_lab = np.mean(labor_sims)
-
-    # write parameters to a file
-    return mean_lab, state_sols, sim_lc
-
-def print_endog_params_to_tex(myPars: Pars, main_path: str)-> None:
+def print_endog_params_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
     tab = ["\\begin{tabular}{l l l l} \n"]
     tab.append("\\hline \n")
     tab.append("Parameter & Description & Value & Target \\\\ \n") 
     tab.append("\\hline \n")   
     tab.append(f"$\\alpha$ & Capital share & {np.round(myPars.alpha, 4)} & Mean Hours Worked \\\\ \n") 
-    tab.append(f"$\\kappa$ & Borrowing constraint & {np.round(-myPars.a_min, 4)} & Unconstrained \\\\ \n") 
+    tab.append(f"$\\kappa$ & Borrowing constraint & {np.round(myPars.a_min, 4)} & Unconstrained \\\\ \n") 
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
-    fullpath = main_path + 'parameters_endog.tex'
+    if path is None:
+        path = myPars.path + 'calibration/'
+    fullpath = path + 'parameters_endog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
             pen.write(row)
 
-def print_wage_coeffs_to_tex(myPars: Pars, main_path: str)-> None:
+def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
-    tab = ["\\begin{tabular}{l l l l l l} \n"]
+    tab = ["\\begin{tabular}{l l l l l l l} \n"]
     tab.append("\\hline \n")
-    tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & Description & Source \\\\ \n") 
+    tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & $\\gamma_4$ & Description & Source \\\\ \n") 
     tab.append("\\hline \n")   
-    tab.append(f"$\\beta_{{0\\gamma}}$ & {myPars.wage_coeff_grid[0][0]} &  {myPars.wage_coeff_grid[1][0]} & {myPars.wage_coeff_grid[2][0]} & Constant & Benchmark \\\\ \n")
-    tab.append(f"$\\beta_{{1\\gamma}}$ & {myPars.wage_coeff_grid[0][1]} &  {myPars.wage_coeff_grid[1][1]} & {myPars.wage_coeff_grid[2][1]} & Linear Coeff. & Benchmark \\\\ \n")
-    tab.append(f"$\\beta_{{2\\gamma}}$ & {myPars.wage_coeff_grid[0][2]} &  {myPars.wage_coeff_grid[1][2]} & {myPars.wage_coeff_grid[2][2]} & Quadratic Coeff. & Benchmark \\\\ \n")
+    # for i in myPars.lab_FE_grid:
+    #     tab.append(f"$\\beta_{{{i}\\gamma}}$ & {myPars.wage_coeff_grid[0][i]} &  {myPars.wage_coeff_grid[1][i]} & {myPars.wage_coeff_grid[2][i]} & $j^{{{i}}}$ Coeff. & Moment Matched \\\\ \n") 
+    tab.append(f"$w_{{0\\gamma}}$ & {myPars.wage_coeff_grid[0][0]} &  {myPars.wage_coeff_grid[1][0]} & {myPars.wage_coeff_grid[2][0]} & {myPars.wage_coeff_grid[3][0]} & Constant & Benchmark \\\\ \n")
+    tab.append(f"$w_{{1\\gamma}}$ & {myPars.wage_coeff_grid[0][1]} &  {myPars.wage_coeff_grid[1][1]} & {myPars.wage_coeff_grid[2][1]} & {myPars.wage_coeff_grid[3][1]} & Linear Coeff. & Benchmark \\\\ \n")
+    tab.append(f"$w_{{2\\gamma}}$ & {myPars.wage_coeff_grid[0][2]} &  {myPars.wage_coeff_grid[1][2]} & {myPars.wage_coeff_grid[2][2]} & {myPars.wage_coeff_grid[3][2]} & Quadratic Coeff. & Benchmark \\\\ \n")
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
-    fullpath = main_path + 'wage_coeffs.tex'
+    if path is None:
+        path = myPars.path + 'calibration/'
+    fullpath = path + 'wage_coeffs.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
             pen.write(row)
 
 
-def print_exog_params_to_tex(myPars: Pars, main_path: str)-> None:
+def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
     tab = ["\\begin{tabular}{l l l l} \n"]
     tab.append("\\hline \n")
@@ -108,12 +74,14 @@ def print_exog_params_to_tex(myPars: Pars, main_path: str)-> None:
     tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
-    fullpath = main_path + 'parameters_exog.tex'
+    if path is None:
+        path = myPars.path + 'calibration/'
+    fullpath = path + 'parameters_exog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
             pen.write(row)
 
-def print_params_to_csv(myPars: Pars, file_name: str = "parameters.csv", path: str = None)-> None:
+def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parameters.csv")-> None:
     # store params in a csv 
     # print a table of the calibration results
     if path is None:
@@ -183,10 +151,106 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'path': pars_instance.path,
         'wage_coeff_grid': pars_instance.wage_coeff_grid
     }
+
+def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    print_params_to_csv(myPars, path = main_path, file_name = "pre_alpha_calib_params.csv")
+    alpha_guess= myPars.alpha
+    mean_lab = -999.999
+    state_sols = {}
+    sim_lc = {}
+    alpha_min = 0.00001 #alpha of 0 is not economically meaningful
+    alpha_max = 1.0
+    
+    # define the lambda function to find the zero of     
+    get_mean_lab_diff = lambda new_alpha: mean_lab_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
+    # search for the alpha that is the zero of the lambda function
+    calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, max_iters) 
+    myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
+    
+    # solve, simulate and plot model for the calibrated alpha
+    mean_lab, state_sols, sim_lc = mean_lab_giv_alpha(myPars, main_path, calib_alpha)
+    print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
+    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
+    print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
+    
+    # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
+    return calib_alpha, mean_lab, state_sols, sim_lc
+    
+
+def mean_lab_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    '''
+        this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
+        and the model solutions and simulations
+    ''' 
+    myPars.alpha = new_alpha
+    # solve, simulate and plot model for a given alpha
+    shocks = Shocks(myPars)
+    state_sols = solver.solve_lc(myPars, main_path)
+    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
+    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
+    mean_lab = np.mean(labor_sims)
+
+    # write parameters to a file
+    return mean_lab, state_sols, sim_lc
+
+def calib_w1_coeff(myPars: Pars, main_path: str, max_iters: int, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
+    w1_moment = -999.999
+    sate_sols = {}
+    sim_lc = {}
+    # define the lambda function to find the zero of
+    get_w1_diff = lambda new_coeff: moment_giv_w1(myPars, main_path, new_coeff) - target
+    # search for the w1 that is the zero of the lambda function
+    calib_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, max_iters)
+    # update the wage coeff grid butleave the first element as is i.e. with no wage growth
+    for i in range (1, myPars.lab_FE_grid_size):
+        myPars.wage_coeff_grid[i, 1] = calib_w1
+
+    # solve, simulate and plot model for the calibrated w1
+    w1_moment = moment_giv_w1(myPars, main_path, calib_w1)
+    print_params_to_csv(myPars, path = main_path, file_name = "w1_calib_params.csv")
+    shocks = Shocks(myPars)
+    state_sols = solver.solve_lc(myPars, main_path)
+    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
+    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
+    print(f"Calibration exited: w1 = {calib_w1}, wage growth = {w1_moment}, target wage growth = {target}") 
+
+    return calib_w1, w1_moment, state_sols, sim_lc
+
+#def w1_moment_giv_coeff(myPars: Pars, main_path, new_coeff: float)-> Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def moment_giv_w1(myPars: Pars, main_path, new_coeff: float)-> float:
+    for i in range (1, myPars.lab_FE_grid_size): #skip the first so the comparison group has no wage growth  
+        myPars.wage_coeff_grid[i, 1] = new_coeff
+    
+    # print("new wage coeff grid")
+    # print(myPars.wage_coeff_grid)
+    
+    # # solve, simulate and plot model for a given alpha
+    # shocks = Shocks(myPars)
+    # state_sols = solver.solve_lc(myPars, main_path)
+    # sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
+    # wage_sims = sim_lc['wage'][:,:,:,:,:myPars.J]
+    
+    # or just gen wages independently
+    wage_sims = model.gen_wages(myPars)
+    
+    # average wage sims by age j
+    # Compute mean across all axes except the last one
+    mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
+    
+    # print("mean wage")
+    # print(mean_wage)
+    #get distance from trough to peak
+    wage_diff = np.max(mean_wage) - mean_wage[0]
+    # print("wage growth")
+    # print(wage_diff)
+    #return wage_diff, state_sols, sim_lc
+    return wage_diff
 #put a run if main function here
 if __name__ == "__main__":
         start_time = time.perf_counter()
-        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
+        calib_path= "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
+        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
         
         my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
         lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
@@ -201,6 +265,9 @@ if __name__ == "__main__":
         w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
         w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
+        print("intial wage coeff grid")
+        print(w_coeff_grid)
+
         myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
                     H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
                     wage_coeff_grid = w_coeff_grid,
@@ -209,11 +276,20 @@ if __name__ == "__main__":
         max_iters = 100
         lab_tol = 0.00001
         lab_targ = 0.40
-        alpha, mean_labor, state_sols, sims = calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
+        alpha, mean_labor, state_sols, sims = calib_alpha(myPars, calib_path, max_iters, lab_tol, lab_targ)
+        
+        w1_tol = 0.01
+        w1_targ = 10.0
+        w1_min = 0.0
+        w1_max = 10.0
+
+        w1_calib, w1_moment, state_sol, sims = calib_w1_coeff(myPars, calib_path, max_iters, w1_tol, w1_targ, w1_min, w1_max)
+        
         tb.print_exec_time("Calibration main ran in", start_time)
 
-        #mean_labor, state_sols, sims = solve_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)
-        #print_params_to_csv(myPars, main_path)
-        #print_exog_params_to_tex(myPars, main_path)
-        #print_endog_params_to_tex(myPars, main_path)
-        #print_wage_coeffs_to_tex(myPars, main_path)
+        #mean_labor, state_sols, sims = mean_lab_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)
+        # print_params_to_csv(myPars, calib_path)
+        # print_exog_params_to_tex(myPars)
+        # print_endog_params_to_tex(myPars)
+        # print_wage_coeffs_to_tex(myPars)
+

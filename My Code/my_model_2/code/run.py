@@ -18,7 +18,7 @@ from typing import List, Dict
 import my_toolbox as tb
 import solver
 import simulate as simulate
-import calibration as calib
+import calibration
 import plot_lc as plot_lc
 from pars_shocks_and_wages import Pars, Shocks
 
@@ -53,6 +53,12 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         for label in sim_lc.keys():
             np.save(myPars.path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Simulate ran in", start_time)
+    elif calib:
+        start_time = time.perf_counter()
+        max_iters = 100
+        lab_tol = 1e-3
+        lab_targ = 0.40 
+        alpha, mean_labor, state_sols, sim_lc = calibration.calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
 
     #always load simulated life cycles
     sim_labels = ['c', 'lab', 'a', 'wage', 'lab_income']
@@ -68,7 +74,11 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
 
 def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray])-> None:
     # Print parameters
-    calib.print_params_to_csv(myPars)
+    calibration.print_params_to_csv(myPars)
+    #calib_path = myPars.path + 'calibration/'
+    calibration.print_exog_params_to_tex(myPars)
+    calibration.print_endog_params_to_tex(myPars)
+    calibration.print_wage_coeffs_to_tex(myPars)
     # Output the results and the associated graphs
     plot_lc.plot_lc_profiles(myPars, sim_lc)
 
@@ -95,4 +105,4 @@ if __name__ == "__main__":
     # Set up the shocks
     myShocks = Shocks(myPars)
     # Run the model
-    run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True)
+    run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)

@@ -17,13 +17,15 @@ from numba import njit, prange
 from interpolation.splines import eval_linear 
 from interpolation import interp # i use this for interpolation instead of eval_linear
 from typing import List, Dict
+
 # My code
 from pars_shocks_and_wages import Pars, Shocks
+import model_no_uncert as model
 
-#@njit(parallel=True)
+#@njit(parallel=True) # to paralleliize swap this decorator for the one below
 @njit
 def sim_lc_numba(myPars : Pars, sim_vals_list: List[np.ndarray], state_sols_list: List[np.ndarray]) -> List[np.ndarray]:
-    [sim_c, sim_lab, sim_a]  = sim_vals_list
+    [sim_c, sim_lab, sim_a, sim_wage, sim_lab_income]  = sim_vals_list
     [c_lc, lab_lc, a_prime_lc] = state_sols_list
 
     # simulate-forward life-cycle outcomes
@@ -41,13 +43,20 @@ def sim_lc_numba(myPars : Pars, sim_vals_list: List[np.ndarray], state_sols_list
                         c = interp(myPars.a_grid, c_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
                         lab = interp(myPars.a_grid, lab_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
                         a_prime = interp(myPars.a_grid, a_prime_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
-                        
+                        # wage = myPars.wage_grid[lab_fe_ind, h_ind, nu_ind, j] #not doing it this way since pulling from memory is likely slower than computation
+                        # wage = model.recover_wage(myPars, c, lab, a_prime, a) # has divide by zero issues
+                        wage = model.wage(myPars, j, lab_fe_ind, h_ind, nu_ind)
+                        lab_income = wage * lab # will  need  adjustment for taxes, etc. eventually, may need a function in model.py like recover_wage
+
                         # store the values of c, labor, and a_prime in the simulation arrays
                         sim_c[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = c
                         sim_lab[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = lab
                         sim_a[lab_fe_ind, h_ind, nu_ind, sim_ind, j + 1] = a_prime
+                        sim_wage[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = wage
+                        sim_lab_income[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = lab_income
+
     # infer wage and earnings outcomes given labor, constuption and assets 
-    return [sim_c, sim_lab, sim_a]
+    return [sim_c, sim_lab, sim_a, sim_wage, sim_lab_income]
 
 
 def sim_lc(myPars : Pars, myShocks : Shocks, state_sols: Dict[str, np.ndarray])-> Dict[str, np.ndarray]:
@@ -57,7 +66,7 @@ def sim_lc(myPars : Pars, myShocks : Shocks, state_sols: Dict[str, np.ndarray])-
 
     # initialize shells for life-cycle solutions
     #this is the list of results/moments we want to simulate
-    vlist = ['c', 'lab', 'a'] # could add interesting moments:, 'wage', 'leisure', 'health', 'income'
+    vlist = ['c', 'lab', 'a', 'wage', 'lab_income'] # could add interesting moments:, 'wage', 'leisure', 'health', 'income'
     # **NOTE** DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN sim_lc_jit
 
     #create dictionary where each v in varlist is a key and the value is a np array of -9999s with shape par2.shapesim
