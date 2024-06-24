@@ -1,12 +1,4 @@
 Parameter,Value
-w_determ_cons,1.011
-w_age,0.078
-w_age_2,-0.001035
-w_age_3,3e-06
-w_avg_good_health,0.201
-w_avg_good_health_age,0.00025
-w_good_health,0.149
-w_good_health_age,0.00075
 rho_nu,0.9472
 sigma_eps_2,0.0198
 sigma_nu0_2,0.093

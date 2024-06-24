@@ -194,7 +194,7 @@ def util_leis_inv(myPars: Pars, u: float, c: float) -> float:
 # return the optimal labor decision given an asset choice a_prime and a current asset level, health status, and wage
 @njit
 def lab_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float)-> float:
-    lab =  ( (myPars.alpha/myPars.phi_n)*(1 - myPars.phi_H*(1-health))
+    lab =  ((myPars.alpha/myPars.phi_n)*(1 - myPars.phi_H*(1-health))
             + ((myPars.alpha - 1)/wage)*((1 + myPars.r)*a - a_prime))
     lab = min(myPars.lab_max, lab)
     return max(myPars.lab_min, lab)

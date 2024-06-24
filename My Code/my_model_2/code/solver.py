@@ -124,7 +124,7 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
         ind_tuple = (a_prime_ind, lab_FE_ind, H_ind, nu_ind)
 
         # Get current wage ***AND FUTURE WAGE IF WAGE VARIES?***
-        curr_wage = model.wage(myPars, j, lab_FE_ind, H, nu)
+        curr_wage = model.wage(myPars, j, lab_FE_ind, H_ind, nu_ind)
         
         #fullpath = myPars.path + '/status.csv'
 

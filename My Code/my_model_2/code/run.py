@@ -56,9 +56,14 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
     elif calib:
         start_time = time.perf_counter()
         max_iters = 100
-        lab_tol = 1e-3
-        lab_targ = 0.40 
-        alpha, mean_labor, state_sols, sim_lc = calibration.calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
+        #alpha, mean_labor, state_sols, sim_lc = calibration.calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
+        lab_targ, w1_targ, w2_targ = 0.4, 0.4, 0.3
+        calib_path = myPars.path + 'calibration/'
+        calib_alpha, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path, max_iters, 
+                                                                                    lab_targ, w1_targ, w2_targ)
+        for label in sim_lc.keys():
+            np.save(myPars.path + f'sim{label}.npy', sim_lc[label])
+        tb.print_exec_time("Calibration ran in", start_time)
 
     #always load simulated life cycles
     sim_labels = ['c', 'lab', 'a', 'wage', 'lab_income']
@@ -86,22 +91,26 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
 if __name__ == "__main__":
    
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
-    # Set up the parameters
-    FE_grid = np.array([1.0, 2.0, 3.0])
-    num_FE_types = len(FE_grid)
+    my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+    lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
+    quad_wage_coeffs = [-0.000, -0.030, -0.030, -0.030] 
+    cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
 
+    num_FE_types = len(my_lab_FE_grid)
     w_coeff_grid = np.zeros([num_FE_types, 4])
-    # for i in range(num_FE_types):
-    #     w_coeff_grid[i, :] = [10.0*(i+1), 0.5*(i), -0.010*(i), 0.0]
-    w_coeff_grid[0, :] = [10.0, 0.0, -0.00, 0.0]
-    w_coeff_grid[1, :] = [20.0, .5, -0.010, 0.0]
-    w_coeff_grid[2, :] = [30.0, 1.0, -0.020, 0.0]
+    
+    w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
+    w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
+    w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
+    w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
-    #should alpha be 0.45 or 0.70? Seems like 0.45 is the correct value will calibrate
-    myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -300.0, a_max = 300.0, sigma_util=3.0,
-                     lab_FE_grid=FE_grid, H_grid=np.array([1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, 
-                     print_screen=3)
- 
+    print("intial wage coeff grid")
+    print(w_coeff_grid)
+
+    myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
+                H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
+                wage_coeff_grid = w_coeff_grid,
+                print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)
     # Run the model

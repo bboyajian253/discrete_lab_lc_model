@@ -10,6 +10,7 @@ Date: 2024-06-17 15:01:32
 # Import packages
 # General
 import numpy as np
+from numpy import log 
 import csv
 from typing import Tuple, List, Dict
 import time
@@ -42,15 +43,21 @@ def print_endog_params_to_tex(myPars: Pars, path: str = None)-> None:
 
 def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
-    tab = ["\\begin{tabular}{l l l l l l l} \n"]
+    tab = ["\\small\\begin{tabular}{l l l l l l l} \n"]
     tab.append("\\hline \n")
     tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & $\\gamma_4$ & Description & Source \\\\ \n") 
     tab.append("\\hline \n")   
     # for i in myPars.lab_FE_grid:
     #     tab.append(f"$\\beta_{{{i}\\gamma}}$ & {myPars.wage_coeff_grid[0][i]} &  {myPars.wage_coeff_grid[1][i]} & {myPars.wage_coeff_grid[2][i]} & $j^{{{i}}}$ Coeff. & Moment Matched \\\\ \n") 
-    tab.append(f"$w_{{0\\gamma}}$ & {myPars.wage_coeff_grid[0][0]} &  {myPars.wage_coeff_grid[1][0]} & {myPars.wage_coeff_grid[2][0]} & {myPars.wage_coeff_grid[3][0]} & Constant & Benchmark \\\\ \n")
-    tab.append(f"$w_{{1\\gamma}}$ & {myPars.wage_coeff_grid[0][1]} &  {myPars.wage_coeff_grid[1][1]} & {myPars.wage_coeff_grid[2][1]} & {myPars.wage_coeff_grid[3][1]} & Linear Coeff. & Benchmark \\\\ \n")
-    tab.append(f"$w_{{2\\gamma}}$ & {myPars.wage_coeff_grid[0][2]} &  {myPars.wage_coeff_grid[1][2]} & {myPars.wage_coeff_grid[2][2]} & {myPars.wage_coeff_grid[3][2]} & Quadratic Coeff. & Benchmark \\\\ \n")
+    tab.append(f"""$w_{{0\\gamma}}$ & {round(myPars.wage_coeff_grid[0][0], 3)} & {round(myPars.wage_coeff_grid[1][0], 3)} 
+               & {round(myPars.wage_coeff_grid[2][0], 3)} & {round(myPars.wage_coeff_grid[3][0])} 
+               & Constant & Benchmark \\\\ \n""")
+    tab.append(f"""$w_{{1\\gamma}}$ & {round(myPars.wage_coeff_grid[0][1], 3)} &  {round(myPars.wage_coeff_grid[1][1], 3)} 
+               & {round(myPars.wage_coeff_grid[2][1], 3)} & {round(myPars.wage_coeff_grid[3][1], 3)} 
+               & $j$ Coeff. & Wage Growth \\\\ \n""")
+    tab.append(f"""$w_{{2\\gamma}}$ & {round(myPars.wage_coeff_grid[0][2], 3)} &  {round(myPars.wage_coeff_grid[1][2], 3)} 
+               & {round(myPars.wage_coeff_grid[2][2], 3)} & {round(myPars.wage_coeff_grid[3][2], 3)} 
+               & $j^{{2}}$ Coeff. & Wage Decline \\\\ \n""")
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     if path is None:
@@ -95,14 +102,14 @@ def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parame
 
 def pars_to_dict(pars_instance: Pars) -> Dict:
     return {
-        'w_determ_cons': pars_instance.w_determ_cons,
-        'w_age': pars_instance.w_age,
-        'w_age_2': pars_instance.w_age_2,
-        'w_age_3': pars_instance.w_age_3,
-        'w_avg_good_health': pars_instance.w_avg_good_health,
-        'w_avg_good_health_age': pars_instance.w_avg_good_health_age,
-        'w_good_health': pars_instance.w_good_health,
-        'w_good_health_age': pars_instance.w_good_health_age,
+        # 'w_determ_cons': pars_instance.w_determ_cons,
+        # 'w_age': pars_instance.w_age,
+        # 'w_age_2': pars_instance.w_age_2,
+        # 'w_age_3': pars_instance.w_age_3,
+        # 'w_avg_good_health': pars_instance.w_avg_good_health,
+        # 'w_avg_good_health_age': pars_instance.w_avg_good_health_age,
+        # 'w_good_health': pars_instance.w_good_health,
+        # 'w_good_health_age': pars_instance.w_good_health_age,
         'rho_nu': pars_instance.rho_nu,
         'sigma_eps_2': pars_instance.sigma_eps_2,
         'sigma_nu0_2': pars_instance.sigma_nu0_2,
@@ -200,7 +207,6 @@ def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
     sim_lc = {}
     # define the lambda function to find the zero of
     get_w1_diff = lambda new_coeff: moment_giv_w1(myPars, main_path, new_coeff) - target
-    # search for the w1 that is the zero of the lambda function
     calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, max_iters)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
     for i in range (1, myPars.lab_FE_grid_size):
@@ -231,10 +237,10 @@ def moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
     
     # average wage sims by age j
     mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
-    print(f"moment_giv_w1: mean_wage = {mean_wage}")
+    #print(f"moment_giv_w1: mean_wage = {mean_wage}")
     #get distance from trough to peak
-    wage_diff = np.max(mean_wage) - mean_wage[0]
-    print(f"moment_giv_w1: wage_diff = {wage_diff}")
+    wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
+    #print(f"moment_giv_w1: wage_diff = {wage_diff}")
     #return wage_diff, state_sols, sim_lc
     return wage_diff
 
@@ -269,12 +275,32 @@ def moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
         myPars.wage_coeff_grid[i, 2] = new_coeff
     wage_sims = model.gen_wages(myPars)
     mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
-    print(f"moment_giv_w2: mean_wage = {mean_wage}")
-    wage_diff = np.max(mean_wage) - mean_wage[myPars.J-1]
-    print(f"moment_giv_w2: wage_diff = {wage_diff}")
+    # print(f"moment_giv_w2: mean_wage = {mean_wage}")
+    wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
+    #print(f"moment_giv_w2: wage_diff = {wage_diff}")
     return wage_diff
 
-#put a run if main function here
+def calib_all(myPars: Pars, calib_path: str, max_iters: int, lab_targ: float, w1_targ: float, w2_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    # calibrate alpha
+    lab_tol = 0.0001
+    #lab_targ = 0.40
+    alpha, alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, max_iters, lab_tol, lab_targ)
+    
+    w1_tol = 0.0001
+    #w1_targ = 0.50
+    w1_min = 0.0
+    w1_max = 10.0
+    w1_calib, w1_moment, state_sols, sims = calib_w1(myPars, calib_path, max_iters, w1_tol, w1_targ, w1_min, w1_max)
+
+    w2_tol = 0.0001
+    #w2_targ = 0.25
+    w2_min = -1.0
+    w2_max = 0.0
+    w2_calib, w2_moment, state_sols, sims = calib_w2(myPars, calib_path, max_iters, w2_tol, w2_targ, w2_min, w2_max)
+
+    return alpha, w1_calib, w2_calib, state_sols, sims
+
+
 if __name__ == "__main__":
         start_time = time.perf_counter()
         calib_path= "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
@@ -303,21 +329,8 @@ if __name__ == "__main__":
         
         max_iters = 100
 
-        lab_tol = 0.0001
-        lab_targ = 0.40
-        alpha, mean_labor, state_sols, sims = calib_alpha(myPars, calib_path, max_iters, lab_tol, lab_targ)
-        
-        w1_tol = 0.01
-        w1_targ = 10.0
-        w1_min = 0.0
-        w1_max = 10.0
-        w1_calib, w1_moment, state_sol, sims = calib_w1(myPars, calib_path, max_iters, w1_tol, w1_targ, w1_min, w1_max)
-
-        w2_tol = 0.01
-        w2_targ = 10.0
-        w2_min = -1.0
-        w2_max = 0.0
-        w2_calib, w2_moment, state_sol, sims = calib_w2(myPars, calib_path, max_iters, w2_tol, w2_targ, w2_min, w2_max)
+        alpha, w1, w2, state_sols, sims = calib_all(myPars, calib_path, max_iters)
+        print(f"Calibration main exited: alpha = {alpha}, w1 = {w1}, w2 = {w2}")
         
         tb.print_exec_time("Calibration main ran in", start_time)
 

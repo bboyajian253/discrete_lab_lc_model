@@ -22,14 +22,14 @@ import time
 
 #a big list of parameter values for the model
 
-pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp of wage regression
-                ('w_age', float64),  # wage coeff on age  
-                ('w_age_2', float64),  # wage coeff on age^2 
-                ('w_age_3', float64), # wage coeff on age^3
-                ('w_avg_good_health', float64), # wage coeff on avg or good health 
-                ('w_avg_good_health_age', float64), # wage coeff on avg or good health X age 
-                ('w_good_health', float64), # wage coeff on good health
-                ('w_good_health_age', float64), # wage coeff on good healht X age 
+pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic comp of wage regression
+                # ('w_age', float64),  # wage coeff on age  
+                # ('w_age_2', float64),  # wage coeff on age^2 
+                # ('w_age_3', float64), # wage coeff on age^3
+                # ('w_avg_good_health', float64), # wage coeff on avg or good health 
+                # ('w_avg_good_health_age', float64), # wage coeff on avg or good health X age 
+                # ('w_good_health', float64), # wage coeff on good health
+                # ('w_good_health_age', float64), # wage coeff on good healht X age 
                 ('rho_nu', float64), # the autocorrelation coefficient for the earnings shock nu
                 ('sigma_eps_2', float64), # variance of innovations
                 ('sigma_nu0_2', float64), # variance of initial distribution of the persistent component
@@ -95,14 +95,14 @@ class Pars() :
             # will need to be estimated for each composite health type, likely normalizing lambda_t_GG
             # for know lets use captina's calibration she estimates two sets of coeffecients
             # one for each education group college/noncollege ill take the avg for now
-            w_determ_cons = 1.011000, # constant in the deterministic comp of wage regression
-            w_age = 0.078000, # wage coeff on age 
-            w_age_2 = -0.001035, # wage coeff on age^2 
-            w_age_3 = 0.000003, # wage coeff on age^3
-            w_avg_good_health = 0.201000, # wage coeff on avg or good health
-            w_avg_good_health_age = 0.000250, # wage coeff on avg or good healt X age
-            w_good_health = 0.149000, # wage coeff on good health
-            w_good_health_age = 0.000750, # wage coeff on good health X age
+            # w_determ_cons = 1.011000, # constant in the deterministic comp of wage regression
+            # w_age = 0.078000, # wage coeff on age 
+            # w_age_2 = -0.001035, # wage coeff on age^2 
+            # w_age_3 = 0.000003, # wage coeff on age^3
+            # w_avg_good_health = 0.201000, # wage coeff on avg or good health
+            # w_avg_good_health_age = 0.000250, # wage coeff on avg or good healt X age
+            # w_good_health = 0.149000, # wage coeff on good health
+            # w_good_health_age = 0.000750, # wage coeff on good health X age
 
             wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0], [40.0,1.5,-0.03,0.0]]),
 
@@ -161,9 +161,9 @@ class Pars() :
         ###initialize earnings parameters###
         # lambda_t_H deterministic component
         # constant and age components
-        self.w_determ_cons,self.w_age,self.w_age_2,self.w_age_3 = w_determ_cons,w_age,w_age_2,w_age_3
+        #self.w_determ_cons,self.w_age,self.w_age_2,self.w_age_3 = w_determ_cons,w_age,w_age_2,w_age_3
         # health components
-        self.w_avg_good_health,self.w_avg_good_health_age,self.w_good_health,self.w_good_health_age = w_avg_good_health,w_avg_good_health_age,w_good_health,w_good_health_age
+        #self.w_avg_good_health,self.w_avg_good_health_age,self.w_good_health,self.w_good_health_age = w_avg_good_health,w_avg_good_health_age,w_good_health,w_good_health_age
         
         self.wage_coeff_grid = wage_coeff_grid
         

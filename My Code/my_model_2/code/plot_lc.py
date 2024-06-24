@@ -52,10 +52,12 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
                 lc = values
 
             #iterate through labor fixed effect groups (this is basically ability groups)
-            for lab_fe_ind in range(myPars.lab_FE_grid_size):    
-                #get the mean of the values over the labor fixed effect 
-                lc_mean = np.average(lc[lab_fe_ind, 0, 0, :], axis=(0))
-                ax.plot(age, lc_mean, label=myPars.lab_FE_grid[lab_fe_ind])
+            for h_ind in range(myPars.H_grid_size):
+                for lab_fe_ind in range(myPars.lab_FE_grid_size):    
+                    #get the mean of the values over the labor fixed effect 
+                    lc_mean = np.average(lc[lab_fe_ind, h_ind, 0, :], axis=(0))
+                    myLab = f"FE:{round(myPars.lab_FE_grid[lab_fe_ind])} H:{round(myPars.H_grid[h_ind])}"
+                    ax.plot(age, lc_mean, label=myLab)
             
             #specify axes and legend
             ax.set_xlabel('Age')
