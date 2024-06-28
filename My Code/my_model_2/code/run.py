@@ -91,9 +91,14 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
 if __name__ == "__main__":
    
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
+    # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+    # lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
+    # quad_wage_coeffs = [-0.000, -0.030, -0.030, -0.030] 
+    # cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
+
     my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
-    lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
-    quad_wage_coeffs = [-0.000, -0.030, -0.030, -0.030] 
+    lin_wage_coeffs = [0.0, 1.5, 1.5, 1.5]
+    quad_wage_coeffs = [-0.000, -0.025, -0.025, -0.025] 
     cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
 
     num_FE_types = len(my_lab_FE_grid)
@@ -113,5 +118,8 @@ if __name__ == "__main__":
                 print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)
-    # Run the model
+    # Run the model no calibration
+    run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True)
+    # Run the model with calibration
+    myPars.path = myPars.path + 'test_calib/'
     run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)
