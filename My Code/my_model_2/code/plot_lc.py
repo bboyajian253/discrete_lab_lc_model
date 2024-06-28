@@ -34,10 +34,13 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
         # some lasts depend on or are equal to the retirment age 
         j_last = myPars.J
 
-        age = myPars.age_grid[:j_last]
+        age_grid = myPars.age_grid[:j_last]
 
         #prep the sim variable for estimation
-        values = sim_lc[short_name][:, :, :, :, :j_last] # for each var get the the array of choices until the last age
+        if short_name == 'a':
+            values = sim_lc[short_name][:, :, :, :, :j_last+1]
+        else:
+            values = sim_lc[short_name][:, :, :, :, :j_last] # for each var get the the array of choices until the last age
         log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
 
         #Plot life-cycle profiles
@@ -57,11 +60,15 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
                     #get the mean of the values over the labor fixed effect 
                     lc_mean = np.average(lc[lab_fe_ind, h_ind, 0, :], axis=(0))
                     myLab = f"FE:{round(myPars.lab_FE_grid[lab_fe_ind])} H:{round(myPars.H_grid[h_ind])}"
-                    ax.plot(age, lc_mean, label=myLab)
+                    if short_name == 'a':
+                        a_age_grid = np.append(age_grid, age_grid[-1] + 1)
+                        ax.plot(a_age_grid, lc_mean, label=myLab) 
+                    else:
+                        ax.plot(age_grid, lc_mean, label=myLab)
             
             #specify axes and legend
             ax.set_xlabel('Age')
-            ax.set_xlim([age[0] - 2, age[-1] + 2]) #set the x axis limits
+            ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2]) #set the x axis limits
             ax.set_ylabel(modifier + ' ' + label)
             if short_name == 'lab' and modifier != 'log':
                 ax.set_ylim([0, 1])
@@ -79,7 +86,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
             with open(fullpath, 'w', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow(['age'] + list(age))
+                writer.writerow(['age'] + list(age_grid))
                 for row in lc:
                     writer.writerows(['model'] + list(lc))
 
