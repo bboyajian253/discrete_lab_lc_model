@@ -228,11 +228,9 @@ def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
 
     return calibrated_w1, w1_moment, state_sols, sim_lc
 
-#def w1_moment_giv_coeff(myPars: Pars, main_path, new_coeff: float)-> Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
 def w1_moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
     for i in range (1, myPars.lab_FE_grid_size): #skip the first so the comparison group has no wage growth  
         myPars.wage_coeff_grid[i, 1] = new_coeff
-    # shocks = Shocks(myPars)
     # state_sols = solver.solve_lc(myPars, main_path)
     # sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     # wage_sims = sim_lc['wage'][:,:,:,:,:myPars.J]
@@ -242,11 +240,7 @@ def w1_moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
     
     # average wage sims by age j
     mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
-    #print(f"moment_giv_w1: mean_wage = {mean_wage}")
-    #get distance from trough to peak
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
-    #print(f"moment_giv_w1: wage_diff = {wage_diff}")
-    #return wage_diff, state_sols, sim_lc
     return wage_diff
 
 def w1_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
@@ -305,7 +299,6 @@ def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: flo
     # set up return arrays
     state_sols = {}
     sims = {}
-    # nested calibration: lets start with just two parameters
     # alpha calib set up
     alpha_tol = 0.001
     # w1 calib set up
@@ -351,7 +344,8 @@ if __name__ == "__main__":
         calib_path= "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
         main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
         
-        my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+        # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+        my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
         lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
         quad_wage_coeffs = [-0.000, -0.030, -0.030, -0.030] 
         cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
@@ -362,7 +356,7 @@ if __name__ == "__main__":
         w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
         w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
         w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-        w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
+        #w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
         print("intial wage coeff grid")
         print(w_coeff_grid)
@@ -381,9 +375,4 @@ if __name__ == "__main__":
         #print(f"Calibration main exited: alpha = {alpha}, w1 = {w1}") 
         tb.print_exec_time("Calibration main ran in", start_time)
 
-        #mean_labor, state_sols, sims = mean_lab_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)
-        # print_params_to_csv(myPars, calib_path)
-        # print_exog_params_to_tex(myPars)
-        # print_endog_params_to_tex(myPars)
-        # print_wage_coeffs_to_tex(myPars)
 
