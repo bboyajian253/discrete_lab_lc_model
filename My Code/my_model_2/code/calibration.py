@@ -30,7 +30,7 @@ def print_endog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append("Parameter & Description & Value & Target \\\\ \n") 
     tab.append("\\hline \n")   
-    tab.append(f"$\\alpha$ & Capital share & {np.round(myPars.alpha, 4)} & Mean Hours Worked \\\\ \n") 
+    tab.append(f"$\\alpha$ & Consumptioni share & {np.round(myPars.alpha, 4)} & Mean Hours Worked \\\\ \n") 
     tab.append(f"$\\kappa$ & Borrowing constraint & {np.round(myPars.a_min, 4)} & Unconstrained \\\\ \n") 
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
