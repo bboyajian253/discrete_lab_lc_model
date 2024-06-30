@@ -169,13 +169,13 @@ def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, me
     alpha_max = 1.0
     
     # define the lambda function to find the zero of     
-    get_mean_lab_diff = lambda new_alpha: mean_lab_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
+    get_mean_lab_diff = lambda new_alpha: alpha_moment_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
     # search for the alpha that is the zero of the lambda function
     calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, max_iters) 
     myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
     
     # solve, simulate and plot model for the calibrated alpha
-    mean_lab, state_sols, sim_lc = mean_lab_giv_alpha(myPars, main_path, calib_alpha)
+    mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
     print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
     plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
@@ -184,7 +184,7 @@ def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, me
     return calib_alpha, mean_lab, state_sols, sim_lc
     
 
-def mean_lab_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
         this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
         and the model solutions and simulations
@@ -200,20 +200,25 @@ def mean_lab_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple
     # write parameters to a file
     return mean_lab, state_sols, sim_lc
 
+def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
+    labor_sims = sims['lab'][:,:,:,:,:myPars.J]
+    mean_lab = np.mean(labor_sims)
+    return mean_lab
+
 def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
     w1_moment = -999.999
     sate_sols = {}
     sim_lc = {}
     # define the lambda function to find the zero of
-    get_w1_diff = lambda new_coeff: moment_giv_w1(myPars, main_path, new_coeff) - target
+    get_w1_diff = lambda new_coeff: w1_moment_giv_w1(myPars, main_path, new_coeff) - target
     calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, max_iters)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
     for i in range (1, myPars.lab_FE_grid_size):
         myPars.wage_coeff_grid[i, 1] = calibrated_w1
 
     # solve, simulate and plot model for the calibrated w1
-    w1_moment = moment_giv_w1(myPars, main_path, calibrated_w1) 
+    w1_moment = w1_moment_giv_w1(myPars, main_path, calibrated_w1) 
     print_params_to_csv(myPars, path = main_path, file_name = "w1_calib_params.csv")
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
@@ -224,7 +229,7 @@ def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
     return calibrated_w1, w1_moment, state_sols, sim_lc
 
 #def w1_moment_giv_coeff(myPars: Pars, main_path, new_coeff: float)-> Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-def moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
+def w1_moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
     for i in range (1, myPars.lab_FE_grid_size): #skip the first so the comparison group has no wage growth  
         myPars.wage_coeff_grid[i, 1] = new_coeff
     # shocks = Shocks(myPars)
@@ -244,13 +249,21 @@ def moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
     #return wage_diff, state_sols, sim_lc
     return wage_diff
 
+def w1_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
+    wage_sims = sims['wage'][:,:,:,:,:myPars.J]
+    # or could just generate wages independently but this is more general
+    # wage_sims = model.gen_wages(myPars)
+    mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
+    wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
+    return wage_diff
+
 def calib_w2(myPars: Pars, main_path: str, max_iters: int, tol: float, target: float, w2_min: float, w2_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w2_calib_params.csv")
     w2_moment = -999.999
     sate_sols = {}
     sim_lc = {}
     # define the lambda function to find the zero of
-    get_w2_diff = lambda new_coeff: moment_giv_w2(myPars, main_path, new_coeff) - target
+    get_w2_diff = lambda new_coeff: w2_moment_giv_w2(myPars, main_path, new_coeff) - target
     # search for the w2 that is the zero of the lambda function
     calibrated_w2 = tb.bisection_search(get_w2_diff, w2_min, w2_max, tol, max_iters)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
@@ -258,7 +271,7 @@ def calib_w2(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
         myPars.wage_coeff_grid[i, 2] = calibrated_w2
     
     # solve, simulate and plot model for the calibrated w2
-    w2_moment = moment_giv_w2(myPars, main_path, calibrated_w2)
+    w2_moment = w2_moment_giv_w2(myPars, main_path, calibrated_w2)
     print_params_to_csv(myPars, path = main_path, file_name = "w2_calib_params.csv")
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
@@ -270,7 +283,7 @@ def calib_w2(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
 
 
 
-def moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
+def w2_moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
     for i in range (1, myPars.lab_FE_grid_size):
         myPars.wage_coeff_grid[i, 2] = new_coeff
     wage_sims = model.gen_wages(myPars)
@@ -280,25 +293,57 @@ def moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
     #print(f"moment_giv_w2: wage_diff = {wage_diff}")
     return wage_diff
 
-def calib_all(myPars: Pars, calib_path: str, max_iters: int, lab_targ: float, w1_targ: float, w2_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    # calibrate alpha
-    lab_tol = 0.0001
-    #lab_targ = 0.40
-    alpha, alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, max_iters, lab_tol, lab_targ)
-    
-    w1_tol = 0.0001
+def w2_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
+    wage_sims = sims['wage'][:,:,:,:,:myPars.J]
+    # or could just generate wages independently but this is more general
+    # wage_sims = model.gen_wages(myPars)
+    mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
+    wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
+    return wage_diff
+
+def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: float, w1_mom_targ: float, w2_mom_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    # set up return arrays
+    state_sols = {}
+    sims = {}
+    # nested calibration: lets start with just two parameters
+    # alpha calib set up
+    alpha_tol = 0.001
+    # w1 calib set up
+    w1_tol = 0.001
     #w1_targ = 0.50
     w1_min = 0.0
     w1_max = 10.0
-    w1_calib, w1_moment, state_sols, sims = calib_w1(myPars, calib_path, max_iters, w1_tol, w1_targ, w1_min, w1_max)
 
-    w2_tol = 0.0001
-    #w2_targ = 0.25
+    #w2 calib set up
+    w2_tol = 0.001
+    #w2_targ = 0.50
     w2_min = -1.0
     w2_max = 0.0
-    w2_calib, w2_moment, state_sols, sims = calib_w2(myPars, calib_path, max_iters, w2_tol, w2_targ, w2_min, w2_max)
-
-    return alpha, w1_calib, w2_calib, state_sols, sims
+    for i in range(max_iters):
+        print(f"Calibration iteration {i}")
+        # calibrate alpha
+        alpha_calib, alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, max_iters, alpha_tol, alpha_mom_targ)
+        print(f"alpha = {alpha_calib}, alpha_moment = {alpha_moment}")
+        w1_calib, w1_moment, state_sols, sims = calib_w1(myPars, calib_path, max_iters, w1_tol, w1_mom_targ, w1_min, w1_max)
+        print(f"w1 = {w1_calib}, w1_moment = {w1_moment}")
+        w2_calib, w2_moment, state_sols, sims = calib_w2(myPars, calib_path, max_iters, w2_tol, w2_mom_targ, w2_min, w2_max)
+        print(f"w2 = {w2_calib}, w2_moment = {w2_moment}")
+        if is_calib_cond_met(myPars, sims, alpha_mom_targ, alpha_tol, w1_mom_targ, w1_tol, w2_mom_targ, w2_tol):
+            print(f"Calibration converged after {i+1} iterations: alpha = {alpha_calib}, alpha moment = {alpha_moment}, w1 = {w1_calib}, w1 moment = {w1_moment}, w2 = {w2_calib}, w2 moment = {w2_moment}")
+            return alpha_calib, w1_calib, w2_calib, state_sols, sims
+    print(f"Calibration did not converge after {max_iters} iterations")
+    return alpha_calib, w1_calib, w2_calib, state_sols, sims
+    
+def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ: float, alpha_tol: float, w1_mom_targ: float, w1_tol: float, w2_mom_target:float, w2_tol: float)-> bool:
+    # get alpha_moment and w1_moment
+    alpha_moment = alpha_moment_giv_sims(myPars, sims)
+    w1_moment = w1_moment_giv_sims(myPars, sims)
+    w2_moment = w2_moment_giv_sims(myPars, sims)
+    # if alpha_moment is within alpha_mom_targ and w1_moment is within w1_mom_targ
+    if abs(alpha_moment - alpha_mom_targ) < alpha_tol and abs(w1_moment - w1_mom_targ) < w1_tol and abs(w2_moment - w2_mom_target) < w2_tol:
+        return True
+    else:
+        return False
 
 
 if __name__ == "__main__":
@@ -328,10 +373,12 @@ if __name__ == "__main__":
                     print_screen=0)
         
         max_iters = 100
+        alpha_mom_targ = 0.40
+        w1_mom_targ = 0.20
+        w2_mom_targ = 0.20
 
-        alpha, w1, w2, state_sols, sims = calib_all(myPars, calib_path, max_iters)
-        print(f"Calibration main exited: alpha = {alpha}, w1 = {w1}, w2 = {w2}")
-        
+        alpha, w1, w2, state_sols, sims = calib_all(myPars, calib_path, max_iters, alpha_mom_targ, w1_mom_targ, w2_mom_targ)
+        #print(f"Calibration main exited: alpha = {alpha}, w1 = {w1}") 
         tb.print_exec_time("Calibration main ran in", start_time)
 
         #mean_labor, state_sols, sims = mean_lab_giv_alpha(myPars, main_path, myPars.alpha, lab_tol, lab_targ)
