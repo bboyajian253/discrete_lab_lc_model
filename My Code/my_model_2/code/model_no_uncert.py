@@ -84,6 +84,29 @@ def util_c_giv_leis(myPars: Pars, c: float, leis: float) -> float:
     sig = myPars.sigma_util
     alpha = myPars.alpha
     return alpha*c**(alpha - 1)*leis**(1 - alpha)/(c**alpha*leis**(1 - alpha))**sig #this denom is 0 if c or leis is 0
+@njit
+def mb_lab(myPars: Pars, c: float, wage: float, labor: float, health: float) -> float:
+    """
+    marginal benefit of labor
+    """
+    leis = leis_giv_lab(myPars, labor, health)
+    return wage * util_c_giv_leis(myPars, c, leis)
+
+@njit
+def mc_lab(myPars: Pars, c: float, labor: float, health: float) -> float:
+    """
+    marginal cost of labor
+    """
+    leis = leis_giv_lab(myPars, labor, health)
+    return myPars.phi_n * util_leis_giv_c(myPars, leis, c)
+
+
+@njit
+def util_leis_giv_c(myPars: Pars, leis: float, c: float) -> float:
+    """
+    derivative of utility function with respect to leisure
+    """
+    return (1-myPars.alpha)*c**(myPars.alpha)*leis**(-myPars.alpha)/(c**myPars.alpha*leis**(1-myPars.alpha))**myPars.sigma_util
 
 #deriveative of utility function with respect to consumption given consumption and health
 @njit

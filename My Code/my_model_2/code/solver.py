@@ -135,31 +135,13 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
             a = a_prime
             c = a * (1 + myPars.r) + lab * curr_wage
             c =  max(myPars.c_min, c)
-           
-           #print("State:", state, "Consumption:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab) 
-            # with open(fullpath, mode='a', newline='') as file:
-            #     writer = csv.writer(file)
-            #     #writer.writerow([f'solved period {j} of {myPars.J}'])
-            #     writer.writerow(["State:", state, "Assets in:", a, "Curr wage", curr_wage, "Consumption:", c, "Lab:", lab])
-        
         else:
             c_prime = mat_c_prime[ind_tuple]
             c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE, H, nu, c_prime)
         
-            # print("Indices:", ind_tuple, "State:", state) 
-            # print("C_prime:", c_prime, "C:", c, "Assets:", a, "Curr wage", curr_wage, "Lab:", lab)
-            # with open(fullpath, mode='a', newline='') as file:
-            #     writer = csv.writer(file)
-            #     #writer.writerow([f'solved period {j} of {myPars.J}'])
-            #     writer.writerow(["State:", state, "Assets out:", a, "Curr wage", curr_wage, "Consumption:", c, "Lab:", lab])
-
         # Store state specific solutions
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a
         
-        # # Print status of individual state solutions
-        # print('state:', state, 'a_prime_ind:', a_prime_ind, 'lab_FE_ind:', lab_FE_ind, 'H_ind:', H_ind, 'nu_ind:', nu_ind)
-        # print('a_prime:', a_prime, 'lab_FE:', lab_FE, 'H:', H, 'nu:', nu, 'j:', j, 'c_prime:', c_prime)
-        # print('c:', c, 'lab:', lab, 'a:', a)
         
     
     return mat_c_ap, mat_lab_ap, mat_a_ap

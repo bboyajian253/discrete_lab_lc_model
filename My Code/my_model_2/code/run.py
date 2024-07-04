@@ -96,7 +96,7 @@ if __name__ == "__main__":
     # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
     my_lab_FE_grid = np.array([10.0, 10.0])
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
-    quad_wage_coeffs = [-0.000, -0.025, -0.025, -0.025] 
+    quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
     cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
 
     num_FE_types = len(my_lab_FE_grid)
@@ -110,8 +110,8 @@ if __name__ == "__main__":
     print("intial wage coeff grid")
     print(w_coeff_grid)
 
-    myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
-                H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
+    myPars = Pars(main_path, J=50, a_grid_size=101, a_min= -100.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
+                H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, sigma_util = 0.9999,
                 wage_coeff_grid = w_coeff_grid,
                 print_screen=0)
     # Set up the shocks
