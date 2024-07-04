@@ -23,7 +23,7 @@ import plot_lc as plot_lc
 from pars_shocks_and_wages import Pars, Shocks
 
 # Run the model
-def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, sim_no_calib  : bool = False, output_flag: bool = True)-> List[Dict[str, np.ndarray]]:
+def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, sim_no_calib  : bool = False, output_flag: bool = True, no_tex: bool = False)-> List[Dict[str, np.ndarray]]:
     """
     Given the model parameters, solve, calibrate, simulate, and, if desired, output the results.
     (i) Solve the model
@@ -73,17 +73,18 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
 
     #if output, output the results
     if output_flag:
-        output(myPars, state_sols, sim_lc)
+        output(myPars, state_sols, sim_lc, no_tex)
     
     return [state_sols, sim_lc]
 
-def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray])-> None:
+def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], no_tex)-> None:
     # Print parameters
     calibration.print_params_to_csv(myPars)
     #calib_path = myPars.path + 'calibration/'
-    calibration.print_exog_params_to_tex(myPars)
-    calibration.print_endog_params_to_tex(myPars)
-    calibration.print_wage_coeffs_to_tex(myPars)
+    if not no_tex:
+        calibration.print_exog_params_to_tex(myPars)
+        calibration.print_endog_params_to_tex(myPars)
+        calibration.print_wage_coeffs_to_tex(myPars)
     # Output the results and the associated graphs
     plot_lc.plot_lc_profiles(myPars, sim_lc)
 
@@ -92,7 +93,8 @@ if __name__ == "__main__":
    
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
 
-    my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+    # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+    my_lab_FE_grid = np.array([10.0, 10.0])
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
     quad_wage_coeffs = [-0.000, -0.025, -0.025, -0.025] 
     cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
@@ -102,8 +104,8 @@ if __name__ == "__main__":
     
     w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
     w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
-    w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-    w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
+    # w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
+    # w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
     print("intial wage coeff grid")
     print(w_coeff_grid)
@@ -115,9 +117,9 @@ if __name__ == "__main__":
     # Set up the shocks
     myShocks = Shocks(myPars)
     # Run the model no calibration
-    run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True)
+    # run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True)
     # Run the model with calibration
-    myPars.path = myPars.path + 'test_calib/'
-    run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)
+    # myPars.path = myPars.path + 'test_calib/'
+    # run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)
     myPars.path = main_path
-    run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True)
+    run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True, no_tex = True)
