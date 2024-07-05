@@ -79,6 +79,7 @@ pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic co
                 ('age_grid', int64[:]), #grid of ages
                 ('path', unicode_type), #path to save results to
                 ('wage_coeff_grid', float64[:,:]), #grid to hold the wage coefficients
+                ('wage_min', float64), #minimum wage
                 #('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
@@ -105,6 +106,7 @@ class Pars() :
             # w_good_health_age = 0.000750, # wage coeff on good health X age
 
             wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0], [40.0,1.5,-0.03,0.0]]),
+            wage_min = 0.0001, #minimum wage
 
             # nu_t persistent AR(1) shock
             rho_nu = 0.9472, # the autocorrelation coefficient for the earnings shock nu
@@ -166,7 +168,7 @@ class Pars() :
         #self.w_avg_good_health,self.w_avg_good_health_age,self.w_good_health,self.w_good_health_age = w_avg_good_health,w_avg_good_health_age,w_good_health,w_good_health_age
         
         self.wage_coeff_grid = wage_coeff_grid
-        
+        self.wage_min = wage_min  
         # nu_t persistent AR(1) shock
         self.rho_nu, self.sigma_eps_2, self.sigma_nu0_2 = rho_nu, sigma_eps_2, sigma_nu0_2
         sigma_eps = sqrt(sigma_eps_2) #convert from variance to standard deviations

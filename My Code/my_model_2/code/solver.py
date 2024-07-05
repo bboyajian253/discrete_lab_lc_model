@@ -137,7 +137,7 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
             c =  max(myPars.c_min, c)
         else:
             c_prime = mat_c_prime[ind_tuple]
-            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE, H, nu, c_prime)
+            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE_ind, H_ind, nu_ind, c_prime)
         
         # Store state specific solutions
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a
@@ -147,15 +147,15 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
     return mat_c_ap, mat_lab_ap, mat_a_ap
 
 @njit
-def solve_j_indiv( myPars: Pars, a_prime: float, curr_wage: float, j: int, lab_fe: float, H: float, nu: float, c_prime: float)-> Tuple[float, float, float]:
+def solve_j_indiv( myPars: Pars, a_prime: float, curr_wage: float, j: int, lab_fe_ind: int, H_ind: int, nu_ind: int, c_prime: float)-> Tuple[float, float, float]:
     #c, lab, a = 1,2,3
 
     # Compute implied c given cc = c_prime
     # dVV_dkk = (1 + r) * model.du_dc(cc, par)
     # c = model.invert_c(dVV_dkk, par)
-    c = model.infer_c(myPars, curr_wage, j, lab_fe, H, nu, c_prime)
+    c = model.infer_c(myPars, curr_wage, j, lab_fe_ind, H_ind, nu_ind, c_prime)
 
-    lab, a = model.solve_lab_a(myPars, c, a_prime, curr_wage, H)
+    lab, a = model.solve_lab_a(myPars, c, a_prime, curr_wage, H_ind)
 
     return c, lab, a
 

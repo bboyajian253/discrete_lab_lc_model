@@ -134,18 +134,12 @@ def util_c_inv(myPars: Pars, u: float, wage: float) ->float:
 
 # infer what current consumption should be given future consumption, curr wage, and the curr state space
 @njit
-def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: float, nu: float, c_prime: float ) -> float: 
+def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe_ind: int, health_ind: int, nu_ind: int, c_prime: float ) -> float: 
     """
     calculated expectation on rhs of euler, calc the rest of the rhs, then invert util_c to get the curr c on the lhs
     """
-    #return max(myPars.c_min, c_prime)
-    #try:
     #fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
-    fut_wage = curr_wage
-    # except ZeroDivisionError:
-    #     print("wage: Cannot divide by zero.")
-    #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
-    #     sys.exit()
+    fut_wage = wage(myPars, age+1, lab_fe_ind, health_ind, nu_ind)
         
     # try:
     util_c_prime = util_c(myPars, c_prime, fut_wage)
@@ -164,16 +158,16 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe: float, health: flo
     #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
     #     sys.exit()
 
-    #c = c_prime
-    #return c
     return max(myPars.c_min, c)  
 
 # given current choice of c and a_prime, as well the state's wage and health 
 @njit
-def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, health: float) -> float:
+def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, health_ind: int) -> float:
     """
     solve for labor and assets given consumption and wage
     """
+    health = myPars.H_grid[health_ind]
+
     leis = leis_giv_c(myPars, c, curr_wage) 
     leis = min(myPars.leis_max, leis)
     leis = max(myPars.leis_min, leis)
@@ -222,7 +216,15 @@ def lab_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float)
     lab = min(myPars.lab_max, lab)
     return max(myPars.lab_min, lab)
 
+@njit
+def c_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float) -> float:
+    """
+    return the optimal consumption given an asset choice a_prime and a current asset level, health status, and wage
+    """
+    c_star = myPars.alpha*((wage/myPars.phi_n)*(1-myPars.phi_H*(1.0-health)) + (1 + myPars.r)*a - a_prime)
+    return max(myPars.c_min, c_star)
 #calulate deterministic part of the wage given health and age 
+
 @njit
 def det_wage(myPars: Pars, health: float, age: int) -> float:
     """
@@ -234,11 +236,14 @@ def det_wage(myPars: Pars, health: float, age: int) -> float:
 
 #calculate the wage given health, age, lab_fe, and nu i.e. the shocks
 @njit
-def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: float,  nu_ind: float) -> float:
+def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: int,  nu_ind: int) -> float:
     """
     wage process
     """
-    return tb.cubic(age, myPars.wage_coeff_grid[lab_fe_ind])
+    #print the type of each input
+    # print(f'age: {type(age)}, lab_fe_ind: {type(lab_fe_ind)}, h_ind: {type(h_ind)}, nu_ind: {type(nu_ind)}')
+    my_wage = tb.cubic(age, myPars.wage_coeff_grid[lab_fe_ind])
+    return max(myPars.wage_min, my_wage)
     
     #det_wage = det_wage(myPars, health, age)
     # det_wage = 1.0
@@ -266,36 +271,15 @@ def recover_wage(myPars: Pars, c: float, lab: float, a_prime: float, a: float) -
     """
     return (c + a_prime - (1 + myPars.r)*a) / lab
 
+
+# put run if main funciton
 if __name__ == "__main__":
-    #initialize the parameters
+    
     path = "SomePath"
     myPars = Pars(path)
-
-    myWage: float = 25.0
-    health: float = 1.0
-
-    matc = np.linspace(0.0, 10.0, 10)
-    c = 5.0
-    mat_leis = np.linspace(myPars.leis_min, myPars.leis_max, 10)
-    mat_c = np.linspace(myPars.c_min, 10 + myPars.c_min, 10)
-    for c in mat_c:
-        #print(f'Consumption: {c}, Leisure: {leis_giv_c(myPars, c, myWage)}')
-        util = util_c(myPars, c, myWage)
-        rhs = myPars.beta *(1 + myPars.r) * util
-        #print(f'Consumption: {c}, Utility: {util}')
-        c_recovered = util_c_inv(myPars, rhs, myWage)
-        print(f'Consumption: {c}, Utility: {util}, RHS: {rhs}, Recovered Consumption: {c_recovered}')
-
-
-
-    for health in myPars.H_grid:
-        for j in range(myPars.J):
-            for nu in myPars.nu_grid:
-                for lab_fe in myPars.lab_FE_grid:
-                    for c_prime in mat_c:
-                        c = infer_c(myPars, myWage, j, lab_fe, health, nu, c_prime)
-                        print(f'C_prime {c_prime}, recoverred C {c}')
-
-                    #myWage = wage(myPars, j, lab_fe, health, nu)
-                    #print(f'The wage for state health={health}, age={j}, lab_fe ={lab_fe}, nu = {nu} is \n {myWage}')
+    j = 5
+    lab_fe_ind = 1
+    health_ind = 1
+    nu_ind = 1
+    print(wage(myPars, j, lab_fe_ind, health_ind, nu_ind))
                     

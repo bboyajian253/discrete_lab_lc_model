@@ -110,7 +110,7 @@ if __name__ == "__main__":
     print("intial wage coeff grid")
     print(w_coeff_grid)
 
-    myPars = Pars(main_path, J=50, a_grid_size=101, a_min= -100.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
+    myPars = Pars(main_path, J=60, a_grid_size=501, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
                 H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, sigma_util = 0.9999,
                 wage_coeff_grid = w_coeff_grid,
                 print_screen=0)
