@@ -62,7 +62,6 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         calib_alpha, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path, max_iters, 
                                                                                     lab_targ, w1_targ, w2_targ)
         for label in sim_lc.keys():
-            f'calib store path: myPars.path {myPars.path}')
             np.save(myPars.path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
 
