@@ -177,7 +177,7 @@ def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, me
     # solve, simulate and plot model for the calibrated alpha
     mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
     print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
-    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
+    # plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
     
     # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
@@ -223,7 +223,7 @@ def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
+    # plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     print(f"Calibration exited: w1 = {calibrated_w1}, wage growth = {w1_moment}, target wage growth = {target}") 
 
     return calibrated_w1, w1_moment, state_sols, sim_lc
@@ -270,7 +270,7 @@ def calib_w2(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
+    # plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     print(f"Calibration exited: w2 = {calibrated_w2}, wage growth = {w2_moment}, target wage growth = {target}")
 
     return calibrated_w2, w2_moment, state_sols, sim_lc

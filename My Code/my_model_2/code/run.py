@@ -55,13 +55,14 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         tb.print_exec_time("Simulate ran in", start_time)
     elif calib:
         start_time = time.perf_counter()
-        max_iters = 100
+        max_iters = myPars.max_iters
         #alpha, mean_labor, state_sols, sim_lc = calibration.calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
         lab_targ, w1_targ, w2_targ = 0.4, 0.2, 0.2
         calib_path = myPars.path + 'calibration/'
         calib_alpha, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path, max_iters, 
                                                                                     lab_targ, w1_targ, w2_targ)
         for label in sim_lc.keys():
+            f'calib store path: myPars.path {myPars.path}')
             np.save(myPars.path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
 
@@ -86,6 +87,7 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
         calibration.print_endog_params_to_tex(myPars)
         calibration.print_wage_coeffs_to_tex(myPars)
     # Output the results and the associated graphs
+
     plot_lc.plot_lc_profiles(myPars, sim_lc)
 
 #Make run if main function
@@ -112,7 +114,7 @@ if __name__ == "__main__":
 
     myPars = Pars(main_path, J=60, a_grid_size=501, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
                 H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, sigma_util = 0.9999,
-                wage_coeff_grid = w_coeff_grid,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100,
                 print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)
@@ -122,4 +124,4 @@ if __name__ == "__main__":
     # myPars.path = myPars.path + 'test_calib/'
     # run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)
     myPars.path = main_path
-    run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True, no_tex = True)
+    run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True, no_tex = True)

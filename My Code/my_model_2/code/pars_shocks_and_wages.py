@@ -80,6 +80,7 @@ pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic co
                 ('path', unicode_type), #path to save results to
                 ('wage_coeff_grid', float64[:,:]), #grid to hold the wage coefficients
                 ('wage_min', float64), #minimum wage
+                ('max_iters', int64), #maximum number of iterations for calibration
                 #('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
@@ -157,7 +158,8 @@ class Pars() :
             start_age = 25, #age to start the model at
 
             # printing level (defines how much to print)
-            print_screen = 2  
+            print_screen = 2,
+            max_iters = 100  
         ):
         
         ###initialize earnings parameters###
@@ -234,6 +236,7 @@ class Pars() :
         self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
 
         self.path = path
+        self.max_iters = max_iters
 
         #self.wage_grid = self.gen_wages() 
 
