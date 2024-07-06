@@ -81,6 +81,9 @@ pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic co
                 ('wage_coeff_grid', float64[:,:]), #grid to hold the wage coefficients
                 ('wage_min', float64), #minimum wage
                 ('max_iters', int64), #maximum number of iterations for calibration
+                ('w0_min', float64), #minimum wage constant
+                ('w0_max', float64), #maximum wage constant
+                ('w0_grid_size', int64), #size of the wage constant grid this is probably redundant given labor_FE_grid_size
                 #('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
@@ -159,7 +162,10 @@ class Pars() :
 
             # printing level (defines how much to print)
             print_screen = 2,
-            max_iters = 100  
+            max_iters = 100,
+            w0_min = 5.0,
+            w0_max = 25.0,
+            w0_grid_size = 2  
         ):
         
         ###initialize earnings parameters###
@@ -237,6 +243,9 @@ class Pars() :
 
         self.path = path
         self.max_iters = max_iters
+        self.w0_min = w0_min
+        self.w0_max = w0_max
+        self.w0_grid_size = w0_grid_size
 
         #self.wage_grid = self.gen_wages() 
 
