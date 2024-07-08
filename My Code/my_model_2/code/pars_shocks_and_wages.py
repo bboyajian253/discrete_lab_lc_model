@@ -8,7 +8,7 @@ by @author Ben Boyajian
 """
 #file to store parameter and shockvalues for the model
 
-import my_toolbox
+import my_toolbox as tb
 import numpy as np
 from math import exp,sqrt,log,prod
 from numba import njit, guvectorize, float64, int64, prange, types
@@ -39,6 +39,7 @@ pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic co
                 ('sigma_gamma_2', float64), # variance of initial dist of fixed effect on labor prod
                 ('lab_FE_grid', float64[:]), # a list of values for that fixed effect
                 ('lab_FE_grid_size', int64), # the size of the list of values for that fixed effect
+                ('lab_FE_weights', float64[:]), # the weights for the fixed effect
                 ('beta', float64), # discount factor 
                 ('alpha', float64), # cobb douglass returns to consumption
                 ('sigma_util', float64), # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
@@ -81,9 +82,9 @@ pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic co
                 ('wage_coeff_grid', float64[:,:]), #grid to hold the wage coefficients
                 ('wage_min', float64), #minimum wage
                 ('max_iters', int64), #maximum number of iterations for calibration
-                ('w0_min', float64), #minimum wage constant
-                ('w0_max', float64), #maximum wage constant
-                ('w0_grid_size', int64), #size of the wage constant grid this is probably redundant given labor_FE_grid_size
+                # ('w0_min', float64), #minimum wage constant
+                # ('w0_max', float64), #maximum wage constant
+                # ('w0_grid_size', int64), #size of the wage constant grid this is probably redundant given labor_FE_grid_size
                 #('wage_grid', float64[:,:,:,:]),
                 #('_VF', float64[:, :, :, :])  # large 4D matrix to hold values functions probably dont need to initialize that in a params class 
        
@@ -122,6 +123,9 @@ class Pars() :
             sigma_gamma_2 = 0.051, # variance of initial dist of fixed effect on labor prod
             #a discrete list of productivities to use for testing
             lab_FE_grid = np.array([1.0, 2.0, 3.0]),
+            lab_FE_weights = np.array([1.0/3.0, 1.0/3.0, 1.0/3.0]),
+            # weights for the fixed effect I want to these weights to the same for each FE and initialied given the number of FEs
+            # but also want to dynamically allocate them based on the number of FE 
                         # utility parameters
             beta = 0.95, # discount factor
             alpha = 0.70, #.5, # cobb douglass returns to consumption
@@ -163,9 +167,9 @@ class Pars() :
             # printing level (defines how much to print)
             print_screen = 2,
             max_iters = 100,
-            w0_min = 5.0,
-            w0_max = 25.0,
-            w0_grid_size = 2  
+            # w0_min = 5.0,
+            # w0_max = 25.0,
+            # w0_grid_size = 2  
         ):
         
         ###initialize earnings parameters###
@@ -181,11 +185,12 @@ class Pars() :
         self.rho_nu, self.sigma_eps_2, self.sigma_nu0_2 = rho_nu, sigma_eps_2, sigma_nu0_2
         sigma_eps = sqrt(sigma_eps_2) #convert from variance to standard deviations
         self.nu_grid_size= nu_grid_size
-        self.nu_grid,self.nu_trans = my_toolbox.rouwenhorst_numba(nu_grid_size, rho_nu, sigma_eps)
-        #self.nu_trans = my_toolbox.rouwenhorst(nu_grid_size, rho_nu, sigma_eps)
+        self.nu_grid,self.nu_trans = tb.rouwenhorst_numba(nu_grid_size, rho_nu, sigma_eps)
+        #self.nu_trans = tb.rouwenhorst(nu_grid_size, rho_nu, sigma_eps)
         # gamma fixed productiviy drawn at birth
         self.sigma_gamma_2 = sigma_gamma_2
         self.lab_FE_grid = lab_FE_grid
+        self.lab_FE_weights = lab_FE_weights
         self.lab_FE_grid_size = len(self.lab_FE_grid)
 
         ###iniatlize utlity parameters###
@@ -205,12 +210,12 @@ class Pars() :
         self.a_min,self.a_max = a_min,a_max
         self.a_grid_size = a_grid_size
         self.a_grid_growth = a_grid_growth
-        self.a_grid = my_toolbox.gen_grid(a_grid_size, a_min, a_max, a_grid_growth)
+        self.a_grid = tb.gen_grid(a_grid_size, a_min, a_max, a_grid_growth)
         
         self.H_grid, self.H_trans = H_grid, H_trans
         self.H_grid_size = len(H_grid)
 
-        self.H_by_nu_flat_trans = my_toolbox.gen_flat_joint_trans(self.H_trans, self.nu_trans)
+        self.H_by_nu_flat_trans = tb.gen_flat_joint_trans(self.H_trans, self.nu_trans)
         self.H_by_nu_size = self.H_grid_size * self.nu_grid_size
 
         self.interp_c_prime_grid = np.zeros(self.H_by_nu_size)
@@ -243,9 +248,9 @@ class Pars() :
 
         self.path = path
         self.max_iters = max_iters
-        self.w0_min = w0_min
-        self.w0_max = w0_max
-        self.w0_grid_size = w0_grid_size
+        # self.w0_min = w0_min
+        # self.w0_max = w0_max
+        # self.w0_grid_size = w0_grid_size
 
         #self.wage_grid = self.gen_wages() 
 
@@ -267,14 +272,14 @@ class Pars() :
     #             ('H_by_nu_flat_trans', self.H_by_nu_flat_trans), ('H_by_nu_size', self.H_by_nu_size), ('sim_interp_grid_spec', self.sim_interp_grid_spec),
     #             ('start_age', self.start_age), ('end_age', self.end_age), ('age_grid', self.age_grid), ('path', self.path), ('wage_coeff_grid', self.wage_coeff_grid)]
 
-    def det_wage(self, age: int, health: float) -> float:
-        """returns the deterministic part of the wage"""
-        age_comp = self.w_determ_cons + self.w_age*age + self.w_age_2*age*age + self.w_age_3*age*age*age 
-        #gonna ignore average health which is in Capatina and the iniatialization of theis program for now, will work in more health states when i have composite types working.
-        health_comp = self.w_good_health*(1-health) + self.w_good_health_age*age*(1-health)
-        wage = age_comp + health_comp
-        #print("Comp is ", comp) 
-        return wage
+    # def det_wage(self, age: int, health: float) -> float:
+    #     """returns the deterministic part of the wage"""
+    #     age_comp = self.w_determ_cons + self.w_age*age + self.w_age_2*age*age + self.w_age_3*age*age*age 
+    #     #gonna ignore average health which is in Capatina and the iniatialization of theis program for now, will work in more health states when i have composite types working.
+    #     health_comp = self.w_good_health*(1-health) + self.w_good_health_age*age*(1-health)
+    #     wage = age_comp + health_comp
+    #     #print("Comp is ", comp) 
+    #     return wage
 
     #calculate final wage
 
@@ -283,7 +288,7 @@ class Pars() :
         """
         wage process
         """
-        return my_toolbox.cubic(age, self.wage_coeff_grid[lab_fe_ind])
+        return tb.cubic(age, self.wage_coeff_grid[lab_fe_ind])
     
     #generate the wage grid
     def gen_wages(self) -> np.ndarray:

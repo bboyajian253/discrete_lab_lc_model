@@ -111,9 +111,14 @@ if __name__ == "__main__":
     print("intial wage coeff grid")
     print(w_coeff_grid)
 
-    myPars = Pars(main_path, J=60, a_grid_size=501, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
-                H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, sigma_util = 0.9999,
-                wage_coeff_grid = w_coeff_grid, max_iters = 100,
+    my_lab_FE_weights = tb.gen_even_weights(w_coeff_grid)
+    print("even wage coeff grid")
+    print(my_lab_FE_weights)
+
+
+    myPars = Pars(main_path, J=60, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
+                nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, sigma_util = 0.9999,
                 print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)

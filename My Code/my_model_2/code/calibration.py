@@ -205,6 +205,34 @@ def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     mean_lab = np.mean(labor_sims)
     return mean_lab
 
+def calib_w0(myPars: Pars, main_path: str, max_iters: int, mean_tol: float,  mean_target: float, sd_tol: float, sd_target: float):
+    print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_calib_params.csv")
+    mean_wage = -999.999
+    sd_wage = -999.999
+    sate_sols = {}
+    sim_lc = {}
+    # np.linspace(myPars.lab_FE_grid[0], myPars.lab_FE_grid[-1], myPars.lab_FE_grid_size)
+    my_lab_FE_grid, my_weights = tb.Taucheniid(sd_target, myPars.lab_FE_grid_size, mean = mean_target, 
+                                               state_grid = myPars.lab_FE_grid)
+    myPars.lab_FE_grid = my_lab_FE_grid
+    # myPars.wage_coeff_grid[0] = my_weights 
+    myPars.lab_FE_weights = my_weights
+    # solve and simulate model for the calibrated w0
+    shocks = Shocks(myPars)
+    state_sols = solver.solve_lc(myPars, main_path)
+    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
+    mean_wage, sd_wage = w0_moments(myPars)
+    print(f"Calibration exited: mean wage = {mean_wage}, target mean wage = {mean_target}, sd wage = {sd_wage}, target sd wage = {sd_target}")
+    print(f"Calibrated weights = {my_weights}")
+    return my_weights, mean_wage, sd_wage, state_sols, sim_lc 
+
+def w0_moments(myPars: Pars)-> Tuple[float, float]:
+    my_weights = myPars.lab_FE_weights
+    my_lab_FE = myPars.wage_coeff_grid[:, 0]
+    mean_first_per_wage = np.sum(my_weights * my_lab_FE)
+    sd_first_per_wage = np.sqrt(np.sum(my_weights * (my_lab_FE - mean_first_per_wage)**2))
+    return mean_first_per_wage, sd_first_per_wage
+
 def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
     w1_moment = -999.999
@@ -231,22 +259,10 @@ def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
 def w1_moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
     for i in range (1, myPars.lab_FE_grid_size): #skip the first so the comparison group has no wage growth  
         myPars.wage_coeff_grid[i, 1] = new_coeff
-    # state_sols = solver.solve_lc(myPars, main_path)
-    # sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    # wage_sims = sim_lc['wage'][:,:,:,:,:myPars.J]
-    
-    # or just gen wages independently
-    wage_sims = model.gen_wages(myPars)
-    
-    # average wage sims by age j
-    mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
-    wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
-    return wage_diff
+    return w1_moment(myPars)
 
-def w1_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
-    wage_sims = sims['wage'][:,:,:,:,:myPars.J]
-    # or could just generate wages independently but this is more general
-    # wage_sims = model.gen_wages(myPars)
+def w1_moment(myPars: Pars)-> float:
+    wage_sims = model.gen_weighted_wages(myPars)
     mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
     return wage_diff
@@ -275,32 +291,35 @@ def calib_w2(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
 
     return calibrated_w2, w2_moment, state_sols, sim_lc
 
-
-
 def w2_moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
     for i in range (1, myPars.lab_FE_grid_size):
         myPars.wage_coeff_grid[i, 2] = new_coeff
-    wage_sims = model.gen_wages(myPars)
-    mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
-    # print(f"moment_giv_w2: mean_wage = {mean_wage}")
-    wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
-    #print(f"moment_giv_w2: wage_diff = {wage_diff}")
-    return wage_diff
+    return w2_moment(myPars)
 
-def w2_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
-    wage_sims = sims['wage'][:,:,:,:,:myPars.J]
+def w2_moment(myPars: Pars)-> float:
+    wage_sims = model.gen_weighted_wages(myPars)
     # or could just generate wages independently but this is more general
     # wage_sims = model.gen_wages(myPars)
     mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
     return wage_diff
 
-def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: float, w1_mom_targ: float, w2_mom_targ: float)-> Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: float,  
+        w0_mean_targ: float, w0_sd_targ: float, w1_mom_targ: float, w2_mom_targ: float)-> (
+        Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
+
     # set up return arrays
     state_sols = {}
     sims = {}
     # alpha calib set up
     alpha_tol = 0.001
+
+    # w0 calib set up
+    w0_mean_tol = 2.0
+    w0_sd_tol = 2.0
+    # w0_min = 0.0
+    # w0_max = 10.0
+
     # w1 calib set up
     w1_tol = 0.001
     #w1_targ = 0.50
@@ -312,32 +331,43 @@ def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: flo
     #w2_targ = 0.50
     w2_min = -1.0
     w2_max = 0.0
+
     for i in range(max_iters):
         print(f"Calibration iteration {i}")
         # calibrate alpha
         alpha_calib, alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, max_iters, alpha_tol, alpha_mom_targ)
         print(f"alpha = {alpha_calib}, alpha_moment = {alpha_moment}")
+        w0_weights, w0_mean_mom, w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, max_iters, 
+                                                                        w0_mean_tol, w0_mean_targ, w0_sd_tol, w0_sd_targ)
+        print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_sd = {w0_sd_mom}")
         w1_calib, w1_moment, state_sols, sims = calib_w1(myPars, calib_path, max_iters, w1_tol, w1_mom_targ, w1_min, w1_max)
         print(f"w1 = {w1_calib}, w1_moment = {w1_moment}")
         w2_calib, w2_moment, state_sols, sims = calib_w2(myPars, calib_path, max_iters, w2_tol, w2_mom_targ, w2_min, w2_max)
         print(f"w2 = {w2_calib}, w2_moment = {w2_moment}")
-        if is_calib_cond_met(myPars, sims, alpha_mom_targ, alpha_tol, w1_mom_targ, w1_tol, w2_mom_targ, w2_tol):
+        if is_calib_cond_met(myPars, sims, alpha_mom_targ, alpha_tol, 
+                             w0_mean_targ, w0_mean_tol, w0_sd_targ, w0_sd_tol,
+                             w1_mom_targ, w1_tol, w2_mom_targ, w2_tol):
             print(f"Calibration converged after {i+1} iterations: alpha = {alpha_calib}, alpha moment = {alpha_moment}, w1 = {w1_calib}, w1 moment = {w1_moment}, w2 = {w2_calib}, w2 moment = {w2_moment}")
-            return alpha_calib, w1_calib, w2_calib, state_sols, sims
+            print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_sd = {w0_sd_mom}")
+            return alpha_calib, w0_weights, w1_calib, w2_calib, state_sols, sims
     print(f"Calibration did not converge after {max_iters} iterations")
-    return alpha_calib, w1_calib, w2_calib, state_sols, sims
+    return alpha_calib, w0_weights, w1_calib, w2_calib, state_sols, sims
     
-def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ: float, alpha_tol: float, w1_mom_targ: float, w1_tol: float, w2_mom_target:float, w2_tol: float)-> bool:
+def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ: float, alpha_tol: float, 
+                      w0_mean_targ: float, w0_mean_tol: float, w0_sd_targ: float, w0_sd_tol: float,
+                      w1_mom_targ: float, w1_tol: float, w2_mom_target:float, w2_tol: float)-> bool:
     # get alpha_moment and w1_moment
     alpha_moment = alpha_moment_giv_sims(myPars, sims)
-    w1_moment = w1_moment_giv_sims(myPars, sims)
-    w2_moment = w2_moment_giv_sims(myPars, sims)
+    w0_mean, w0_sd = w0_moments(myPars)
+    my_w1_moment = w1_moment(myPars)
+    my_w2_moment = w2_moment(myPars)
     # if alpha_moment is within alpha_mom_targ and w1_moment is within w1_mom_targ
-    if abs(alpha_moment - alpha_mom_targ) < alpha_tol and abs(w1_moment - w1_mom_targ) < w1_tol and abs(w2_moment - w2_mom_target) < w2_tol:
+    if (abs(alpha_moment - alpha_mom_targ) < alpha_tol and abs(my_w1_moment - w1_mom_targ) < w1_tol 
+        and abs(my_w2_moment - w2_mom_target) < w2_tol 
+        and abs(w0_mean - w0_mean_targ) < w0_mean_tol and abs(w0_sd - w0_sd_targ) < w0_sd_tol):
         return True
     else:
         return False
-
 
 if __name__ == "__main__":
         start_time = time.perf_counter()
@@ -368,11 +398,25 @@ if __name__ == "__main__":
         
         max_iters = 100
         alpha_mom_targ = 0.40
+        w0_mean_targ = 20.0
+        w0_sd_targ = 5.0
         w1_mom_targ = 0.20
         w2_mom_targ = 0.20
 
-        alpha, w1, w2, state_sols, sims = calib_all(myPars, calib_path, max_iters, alpha_mom_targ, w1_mom_targ, w2_mom_targ)
+        alpha, w0_weights, w1, w2, state_sols, sims = calib_all(myPars, calib_path, max_iters, alpha_mom_targ, 
+                                                                    w0_mean_targ, w0_sd_targ, w1_mom_targ, w2_mom_targ)
+        # results = calib_w0(myPars, calib_path, 100, 0.01, 20.0, 0.01, 5.0)[:3]
         #print(f"Calibration main exited: alpha = {alpha}, w1 = {w1}") 
+        # print(results)
+        # print(model.gen_wages(myPars).shape)
+        # wage_sims = model.gen_wages(myPars)
+        # print(wage_sims[0, 0, 0, 0])
+        # my_sim_weights = np.array([])
+        # for i in range(myPars.H_grid_size):
+            # my_sim_weights=np.append(my_sim_weights, myPars.lab_FE_weights)       
+        # my_sim_weights_reshaped = my_sim_weights.T.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1)
+        # print(my_sim_weights_reshaped.shape)
+        # weighted_wage_sims = wage_sims * my_sim_weights_reshaped
+        # print(weighted_wage_sims.shape)
+        # print(weighted_wage_sims[0, 0, 0, 0])
         tb.print_exec_time("Calibration main ran in", start_time)
-
-

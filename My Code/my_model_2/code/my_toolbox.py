@@ -17,6 +17,13 @@ import matplotlib.pyplot as plt
 import time
 from typing import List, Dict, Tuple, Callable
 
+@njit
+def gen_even_weights(matrix: np.ndarray) -> np.ndarray:
+    """
+    generates even weights for each row of a matrix
+    """
+    return np.ones(matrix.shape[0]) / matrix.shape[0]
+
 #function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
 # this is a simple bisection method but this take advantage of the monotoniciy of the function to speed up the search?
 def bisection_search(func: Callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
@@ -320,7 +327,7 @@ def avg_wgt_3d(v, w):
     return tot / max(1e-6, totw)
 
 
-def Taucheniid(σ, S, Nsd=3, μ=0, grids=np.zeros(1)):
+def Taucheniid(std_dev: float, num_grid_points: int, Nsd: int=3, mean: float=0.0, state_grid: np.ndarray=np.zeros(1))->Tuple[np.ndarray, np.ndarray]:
     """
     This function uses the method of Tauchen (1986) to approximate a continuous iid Normal process.
 
@@ -330,24 +337,24 @@ def Taucheniid(σ, S, Nsd=3, μ=0, grids=np.zeros(1)):
              -S: number of gridpoints
              -Nsd: number of SD from mean for grid to span
 
-    OUTPUTS: -grids, grid of state variable s
+    OUTPUTS: -state_grid, grid of state variable s
              -probs, grid of probabilities for each state
     """
     # compute grid over state s and the half-distance between gridpoints, δ
-    if len(grids) == 1:
-        grids = np.linspace(μ - Nsd * σ, μ + Nsd * σ, S)
-    δ = (grids[-1] - grids[0]) / (S - 1) / 2
+    if len(state_grid) == 1:
+        state_grid = np.linspace(mean - Nsd * std_dev, mean + Nsd * std_dev, num_grid_points)
+    δ = (state_grid[-1] - state_grid[0]) / (num_grid_points - 1) / 2
 
-    # compute cumulative probabilities of grids
-    probscum = np.ones(S)
-    for s in range(S - 1):
-        probscum[s] = norm.cdf(grids[s] + δ, loc=μ, scale=σ)
+    # compute cumulative probabilities of state_grid
+    probscum = np.ones(num_grid_points)
+    for s in range(num_grid_points - 1):
+        probscum[s] = norm.cdf(state_grid[s] + δ, loc=mean, scale=std_dev)
 
-    # compute probabilities of grids
+    # compute probabilities of state_grid
     probs = probscum
     probs[1:] = probscum[1:] - probscum[:-1]
 
-    return grids, probs
+    return state_grid, probs
 
 
 def AR1_Tauchen(ρ, σ, n_s=False, n_sd=False, grid=False, max_iter=200, tol=1e-5):
@@ -645,3 +652,9 @@ def cubic(j : int, params : np.ndarray) -> float:
     evaluate cubic in j given parameters params = [p0, p1, p2, p3]
     """
     return params[0] + params[1] * j + params[2] * j ** 2 + params[3] * j ** 3
+
+#run if main
+if __name__ == "__main__":
+    print("running my_toolbox.py")
+    print( gen_even_weights(np.ones(10)) )
+    print("done running my_toolbox.py")

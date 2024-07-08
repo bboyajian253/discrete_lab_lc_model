@@ -263,6 +263,18 @@ def gen_wages(myPars: Pars) -> np.ndarray:
                 for lab_fe_ind in range(myPars.lab_FE_grid_size):
                     wage_grid[lab_fe_ind, h_ind, nu_ind, j] = wage(myPars, j, lab_fe_ind, h_ind, nu_ind)
     return wage_grid
+@njit
+def gen_weighted_wages(myPars: Pars) -> np.ndarray:
+    # Pre-allocate the weights array
+    my_sim_weights = np.empty((myPars.lab_FE_grid_size, myPars.H_grid_size))
+    # Fill the weights array
+    for i in range(myPars.H_grid_size):
+        my_sim_weights[:, i] = myPars.lab_FE_weights
+    # Reshape weights for broadcasting
+    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1)
+    wage_sims = gen_wages(myPars)
+    weighted_wage_sims = wage_sims * my_sim_weights_reshaped
+    return weighted_wage_sims
 
 @njit
 def recover_wage(myPars: Pars, c: float, lab: float, a_prime: float, a: float) -> float: #this will divide by zero if lab = 0
