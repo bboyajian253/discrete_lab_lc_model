@@ -57,10 +57,11 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         #alpha, mean_labor, state_sols, sim_lc = calibration.calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
-        lab_targ, w1_targ, w2_targ = 0.4, 0.2, 0.2
+        alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.4, 20.0, 5.0, 0.2, 0.2
         calib_path = myPars.path + 'calibration/'
-        calib_alpha, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path, max_iters, 
-                                                                                    lab_targ, w1_targ, w2_targ)
+        calib_alpha, w0_weights, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path, max_iters, 
+                                                                                    alpha_lab_targ, w0_mean_targ, w0_sd_targ, 
+                                                                                    w1_targ, w2_targ)
         for label in sim_lc.keys():
             np.save(myPars.path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
@@ -95,7 +96,8 @@ if __name__ == "__main__":
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
 
     # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
-    my_lab_FE_grid = np.array([10.0, 10.0])
+    # my_lab_FE_grid = np.array([10.0, 10.0])
+    my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
     quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
     cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
@@ -105,7 +107,7 @@ if __name__ == "__main__":
     
     w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
     w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
-    # w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
+    w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
     # w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
     print("intial wage coeff grid")

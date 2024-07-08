@@ -7,10 +7,10 @@ nu_grid_size,1
 nu_trans,"[[0.9736 0.0264]
  [0.0264 0.9736]]"
 sigma_gamma_2,0.051
-lab_FE_grid,[10. 10.]
-lab_FE_grid_size,2
+lab_FE_grid,[10. 20. 30.]
+lab_FE_grid_size,3
 beta,0.9803921568627451
-alpha,0.476567734375
+alpha,0.47461462890625
 sigma_util,0.9999
 phi_n,1.125
 phi_H,0.1
@@ -65,10 +65,10 @@ a_grid,"[-500. -498. -496. -494. -492. -490. -488. -486. -484. -482. -480. -478.
 a_grid_size,501
 H_grid,[0. 1.]
 H_grid_size,2
-state_space_shape,"(501, 2, 2, 1, 60)"
-state_space_shape_no_j,"(501, 2, 2, 1)"
-state_space_no_j_size,2004
-state_space_shape_sims,"(2, 2, 1, 1000, 61)"
+state_space_shape,"(501, 3, 2, 1, 60)"
+state_space_shape_no_j,"(501, 3, 2, 1)"
+state_space_no_j_size,3006
+state_space_shape_sims,"(3, 2, 1, 1000, 61)"
 lab_min,0.0
 lab_max,0.8888888888888888
 c_min,0.0001
@@ -91,4 +91,5 @@ age_grid,"[25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 
  73 74 75 76 77 78 79 80 81 82 83 84 85]"
 path,C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/
 wage_coeff_grid,"[[ 1.00000000e+01  0.00000000e+00 -0.00000000e+00  0.00000000e+00]
- [ 1.00000000e+01  3.01513672e-01 -5.11169434e-03  0.00000000e+00]]"
+ [ 2.00000000e+01  3.57666016e-01 -6.05773926e-03  0.00000000e+00]
+ [ 3.00000000e+01  3.57666016e-01 -6.05773926e-03  0.00000000e+00]]"

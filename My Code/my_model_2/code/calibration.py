@@ -306,7 +306,7 @@ def w2_moment(myPars: Pars)-> float:
 
 def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: float,  
         w0_mean_targ: float, w0_sd_targ: float, w1_mom_targ: float, w2_mom_targ: float)-> (
-        Tuple[float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
+        Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
 
     # set up return arrays
     state_sols = {}
