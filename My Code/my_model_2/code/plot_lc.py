@@ -22,7 +22,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
     
     #define path
     if path is None:
-        path = myPars.path
+        path = myPars.path + 'output/'
     #Generate variable labels lists
     var_lables = ['Consumption', 'Labor', 'Assets', 'Wage', 'Labor Income']
     #Generate the short names for the variables i think this should be their keys in the sim_lc dictionary

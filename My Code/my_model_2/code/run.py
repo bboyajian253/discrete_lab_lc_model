@@ -37,40 +37,41 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         state_sols = solver.solve_lc(myPars)
         for label, value in state_sols.items():
-            np.save(myPars.path + label + '_lc', value)
+            np.save(myPars.path + 'output/' + label + '_lc', value)
         tb.print_exec_time("Solver ran in", start_time)
     
     #always load state specific solutions
     sol_labels = ['c', 'lab', 'a_prime']
     state_sols = {}
     for label in sol_labels:
-        state_sols[label] = np.load(myPars.path + label + '_lc.npy')
+        state_sols[label] = np.load(myPars.path + 'output/' + label + '_lc.npy')
 
     #if no_calibrate_but_sim, simulate without calibrating
     if sim_no_calib:
         start_time = time.perf_counter()
         sim_lc = simulate.sim_lc(myPars, myShocks, state_sols)
         for label in sim_lc.keys():
-            np.save(myPars.path + f'sim{label}.npy', sim_lc[label])
+            np.save(myPars.path + 'output/' + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Simulate ran in", start_time)
     elif calib:
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         #alpha, mean_labor, state_sols, sim_lc = calibration.calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
         alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.4, 20.0, 5.0, 0.2, 0.2
-        calib_path = myPars.path + 'calibration/'
+        # calib_path = myPars.path + 'calibration/'
+        calib_path = None
         calib_alpha, w0_weights, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path, max_iters, 
                                                                                     alpha_lab_targ, w0_mean_targ, w0_sd_targ, 
                                                                                     w1_targ, w2_targ)
         for label in sim_lc.keys():
-            np.save(myPars.path + f'sim{label}.npy', sim_lc[label])
+            np.save(myPars.path + 'output/' + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
 
     #always load simulated life cycles
     sim_labels = ['c', 'lab', 'a', 'wage', 'lab_income']
     sim_lc = {}
     for label in sim_labels:
-        sim_lc[label] = np.load(myPars.path + f'sim{label}.npy')
+        sim_lc[label] = np.load(myPars.path + 'output/' + f'sim{label}.npy')
 
     #if output, output the results
     if output_flag:
@@ -93,7 +94,7 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
 #Make run if main function
 if __name__ == "__main__":
    
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
 
     # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
     # my_lab_FE_grid = np.array([10.0, 10.0])

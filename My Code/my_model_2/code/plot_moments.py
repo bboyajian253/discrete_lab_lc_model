@@ -21,7 +21,7 @@ import model_no_uncert as model
 
 def plot_aggs(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
     if path == None:
-        path = myPars.path
+        path = myPars.path + 'output/'
     # calcualte weighted mean wages by age
     weighted_wages = model.gen_weighted_wages(myPars) 
     mean_weighted_wages = np.sum(weighted_wages, axis=tuple(range(weighted_wages.ndim - 1)))

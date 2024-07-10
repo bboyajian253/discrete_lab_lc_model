@@ -35,7 +35,7 @@ def print_endog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     if path is None:
-        path = myPars.path + 'calibration/'
+        path = myPars.path + 'output/calibration/'
     fullpath = path + 'parameters_endog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
@@ -61,7 +61,7 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     if path is None:
-        path = myPars.path + 'calibration/'
+        path = myPars.path + 'output/calibration/'
     fullpath = path + 'wage_coeffs.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
@@ -82,7 +82,7 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     if path is None:
-        path = myPars.path + 'calibration/'
+        path = myPars.path + 'output/calibration/'
     fullpath = path + 'parameters_exog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
@@ -92,7 +92,7 @@ def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parame
     # store params in a csv 
     # print a table of the calibration results
     if path is None:
-        path = myPars.path
+        path = myPars.path + 'output/calibration/'
     my_path = path + file_name
     with open(my_path, mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -202,12 +202,14 @@ def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     labor_sims = sims['lab'][:,:,:,:,:myPars.J]
     # print("preweights:")
     # print(labor_sims[1, 0, 0, 0, :])
-    weighted_labor_sims = labor_sims
-    # weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
+    # weighted_labor_sims = labor_sims
+    weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
     #cuz labor is between 0 and 1 this makes it so that weighting by percent doesnt fuck up the scale 
     # print("postweights:")
     # print(weighted_labor_sims[1, 0, 0, 0,: ])
-    mean_lab = np.mean(weighted_labor_sims)
+    # mean_lab = np.mean(weighted_labor_sims)
+    mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
+    mean_lab = np.mean(mean_lab_by_age)
     print(f"mean labor worked = {mean_lab}")
     return mean_lab
 
