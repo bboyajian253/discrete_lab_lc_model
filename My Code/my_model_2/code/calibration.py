@@ -200,17 +200,10 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     labor_sims = sims['lab'][:,:,:,:,:myPars.J]
-    # print("preweights:")
-    # print(labor_sims[1, 0, 0, 0, :])
-    # weighted_labor_sims = labor_sims
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
-    #cuz labor is between 0 and 1 this makes it so that weighting by percent doesnt fuck up the scale 
-    # print("postweights:")
-    # print(weighted_labor_sims[1, 0, 0, 0,: ])
-    # mean_lab = np.mean(weighted_labor_sims)
-    mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
-    mean_lab = np.mean(mean_lab_by_age)
-    print(f"mean labor worked = {mean_lab}")
+    mean_lab_by_age_and_sim = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
+    mean_lab = np.mean(mean_lab_by_age_and_sim)
+    # print(f"mean labor worked = {mean_lab}")
     return mean_lab
 
 def calib_w0(myPars: Pars, main_path: str, max_iters: int, mean_tol: float,  mean_target: float, sd_tol: float, sd_target: float):

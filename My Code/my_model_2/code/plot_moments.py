@@ -18,8 +18,9 @@ import time
 # My code
 from pars_shocks_and_wages import Pars
 import model_no_uncert as model
+import my_toolbox as tb
 
-def plot_aggs(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
+def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
     if path == None:
         path = myPars.path + 'output/'
     # calcualte weighted mean wages by age
@@ -32,6 +33,7 @@ def plot_aggs(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> N
     values = mean_weighted_wages
     sim_y_label = "Average Wage (Weighted)"
     sim_key_label = "Simulated"
+    data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
     for modifier in ['','log']:
         if myPars.print_screen >= 2:
@@ -42,11 +44,15 @@ def plot_aggs(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> N
              sim_values = values
         fig, ax = plt.subplots()
         ax.plot(age_grid, sim_values, label = sim_key_label)
+        # get and plot data moments
+        data_moments_path = myPars.path + '/input/wage_test.csv'
+        data_moments_col_ind = 1
+        data_moments = tb.read_specific_column_from_csv(data_moments_path, data_moments_col_ind) # 1 means read the second column
+        ax.plot(age_grid, data_moments, label = data_moments_label)
         # specify axis and labels
         ax.set_xlabel('Age')
         ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2]) 
         ax.set_ylabel(modifier + ' ' + sim_y_label)
-
         ax.legend()
 
         short_name = 'wage'
@@ -62,7 +68,10 @@ def plot_aggs(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> N
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))
             writer.writerow(['model'] + list(sim_values))
+
+
     # read in average wage moments by age
+
     
     # plot that shit
 
@@ -70,7 +79,7 @@ def plot_aggs(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> N
 if __name__ == "__main__":
     start_time = time.perf_counter()
     calib_path= "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
     
     # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
     my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
@@ -95,5 +104,5 @@ if __name__ == "__main__":
                 print_screen=3)
     
     sim_lc = np.ones(1)
-    plot_aggs(myPars, sim_lc)
+    plot_wage_aggs_and_moms(myPars)
     

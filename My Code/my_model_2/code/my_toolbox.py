@@ -17,6 +17,17 @@ import matplotlib.pyplot as plt
 import time
 from typing import List, Dict, Tuple, Callable
 
+def read_specific_column_from_csv(file_path: str, column_index: int)-> List[float]:
+    column_values = []
+    with open(file_path, mode='r', newline='') as file:
+        csv_reader = csv.reader(file)
+        # Skip the header row
+        next(csv_reader)
+        for row in csv_reader:
+            if len(row) > column_index:
+                column_values.append(float(row[column_index]))  # Assuming the values are float numbers
+    return column_values
+
 @njit
 def gen_even_weights(matrix: np.ndarray) -> np.ndarray:
     """

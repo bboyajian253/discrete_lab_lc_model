@@ -22,7 +22,7 @@ from interpolation.splines import eval_linear
 def solve_lc(myPars: Pars, path: str = None )-> dict:
     # Start status csv
     if path is None:
-        path = myPars.path
+        path = myPars.path + 'output/'
     fullpath = path + "/status.csv"
     with open(fullpath, mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -59,7 +59,9 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
         # Print status of life-cycle solution both to the terminal and store in the status.csv file
         if myPars.print_screen >= 2:
             print(f'solved period {j} of {myPars.J}')
-        fullpath = myPars.path + '/status.csv'
+        if path is None:
+            path = myPars.path + 'output/'
+        fullpath = path + '/status.csv'
         with open(fullpath, mode='a', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_NONE, escapechar='\\')
             writer.writerow([f'solved period {j} of {myPars.J}'])
@@ -126,7 +128,6 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
         # Get current wage ***AND FUTURE WAGE IF WAGE VARIES?***
         curr_wage = model.wage(myPars, j, lab_FE_ind, H_ind, nu_ind)
         
-        #fullpath = myPars.path + '/status.csv'
 
         # Get  period solutions
         if last_per: # Consume everything and work as little as possible though i could put model.lab_star here with a_prime = 0
