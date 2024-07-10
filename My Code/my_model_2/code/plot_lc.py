@@ -13,10 +13,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import my_toolbox
 from typing import List, Dict
-
+import csv
 # My code
 from pars_shocks_and_wages import Pars
-import csv
+
 
 def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
     
@@ -57,7 +57,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             #iterate through labor fixed effect groups (this is basically ability groups)
             for h_ind in range(myPars.H_grid_size):
                 for lab_fe_ind in range(myPars.lab_FE_grid_size):    
-                    #get the mean of the values over the labor fixed effect 
+                    #get the mean of the values over the labor fixed effects and health types 
                     lc_mean = np.average(lc[lab_fe_ind, h_ind, 0, :], axis=(0))
                     myLab = f"FE:{round(myPars.lab_FE_grid[lab_fe_ind])} H:{round(myPars.H_grid[h_ind])}"
                     if short_name == 'a':
@@ -90,6 +90,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
                 for row in lc:
                     writer.writerows(['model'] + list(lc))
 
+# probably should plot policy functions as a function of states evetually
 def plot_c_by_a(myPars : Pars, sim_lc):
     pass
     # fig, ax = plt.subplots()

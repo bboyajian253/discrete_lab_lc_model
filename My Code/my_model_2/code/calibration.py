@@ -161,7 +161,6 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
 
 def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_alpha_calib_params.csv")
-    alpha_guess= myPars.alpha
     mean_lab = -999.999
     state_sols = {}
     sim_lc = {}
@@ -177,7 +176,6 @@ def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, me
     # solve, simulate and plot model for the calibrated alpha
     mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
     print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
-    # plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
     print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
     
     # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
@@ -194,15 +192,23 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
-    mean_lab = np.mean(labor_sims)
 
-    # write parameters to a file
+    # labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
+    # mean_lab = np.mean(labor_sims)
+    mean_lab = alpha_moment_giv_sims(myPars, sim_lc) 
     return mean_lab, state_sols, sim_lc
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     labor_sims = sims['lab'][:,:,:,:,:myPars.J]
-    mean_lab = np.mean(labor_sims)
+    # print("preweights:")
+    # print(labor_sims[1, 0, 0, 0, :])
+    weighted_labor_sims = labor_sims
+    # weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
+    #cuz labor is between 0 and 1 this makes it so that weighting by percent doesnt fuck up the scale 
+    # print("postweights:")
+    # print(weighted_labor_sims[1, 0, 0, 0,: ])
+    mean_lab = np.mean(weighted_labor_sims)
+    print(f"mean labor worked = {mean_lab}")
     return mean_lab
 
 def calib_w0(myPars: Pars, main_path: str, max_iters: int, mean_tol: float,  mean_target: float, sd_tol: float, sd_target: float):
@@ -263,7 +269,7 @@ def w1_moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
 
 def w1_moment(myPars: Pars)-> float:
     wage_sims = model.gen_weighted_wages(myPars)
-    mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
+    mean_wage = np.sum(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
     return wage_diff
 
@@ -300,7 +306,7 @@ def w2_moment(myPars: Pars)-> float:
     wage_sims = model.gen_weighted_wages(myPars)
     # or could just generate wages independently but this is more general
     # wage_sims = model.gen_wages(myPars)
-    mean_wage = np.mean(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
+    mean_wage = np.sum(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
     return wage_diff
 
@@ -405,18 +411,4 @@ if __name__ == "__main__":
 
         alpha, w0_weights, w1, w2, state_sols, sims = calib_all(myPars, calib_path, max_iters, alpha_mom_targ, 
                                                                     w0_mean_targ, w0_sd_targ, w1_mom_targ, w2_mom_targ)
-        # results = calib_w0(myPars, calib_path, 100, 0.01, 20.0, 0.01, 5.0)[:3]
-        #print(f"Calibration main exited: alpha = {alpha}, w1 = {w1}") 
-        # print(results)
-        # print(model.gen_wages(myPars).shape)
-        # wage_sims = model.gen_wages(myPars)
-        # print(wage_sims[0, 0, 0, 0])
-        # my_sim_weights = np.array([])
-        # for i in range(myPars.H_grid_size):
-            # my_sim_weights=np.append(my_sim_weights, myPars.lab_FE_weights)       
-        # my_sim_weights_reshaped = my_sim_weights.T.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1)
-        # print(my_sim_weights_reshaped.shape)
-        # weighted_wage_sims = wage_sims * my_sim_weights_reshaped
-        # print(weighted_wage_sims.shape)
-        # print(weighted_wage_sims[0, 0, 0, 0])
         tb.print_exec_time("Calibration main ran in", start_time)

@@ -274,7 +274,25 @@ def gen_weighted_wages(myPars: Pars) -> np.ndarray:
     my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1)
     wage_sims = gen_wages(myPars)
     weighted_wage_sims = wage_sims * my_sim_weights_reshaped
+    weighted_wage_sims = weighted_wage_sims / myPars.H_grid_size
     return weighted_wage_sims
+
+@njit
+def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
+    """
+    generate the weighted simulation
+    """
+    # Pre-allocate the weights array
+    my_sim_weights = np.empty((myPars.lab_FE_grid_size, myPars.H_grid_size))
+    # Fill the weights array
+    for i in range(myPars.H_grid_size):
+        my_sim_weights[:, i] = myPars.lab_FE_weights
+    # Reshape weights for broadcasting
+    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1, 1)
+    # Weight the moment simulation
+    weighted_sim = lc_moment_sim * my_sim_weights_reshaped
+    weighted_sim = weighted_sim / myPars.H_grid_size
+    return weighted_sim
 
 @njit
 def recover_wage(myPars: Pars, c: float, lab: float, a_prime: float, a: float) -> float: #this will divide by zero if lab = 0
