@@ -206,7 +206,7 @@ def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     # print(f"mean labor worked = {mean_lab}")
     return mean_lab
 
-def calib_w0(myPars: Pars, main_path: str, max_iters: int, mean_tol: float,  mean_target: float, sd_tol: float, sd_target: float):
+def calib_w0(myPars: Pars, main_path: str, max_iters: int, mean_tol: float, mean_target: float, sd_tol: float, sd_target: float):
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_calib_params.csv")
     mean_wage = -999.999
     sd_wage = -999.999

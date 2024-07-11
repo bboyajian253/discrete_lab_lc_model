@@ -26,7 +26,7 @@ def read_specific_column_from_csv(file_path: str, column_index: int)-> List[floa
         for row in csv_reader:
             if len(row) > column_index:
                 column_values.append(float(row[column_index]))  # Assuming the values are float numbers
-    return column_values
+    return np.array(column_values)
 
 @njit
 def gen_even_weights(matrix: np.ndarray) -> np.ndarray:
