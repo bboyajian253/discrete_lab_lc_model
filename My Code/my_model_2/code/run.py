@@ -62,10 +62,10 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         if get_moments:
             alpha_lab_targ = calibration.get_alpha_targ(myPars)
             w0_mean_targ, w0_sd_targ = calibration.get_w0_mean_targ(myPars), calibration.get_w0_sd_targ(myPars)
-            # w1_targ = calibration.get_w1_targ(myPars)
-            w1_targ = 0.2
-            # w2_targ = calibration.get_w2_targ(myPars)
-            w2_targ = 0.2
+            w1_targ = calibration.get_w1_targ(myPars)
+            # w1_targ = 0.2
+            w2_targ = calibration.get_w2_targ(myPars)
+            # w2_targ = 0.2
         else:
             alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.40, 20.0, 5.0, 0.2, 0.2
 
@@ -92,11 +92,11 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
 
     #if output, output the results
     if output_flag:
-        output(myPars, state_sols, sim_lc, no_tex)
+        output(myPars, state_sols, sim_lc, no_tex, get_moments)
     
     return [state_sols, sim_lc]
 
-def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], no_tex)-> None:
+def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], no_tex, get_moments)-> None:
     # Print parameters
     calibration.print_params_to_csv(myPars)
     #calib_path = myPars.path + 'calibration/'
@@ -104,8 +104,9 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
         calibration.print_exog_params_to_tex(myPars)
         calibration.print_endog_params_to_tex(myPars)
         calibration.print_wage_coeffs_to_tex(myPars)
-    # Output the results and the associated graphs
-
+    if get_moments:
+        plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc)
+        plot_moments.plot_wage_aggs_and_moms(myPars)
     plot_lc.plot_lc_profiles(myPars, sim_lc)
 
 #Make run if main function
@@ -115,7 +116,8 @@ if __name__ == "__main__":
 
     # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
     # my_lab_FE_grid = np.array([10.0, 10.0])
-    my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
+    # my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
+    my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
     quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
     cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
@@ -149,5 +151,3 @@ if __name__ == "__main__":
     # run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)
     myPars.path = main_path
     sols, sims =run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, get_moments = True, output_flag = True, no_tex = True)
-    plot_moments.plot_lab_aggs_and_moms(myPars, sims)
-    plot_moments.plot_wage_aggs_and_moms(myPars)
