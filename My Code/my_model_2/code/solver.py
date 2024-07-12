@@ -23,7 +23,7 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
     # Start status csv
     if path is None:
         path = myPars.path + 'output/'
-    fullpath = path + "/status.csv"
+    fullpath = path + "status.csv"
     with open(fullpath, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([f'solve_lc started'])

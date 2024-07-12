@@ -10,7 +10,7 @@ sigma_gamma_2,0.051
 lab_FE_grid,[10. 20. 30.]
 lab_FE_grid_size,3
 beta,0.9803921568627451
-alpha,0.47461462890625
+alpha,0.367193828125
 sigma_util,0.9999
 phi_n,1.125
 phi_H,0.1
@@ -65,10 +65,10 @@ a_grid,"[-500. -498. -496. -494. -492. -490. -488. -486. -484. -482. -480. -478.
 a_grid_size,501
 H_grid,[0. 1.]
 H_grid_size,2
-state_space_shape,"(501, 3, 2, 1, 60)"
+state_space_shape,"(501, 3, 2, 1, 51)"
 state_space_shape_no_j,"(501, 3, 2, 1)"
 state_space_no_j_size,3006
-state_space_shape_sims,"(3, 2, 1, 1000, 61)"
+state_space_shape_sims,"(3, 2, 1, 1000, 52)"
 lab_min,0.0
 lab_max,0.8888888888888888
 c_min,0.0001
@@ -76,7 +76,7 @@ leis_min,0.0
 leis_max,1.0
 dt,2500
 sim_draws,1000
-J,60
+J,51
 print_screen,0
 interp_c_prime_grid,[0. 0.]
 interp_eval_points,[0.]
@@ -85,11 +85,11 @@ H_by_nu_flat_trans,"[0.68152 0.01848 0.29208 0.00792 0.01848 0.68152 0.00792 0.2
 H_by_nu_size,2
 sim_interp_grid_spec,"(-500.0, 500.0, 501)"
 start_age,25
-end_age,86
+end_age,77
 age_grid,"[25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48
  49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72
- 73 74 75 76 77 78 79 80 81 82 83 84 85]"
+ 73 74 75 76]"
 path,C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/
-wage_coeff_grid,"[[ 1.00000000e+01  0.00000000e+00 -0.00000000e+00  0.00000000e+00]
- [ 2.00000000e+01  3.57666016e-01 -6.07299805e-03  0.00000000e+00]
- [ 3.00000000e+01  3.57666016e-01 -6.07299805e-03  0.00000000e+00]]"
+wage_coeff_grid,"[[ 1.00000e+01  0.00000e+00 -0.00000e+00  0.00000e+00]
+ [ 2.00000e+01  1.25000e+00 -2.34375e-02  0.00000e+00]
+ [ 3.00000e+01  1.25000e+00 -2.34375e-02  0.00000e+00]]"

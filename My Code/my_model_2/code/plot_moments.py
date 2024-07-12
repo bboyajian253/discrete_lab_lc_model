@@ -37,7 +37,7 @@ def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
-    data_moments_path = myPars.path + '/input/wage_test.csv'
+    data_moments_path = myPars.path + '/input/wage_moments.csv'
     data_moments_col_ind = 1
     data_moments = tb.read_specific_column_from_csv(data_moments_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
@@ -78,7 +78,7 @@ def weighted_avg_lab_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: s
     if path is None:
         path = myPars.path + 'output/'
     # calcualte weighted mean wages by age and sim first
-    labor_sims = sims['lab'][:,:,:,:,:myPars.J]
+    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
     print("labor sims shape:", labor_sims.shape)
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
     print("weighted labor sims shape:", weighted_labor_sims.shape)
@@ -99,7 +99,7 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: st
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
-    data_moments_path = myPars.path + '/input/lab_test.csv'
+    data_moments_path = myPars.path + '/input/labor_moments.csv'
     data_moments_col_ind = 1
     data_moments = tb.read_specific_column_from_csv(data_moments_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
@@ -164,17 +164,18 @@ if __name__ == "__main__":
     print("intial wage coeff grid")
     print(w_coeff_grid)
 
-    myPars = Pars(main_path, J=50, a_grid_size=501, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
+    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
                 H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1,
                 wage_coeff_grid = w_coeff_grid,
                 print_screen=3)
     
     # sim_lc = np.ones(1)
-    # plot_wage_aggs_and_moms(myPars)
+    plot_wage_aggs_and_moms(myPars)
     shocks = Shocks(myPars)
     sols = solver.solve_lc(myPars)
     sims = simulate.sim_lc(myPars, shocks, sols)
     print(weighted_avg_lab_by_age(myPars, sims))
     plot_lab_aggs_and_moms(myPars, sims)
+
     
     

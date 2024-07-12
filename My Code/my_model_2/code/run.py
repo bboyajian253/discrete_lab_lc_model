@@ -21,9 +21,11 @@ import simulate as simulate
 import calibration
 import plot_lc as plot_lc
 from pars_shocks_and_wages import Pars, Shocks
+import plot_moments 
 
 # Run the model
-def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, sim_no_calib  : bool = False, output_flag: bool = True, no_tex: bool = False)-> List[Dict[str, np.ndarray]]:
+def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, get_moments: bool = True, sim_no_calib  : bool = False, 
+              output_flag: bool = True, no_tex: bool = False)-> List[Dict[str, np.ndarray]]:
     """
     Given the model parameters, solve, calibrate, simulate, and, if desired, output the results.
     (i) Solve the model
@@ -57,10 +59,25 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         #alpha, mean_labor, state_sols, sim_lc = calibration.calib_alpha(myPars, main_path, max_iters, lab_tol, lab_targ)
-        alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.4, 20.0, 5.0, 0.2, 0.2
+        if get_moments:
+            alpha_lab_targ = calibration.get_alpha_targ(myPars)
+            w0_mean_targ, w0_sd_targ = calibration.get_w0_mean_targ(myPars), calibration.get_w0_sd_targ(myPars)
+            # w1_targ = calibration.get_w1_targ(myPars)
+            w1_targ = 0.2
+            # w2_targ = calibration.get_w2_targ(myPars)
+            w2_targ = 0.2
+        else:
+            alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.40, 20.0, 5.0, 0.2, 0.2
+
+        print("alpha_lab_targ", alpha_lab_targ)
+        print("w0_mean_targ", w0_mean_targ)
+        print("w0_sd_targ", w0_sd_targ)
+        print("w1_targ", w1_targ)
+        print("w2_targ", w2_targ)
+
         # calib_path = myPars.path + 'calibration/'
         calib_path = None
-        calib_alpha, w0_weights, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path, max_iters, 
+        calib_alpha, w0_weights, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path,  
                                                                                     alpha_lab_targ, w0_mean_targ, w0_sd_targ, 
                                                                                     w1_targ, w2_targ)
         for label in sim_lc.keys():
@@ -119,9 +136,9 @@ if __name__ == "__main__":
     print(my_lab_FE_weights)
 
 
-    myPars = Pars(main_path, J=60, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
+    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
                 nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, sigma_util = 0.9999,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 20, sigma_util = 0.9999,
                 print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)
@@ -131,4 +148,6 @@ if __name__ == "__main__":
     # myPars.path = myPars.path + 'test_calib/'
     # run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)
     myPars.path = main_path
-    run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True, no_tex = True)
+    sols, sims =run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, get_moments = True, output_flag = True, no_tex = True)
+    plot_moments.plot_lab_aggs_and_moms(myPars, sims)
+    plot_moments.plot_wage_aggs_and_moms(myPars)

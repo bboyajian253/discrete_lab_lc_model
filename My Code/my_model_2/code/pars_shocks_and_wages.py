@@ -81,7 +81,8 @@ pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic co
                 ('path', unicode_type), #path to save results to
                 ('wage_coeff_grid', float64[:,:]), #grid to hold the wage coefficients
                 ('wage_min', float64), #minimum wage
-                ('max_iters', int64), #maximum number of iterations for calibration
+                ('max_iters', int64), #maximum number of iterations for root finder
+                ('max_calib_iters', int64), #maximum number of iterations for calibration
                 # ('w0_min', float64), #minimum wage constant
                 # ('w0_max', float64), #maximum wage constant
                 # ('w0_grid_size', int64), #size of the wage constant grid this is probably redundant given labor_FE_grid_size
@@ -167,6 +168,7 @@ class Pars() :
             # printing level (defines how much to print)
             print_screen = 2,
             max_iters = 100,
+            max_calib_iters = 10,
             # w0_min = 5.0,
             # w0_max = 25.0,
             # w0_grid_size = 2  
@@ -248,6 +250,7 @@ class Pars() :
 
         self.path = path
         self.max_iters = max_iters
+        self.max_calib_iters = max_calib_iters
         # self.w0_min = w0_min
         # self.w0_max = w0_max
         # self.w0_grid_size = w0_grid_size

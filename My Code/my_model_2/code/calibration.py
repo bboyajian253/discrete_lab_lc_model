@@ -159,7 +159,7 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'wage_coeff_grid': pars_instance.wage_coeff_grid
     }
 
-def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_alpha_calib_params.csv")
     mean_lab = -999.999
     state_sols = {}
@@ -170,7 +170,7 @@ def calib_alpha(myPars: Pars, main_path: str, max_iters: int, lab_tol: float, me
     # define the lambda function to find the zero of     
     get_mean_lab_diff = lambda new_alpha: alpha_moment_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
     # search for the alpha that is the zero of the lambda function
-    calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, max_iters) 
+    calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, myPars.max_iters) 
     myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
     
     # solve, simulate and plot model for the calibrated alpha
@@ -206,7 +206,16 @@ def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     # print(f"mean labor worked = {mean_lab}")
     return mean_lab
 
-def calib_w0(myPars: Pars, main_path: str, max_iters: int, mean_tol: float, mean_target: float, sd_tol: float, sd_target: float):
+def get_alpha_targ(myPars: Pars) -> float:
+    data_moments_path = myPars.path + '/input/labor_moments.csv'
+    data_mom_col_ind = 1
+    mean_labor_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return np.mean(mean_labor_by_age)
+
+
+
+
+def calib_w0(myPars: Pars, main_path: str, mean_tol: float, mean_target: float, sd_tol: float, sd_target: float):
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_calib_params.csv")
     mean_wage = -999.999
     sd_wage = -999.999
@@ -234,14 +243,26 @@ def w0_moments(myPars: Pars)-> Tuple[float, float]:
     sd_first_per_wage = np.sqrt(np.sum(my_weights * (my_lab_FE - mean_first_per_wage)**2))
     return mean_first_per_wage, sd_first_per_wage
 
-def calib_w1(myPars: Pars, main_path: str, max_iters: int, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def get_w0_mean_targ(myPars: Pars)-> float:
+    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_mom_col_ind = 1
+    mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return np.mean(mean_wage_by_age)
+
+def get_w0_sd_targ(myPars: Pars)-> float:
+    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_mom_col_ind = 1
+    mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return np.std(mean_wage_by_age)
+
+def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
     w1_moment = -999.999
     sate_sols = {}
     sim_lc = {}
     # define the lambda function to find the zero of
     get_w1_diff = lambda new_coeff: w1_moment_giv_w1(myPars, main_path, new_coeff) - target
-    calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, max_iters)
+    calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, myPars.max_iters)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
     for i in range (1, myPars.lab_FE_grid_size):
         myPars.wage_coeff_grid[i, 1] = calibrated_w1
@@ -268,7 +289,13 @@ def w1_moment(myPars: Pars)-> float:
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
     return wage_diff
 
-def calib_w2(myPars: Pars, main_path: str, max_iters: int, tol: float, target: float, w2_min: float, w2_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def get_w1_targ(myPars: Pars)-> float:
+    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_mom_col_ind = 1
+    mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return log(np.max(mean_wage_by_age))- log(mean_wage_by_age[0])
+
+def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: float, w2_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w2_calib_params.csv")
     w2_moment = -999.999
     sate_sols = {}
@@ -276,7 +303,7 @@ def calib_w2(myPars: Pars, main_path: str, max_iters: int, tol: float, target: f
     # define the lambda function to find the zero of
     get_w2_diff = lambda new_coeff: w2_moment_giv_w2(myPars, main_path, new_coeff) - target
     # search for the w2 that is the zero of the lambda function
-    calibrated_w2 = tb.bisection_search(get_w2_diff, w2_min, w2_max, tol, max_iters)
+    calibrated_w2 = tb.bisection_search(get_w2_diff, w2_min, w2_max, tol, myPars.max_iters)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
     for i in range (1, myPars.lab_FE_grid_size):
         myPars.wage_coeff_grid[i, 2] = calibrated_w2
@@ -305,7 +332,13 @@ def w2_moment(myPars: Pars)-> float:
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
     return wage_diff
 
-def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: float,  
+def get_w2_targ(myPars: Pars)-> float:
+    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_mom_col_ind = 1
+    mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[-1])
+
+def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  
         w0_mean_targ: float, w0_sd_targ: float, w1_mom_targ: float, w2_mom_targ: float)-> (
         Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
 
@@ -322,28 +355,27 @@ def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: flo
     # w0_max = 10.0
 
     # w1 calib set up
-    w1_tol = 0.001
+    w1_tol = 0.1
     #w1_targ = 0.50
     w1_min = 0.0
     w1_max = 10.0
 
     #w2 calib set up
-    w2_tol = 0.001
+    w2_tol = 0.1
     #w2_targ = 0.50
     w2_min = -1.0
     w2_max = 0.0
 
-    for i in range(max_iters):
+    for i in range(myPars.max_calib_iters):
         print(f"Calibration iteration {i}")
         # calibrate alpha
-        alpha_calib, alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, max_iters, alpha_tol, alpha_mom_targ)
+        alpha_calib, alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
         print(f"alpha = {alpha_calib}, alpha_moment = {alpha_moment}")
-        w0_weights, w0_mean_mom, w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, max_iters, 
-                                                                        w0_mean_tol, w0_mean_targ, w0_sd_tol, w0_sd_targ)
+        w0_weights, w0_mean_mom, w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, w0_mean_tol, w0_mean_targ, w0_sd_tol, w0_sd_targ)
         print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_sd = {w0_sd_mom}")
-        w1_calib, w1_moment, state_sols, sims = calib_w1(myPars, calib_path, max_iters, w1_tol, w1_mom_targ, w1_min, w1_max)
+        w1_calib, w1_moment, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
         print(f"w1 = {w1_calib}, w1_moment = {w1_moment}")
-        w2_calib, w2_moment, state_sols, sims = calib_w2(myPars, calib_path, max_iters, w2_tol, w2_mom_targ, w2_min, w2_max)
+        w2_calib, w2_moment, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
         print(f"w2 = {w2_calib}, w2_moment = {w2_moment}")
         if is_calib_cond_met(myPars, sims, alpha_mom_targ, alpha_tol, 
                              w0_mean_targ, w0_mean_tol, w0_sd_targ, w0_sd_tol,
@@ -351,7 +383,11 @@ def calib_all(myPars: Pars, calib_path: str, max_iters: int, alpha_mom_targ: flo
             print(f"Calibration converged after {i+1} iterations: alpha = {alpha_calib}, alpha moment = {alpha_moment}, w1 = {w1_calib}, w1 moment = {w1_moment}, w2 = {w2_calib}, w2 moment = {w2_moment}")
             print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_sd = {w0_sd_mom}")
             return alpha_calib, w0_weights, w1_calib, w2_calib, state_sols, sims
-    print(f"Calibration did not converge after {max_iters} iterations")
+    print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
+    print(f"""alpha = {alpha_calib}, alpha moment = {alpha_moment}, alpha mom targ = {alpha_mom_targ},
+          w1 = {w1_calib}, w1 moment = {w1_moment}, w1 mom targ = {w1_mom_targ},
+          w2 = {w2_calib}, w2 moment = {w2_moment}, w2 mom targ = {w2_mom_targ}""")
+    print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
     return alpha_calib, w0_weights, w1_calib, w2_calib, state_sols, sims
     
 def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ: float, alpha_tol: float, 
