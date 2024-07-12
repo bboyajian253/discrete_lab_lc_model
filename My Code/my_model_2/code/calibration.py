@@ -35,7 +35,7 @@ def print_endog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     if path is None:
-        path = myPars.path + 'output/calibration/'
+        path = myPars.path + 'output/'
     fullpath = path + 'parameters_endog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
@@ -43,25 +43,25 @@ def print_endog_params_to_tex(myPars: Pars, path: str = None)-> None:
 
 def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
-    tab = ["\\small\\begin{tabular}{l l l l l l l} \n"]
+    tab = ["\\small\\begin{tabular}{l l l l l l} \n"]
     tab.append("\\hline \n")
     tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & $\\gamma_4$ & Description & Source \\\\ \n") 
     tab.append("\\hline \n")   
     # for i in myPars.lab_FE_grid:
     #     tab.append(f"$\\beta_{{{i}\\gamma}}$ & {myPars.wage_coeff_grid[0][i]} &  {myPars.wage_coeff_grid[1][i]} & {myPars.wage_coeff_grid[2][i]} & $j^{{{i}}}$ Coeff. & Moment Matched \\\\ \n") 
     tab.append(f"""$w_{{0\\gamma}}$ & {round(myPars.wage_coeff_grid[0][0], 3)} & {round(myPars.wage_coeff_grid[1][0], 3)} 
-               & {round(myPars.wage_coeff_grid[2][0], 3)} & {round(myPars.wage_coeff_grid[3][0])} 
+               & {round(myPars.wage_coeff_grid[2][0], 3)} 
                & Constant & Benchmark \\\\ \n""")
-    tab.append(f"""$w_{{1\\gamma}}$ & {round(myPars.wage_coeff_grid[0][1], 3)} &  {round(myPars.wage_coeff_grid[1][1], 3)} 
-               & {round(myPars.wage_coeff_grid[2][1], 3)} & {round(myPars.wage_coeff_grid[3][1], 3)} 
+    tab.append(f"""$w_{{1\\gamma}}$ & {round(myPars.wage_coeff_grid[0][1], 3)} & {round(myPars.wage_coeff_grid[1][1], 3)} 
+               & {round(myPars.wage_coeff_grid[2][1], 3)} 
                & $j$ Coeff. & Wage Growth \\\\ \n""")
-    tab.append(f"""$w_{{2\\gamma}}$ & {round(myPars.wage_coeff_grid[0][2], 3)} &  {round(myPars.wage_coeff_grid[1][2], 3)} 
-               & {round(myPars.wage_coeff_grid[2][2], 3)} & {round(myPars.wage_coeff_grid[3][2], 3)} 
+    tab.append(f"""$w_{{2\\gamma}}$ & {round(myPars.wage_coeff_grid[0][2], 3)} & {round(myPars.wage_coeff_grid[1][2], 3)} 
+               & {round(myPars.wage_coeff_grid[2][2], 3)}  
                & $j^{{2}}$ Coeff. & Wage Decline \\\\ \n""")
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     if path is None:
-        path = myPars.path + 'output/calibration/'
+        path = myPars.path + 'output/'
     fullpath = path + 'wage_coeffs.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
@@ -82,7 +82,7 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
     if path is None:
-        path = myPars.path + 'output/calibration/'
+        path = myPars.path + 'output/'
     fullpath = path + 'parameters_exog.tex'
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
@@ -440,6 +440,6 @@ if __name__ == "__main__":
         w1_mom_targ = 0.20
         w2_mom_targ = 0.20
 
-        alpha, w0_weights, w1, w2, state_sols, sims = calib_all(myPars, calib_path, max_iters, alpha_mom_targ, 
+        alpha, w0_weights, w1, w2, state_sols, sims = calib_all(myPars, calib_path, alpha_mom_targ, 
                                                                     w0_mean_targ, w0_sd_targ, w1_mom_targ, w2_mom_targ)
         tb.print_exec_time("Calibration main ran in", start_time)

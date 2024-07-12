@@ -62,10 +62,10 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         if get_moments:
             alpha_lab_targ = calibration.get_alpha_targ(myPars)
             w0_mean_targ, w0_sd_targ = calibration.get_w0_mean_targ(myPars), calibration.get_w0_sd_targ(myPars)
-            w1_targ = calibration.get_w1_targ(myPars)
-            # w1_targ = 0.2
-            w2_targ = calibration.get_w2_targ(myPars)
-            # w2_targ = 0.2
+            # w1_targ = calibration.get_w1_targ(myPars)
+            w1_targ = 0.2
+            # w2_targ = calibration.get_w2_targ(myPars)
+            w2_targ = 0.2
         else:
             alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.40, 20.0, 5.0, 0.2, 0.2
 
@@ -114,8 +114,6 @@ if __name__ == "__main__":
    
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
 
-    # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
-    # my_lab_FE_grid = np.array([10.0, 10.0])
     # my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
     my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
@@ -144,10 +142,5 @@ if __name__ == "__main__":
                 print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)
-    # Run the model no calibration
-    # run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, output_flag = True)
-    # Run the model with calibration
-    # myPars.path = myPars.path + 'test_calib/'
-    # run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, output_flag = True)
     myPars.path = main_path
-    sols, sims =run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, get_moments = True, output_flag = True, no_tex = True)
+    sols, sims =run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, get_moments = True, output_flag = True, no_tex = False)
