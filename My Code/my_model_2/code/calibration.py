@@ -98,7 +98,7 @@ def print_wo_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
         "Target Moment & Target Value & Model Value & \\\\ \n",
         "\\hline \n",
         f"Mean wage, $j=0$ & {w0_mean_targ_val} & {w0_mean_mod_val} & \\\\ \n",
-        f"SD wage & {w0_sd_targ_val} & {w0_sd_mod_val} & \\\\ \n",
+        f"SD wage, $j=0$ & {w0_sd_targ_val} & {w0_sd_mod_val} & \\\\ \n",
         "\\hline \n",
         "\\end{tabular}\n",
         "\\end{document}\n"
@@ -343,9 +343,11 @@ def get_w0_mean_targ(myPars: Pars)-> float:
 
 def get_w0_sd_targ(myPars: Pars)-> float:
     data_moments_path = myPars.path + '/input/wage_moments.csv'
-    data_mom_col_ind = 1
-    mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
-    return np.std(mean_wage_by_age)
+    data_mom_col_ind = 2
+    sd_wage_col= tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return sd_wage_col[0]
+    # return np.std(mean_wage_by_age)
+
 
 def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
