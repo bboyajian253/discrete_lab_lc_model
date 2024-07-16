@@ -80,6 +80,11 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         calib_alpha, w0_weights, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path,  
                                                                                     alpha_lab_targ, w0_mean_targ, w0_sd_targ, 
                                                                                     w1_targ, w2_targ)
+        calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ, 'w1': w1_targ, 'w2': w2_targ}
+        calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
+                                    'w0_mean': calibration.w0_moments(myPars)[0], 'w0_sd': calibration.w0_moments(myPars)[1],
+                                    'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars) 
+                                 }
         for label in sim_lc.keys():
             np.save(myPars.path + 'output/' + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
@@ -92,18 +97,18 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
 
     #if output, output the results
     if output_flag:
-        output(myPars, state_sols, sim_lc, no_tex, get_moments)
+        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, no_tex, get_moments)
     
     return [state_sols, sim_lc]
 
-def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], no_tex, get_moments)-> None:
+def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], model_moments: Dict[str, np.ndarray],no_tex, get_moments)-> None:
     # Print parameters
     calibration.print_params_to_csv(myPars)
     #calib_path = myPars.path + 'calibration/'
     if not no_tex:
         calibration.print_exog_params_to_tex(myPars)
-        calibration.print_endog_params_to_tex(myPars)
-        calibration.print_wage_coeffs_to_tex(myPars)
+        calibration.print_endog_params_to_tex(myPars, targ_moments, model_moments)
+        calibration.print_wo_calib_to_tex(myPars, targ_moments, model_moments)
     if get_moments:
         plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc)
         plot_moments.plot_wage_aggs_and_moms(myPars)
@@ -138,7 +143,7 @@ if __name__ == "__main__":
 
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
                 nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 10, sigma_util = 0.9999,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 1, sigma_util = 0.9999,
                 print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)
