@@ -62,10 +62,10 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         if get_moments:
             alpha_lab_targ = calibration.get_alpha_targ(myPars)
             w0_mean_targ, w0_sd_targ = calibration.get_w0_mean_targ(myPars), calibration.get_w0_sd_targ(myPars)
-            # w1_targ = calibration.get_w1_targ(myPars)
-            w1_targ = 0.2
-            # w2_targ = calibration.get_w2_targ(myPars)
-            w2_targ = 0.2
+            w1_targ = calibration.get_w1_targ(myPars)
+            # w1_targ = 0.2
+            w2_targ = calibration.get_w2_targ(myPars)
+            # w2_targ = 0.2
         else:
             alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.40, 20.0, 5.0, 0.2, 0.2
 
@@ -114,8 +114,8 @@ if __name__ == "__main__":
    
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
 
-    # my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
-    my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
+    my_lab_FE_grid = np.array([10.0, 15.0, 20.0])
+    # my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
     quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
     cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
                 nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 20, sigma_util = 0.9999,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 10, sigma_util = 0.9999,
                 print_screen=0)
     # Set up the shocks
     myShocks = Shocks(myPars)

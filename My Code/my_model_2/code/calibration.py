@@ -14,6 +14,8 @@ from numpy import log
 import csv
 from typing import Tuple, List, Dict
 import time
+import os
+import subprocess
 
 # My code
 import my_toolbox as tb
@@ -24,26 +26,112 @@ from pars_shocks_and_wages import Pars, Shocks
 import simulate
 import plot_lc as plot_lc
 
-def print_endog_params_to_tex(myPars: Pars, path: str = None)-> None:
-    '''this generates a latex table of the parameters'''
-    tab = ["\\begin{tabular}{l l l l} \n"]
-    tab.append("\\hline \n")
-    tab.append("Parameter & Description & Value & Target \\\\ \n") 
-    tab.append("\\hline \n")   
-    tab.append(f"$\\alpha$ & Consumptioni share & {np.round(myPars.alpha, 4)} & Mean Hours Worked \\\\ \n") 
-    tab.append(f"$\\kappa$ & Borrowing constraint & {np.round(myPars.a_min, 4)} & Unconstrained \\\\ \n") 
-    tab.append("\\hline \n")
-    tab.append(f"\\end{{tabular}}")
+def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
+    '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
+
+    alpha_targ_val = np.round(targ_moments['alpha'], 3) * 100
+    alpha_mod_val = np.round(model_moments['alpha'], 3) * 100
+    w1_targ_val = np.round(targ_moments['w1'], 3)*100 
+    w1_mod_val = np.round(model_moments['w1'], 3)*100
+    w2_targ_val = np.round(targ_moments['w2'], 3)*100 
+    w2_mod_val = np.round(model_moments['w2'], 3)*100
+    tab = [
+        "\\documentclass[border=3mm,preview]{standalone}",
+        "\\begin{document}\n",
+        "\\small\n",
+        "\\begin{tabular}{l l l l l l} \n",
+        "\\hline \n",
+        "Parameter & Description & Par. Value & Target Moment & Target Value & Model Value \\\\ \n", 
+        "\\hline \n",   
+        f"$\\alpha$ & Consumption share & {np.round(myPars.alpha, 4)} & Mean hours worked & {alpha_targ_val} & {alpha_mod_val} \\\\ \n", 
+        f"$w_{{1}}$ & Linear wage coeff. & {np.round(myPars.wage_coeff_grid[1,1], 4)} & Wage growth & {w1_targ_val}\\% & {w1_mod_val}\\% \\\\ \n", 
+        f"$w_{{2}}$ & Quad. wage coeff. & {np.round(myPars.wage_coeff_grid[1,2], 4)} & Wage decay & {w2_targ_val}\\% & {w2_mod_val}\\% \\\\ \n", 
+        "\\hline \n",
+        "\\end{tabular}\n",
+        "\\end{document}\n"
+    ]
+    
     if path is None:
         path = myPars.path + 'output/'
-    fullpath = path + 'parameters_endog.tex'
+    
+    # Raise an error if the directory does not exist
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"The specified path does not exist: {path}")
+
+    fullpath = os.path.join(path, 'parameters_endog.tex')
+    
+    # Write the LaTeX content to a file
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
             pen.write(row)
+    
+    # Compile the .tex file to a PDF
+    result = subprocess.run(['pdflatex', '-output-directory', path, fullpath], capture_output=True, text=True)
+    
+    # Check for errors and print the output for debugging
+    if result.returncode != 0:
+        print(f"Error in pdflatex execution: {result.stderr}")
+        print(f"Standard Output: {result.stdout}")
+    else:
+        print(f"PDF successfully created at {os.path.join(path, 'parameters_endog.pdf')}")
+
+def print_wo_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
+    '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
+
+    w0_mean_targ_val = np.round(targ_moments['w0_mean'], 3)
+    w0_mean_mod_val = np.round(model_moments['w0_mean'], 3)
+    w0_sd_targ_val = np.round(targ_moments['w0_sd'], 3)
+    w0_sd_mod_val = np.round(model_moments['w0_sd'], 3)
+
+    tab = [
+        "\\documentclass[border=3mm,preview]{standalone}",
+        "\\begin{document}\n",
+        "\\small\n",
+        "\\begin{tabular}{l l l l} \n",
+        "\\hline \n",
+        "Parameter & Description & Value & Weights \\\\ \n",
+        "\\hline \n",
+        f"$w_{{0}}$ & Constant wage coeff. & {myPars.wage_coeff_grid[0, 0]} & {round(myPars.lab_FE_weights[0],2)} \\\\ \n",
+        f"$w_{{0}}$ & Constant wage coeff. & {myPars.wage_coeff_grid[1, 0]} & {round(myPars.lab_FE_weights[1],2)} \\\\ \n",
+        f"$w_{{0}}$ & Constant wage coeff. & {myPars.wage_coeff_grid[2, 0]} & {round(myPars.lab_FE_weights[2],2)} \\\\ \n",
+        "\\hline \n",
+        "Target Moment & Target Value & Model Value & \\\\ \n",
+        "\\hline \n",
+        f"Mean wage, $j=0$ & {w0_mean_targ_val} & {w0_mean_mod_val} & \\\\ \n",
+        f"SD wage & {w0_sd_targ_val} & {w0_sd_mod_val} & \\\\ \n",
+        "\\hline \n",
+        "\\end{tabular}\n",
+        "\\end{document}\n"
+    ]
+
+    if path is None:
+        path = myPars.path + 'output/'
+
+    # Raise an error if the directory does not exist
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"The specified path does not exist: {path}")
+    
+    fullpath = os.path.join(path, 'parameters_wo_calib.tex')
+
+    # Write the LaTeX content to a file
+    with open (fullpath, 'w', newline='\n') as pen:
+        for row in tab:
+            pen.write(row)
+    
+    # Compile the .tex file to a PDF
+    result = subprocess.run(['pdflatex', '-output-directory', path, fullpath], capture_output=True, text=True)
+
+    # Check for errors and print the output for debugging
+    if result.returncode != 0:
+        print(f"Error in pdflatex execution: {result.stderr}")
+        print(f"Standard Output: {result.stdout}")
+    else:
+        print(f"PDF successfully created at {os.path.join(path, 'parameters_wo_calib.pdf')}")
+
 
 def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
-    tab = ["\\small\\begin{tabular}{l l l l l l} \n"]
+    tab = ["\\small\\begin{tabular}{l l l l l l} \n"]        
     tab.append("\\hline \n")
     tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & $\\gamma_4$ & Description & Source \\\\ \n") 
     tab.append("\\hline \n")   
@@ -60,6 +148,7 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
                & $j^{{2}}$ Coeff. & Wage Decline \\\\ \n""")
     tab.append("\\hline \n")
     tab.append(f"\\end{{tabular}}")
+    
     if path is None:
         path = myPars.path + 'output/'
     fullpath = path + 'wage_coeffs.tex'
@@ -84,6 +173,8 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     if path is None:
         path = myPars.path + 'output/'
     fullpath = path + 'parameters_exog.tex'
+
+
     with open(fullpath, 'w', newline='\n') as pen:
         for row in tab:
             pen.write(row)
@@ -247,7 +338,8 @@ def get_w0_mean_targ(myPars: Pars)-> float:
     data_moments_path = myPars.path + '/input/wage_moments.csv'
     data_mom_col_ind = 1
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
-    return np.mean(mean_wage_by_age)
+    # return np.mean(mean_wage_by_age)
+    return mean_wage_by_age[0]
 
 def get_w0_sd_targ(myPars: Pars)-> float:
     data_moments_path = myPars.path + '/input/wage_moments.csv'
@@ -349,19 +441,19 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,
     alpha_tol = 0.001
 
     # w0 calib set up
-    w0_mean_tol = 2.0
-    w0_sd_tol = 2.0
+    w0_mean_tol = .1
+    w0_sd_tol = .1
     # w0_min = 0.0
     # w0_max = 10.0
 
     # w1 calib set up
-    w1_tol = 0.1
+    w1_tol = 0.01
     #w1_targ = 0.50
     w1_min = 0.0
     w1_max = 10.0
 
     #w2 calib set up
-    w2_tol = 0.1
+    w2_tol = 0.01
     #w2_targ = 0.50
     w2_min = -1.0
     w2_max = 0.0
@@ -381,7 +473,10 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,
                              w0_mean_targ, w0_mean_tol, w0_sd_targ, w0_sd_tol,
                              w1_mom_targ, w1_tol, w2_mom_targ, w2_tol):
             print(f"Calibration converged after {i+1} iterations: alpha = {alpha_calib}, alpha moment = {alpha_moment}, w1 = {w1_calib}, w1 moment = {w1_moment}, w2 = {w2_calib}, w2 moment = {w2_moment}")
-            print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_sd = {w0_sd_mom}")
+            print(f"""alpha = {alpha_calib}, alpha moment = {alpha_moment}, alpha mom targ = {alpha_mom_targ},
+                w1 = {w1_calib}, w1 moment = {w1_moment}, w1 mom targ = {w1_mom_targ},
+                w2 = {w2_calib}, w2 moment = {w2_moment}, w2 mom targ = {w2_mom_targ}""")
+            print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
             return alpha_calib, w0_weights, w1_calib, w2_calib, state_sols, sims
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
     print(f"""alpha = {alpha_calib}, alpha moment = {alpha_moment}, alpha mom targ = {alpha_mom_targ},
@@ -409,7 +504,7 @@ def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ:
 if __name__ == "__main__":
         start_time = time.perf_counter()
         calib_path= "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
-        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/"
+        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
         
         # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
         my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
@@ -438,8 +533,16 @@ if __name__ == "__main__":
         w0_mean_targ = 20.0
         w0_sd_targ = 5.0
         w1_mom_targ = 0.20
-        w2_mom_targ = 0.20
+        w2_mom_targ = 0.25
 
-        alpha, w0_weights, w1, w2, state_sols, sims = calib_all(myPars, calib_path, alpha_mom_targ, 
-                                                                    w0_mean_targ, w0_sd_targ, w1_mom_targ, w2_mom_targ)
+        # alpha, w0_weights, w1, w2, state_sols, sims = calib_all(myPars, calib_path, alpha_mom_targ, 
+                                                                    # w0_mean_targ, w0_sd_targ, w1_mom_targ, w2_mom_targ)
+        targ_moments = {'alpha': alpha_mom_targ, 'w1': w1_mom_targ, 'w2': w2_mom_targ}
+        model_moments = {'alpha': 0.30, 'w1': 0.10, 'w2': 0.20}
+
+        w0_targ_moments = {'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ}
+        w0_mod_moments = {'w0_mean': 10.0, 'w0_sd': 2.0}
+
+        print_endog_params_to_tex(myPars, targ_moments, model_moments)
+        print_wo_calib_to_tex(myPars, w0_targ_moments, w0_mod_moments)
         tb.print_exec_time("Calibration main ran in", start_time)

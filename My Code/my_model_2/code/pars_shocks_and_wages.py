@@ -191,7 +191,7 @@ class Pars() :
         #self.nu_trans = tb.rouwenhorst(nu_grid_size, rho_nu, sigma_eps)
         # gamma fixed productiviy drawn at birth
         self.sigma_gamma_2 = sigma_gamma_2
-        self.lab_FE_grid = lab_FE_grid
+        self.lab_FE_grid = self.wage_coeff_grid[:,0]
         self.lab_FE_weights = lab_FE_weights
         self.lab_FE_grid_size = len(self.lab_FE_grid)
 
