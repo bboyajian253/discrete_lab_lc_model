@@ -395,7 +395,7 @@ def get_w2_targ(myPars: Pars)-> float:
 
 def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_targ: float, w0_sd_targ: float,  
         w1_mom_targ: float, w2_mom_targ: float, w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0,
-        alpha_tol: float = .01, w0_mean_tol: float = 0.5, w0_sd_tol: float = 1.0, w1_tol: float = 0.01, w2_tol: float = 0.01)-> (
+        alpha_tol: float = .001, w0_mean_tol: float = 0.5, w0_sd_tol: float = 1.0, w1_tol: float = 0.01, w2_tol: float = 0.01)-> (
         Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
 
     # set up return arrays

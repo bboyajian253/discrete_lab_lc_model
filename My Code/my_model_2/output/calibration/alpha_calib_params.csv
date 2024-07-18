@@ -10,7 +10,7 @@ sigma_gamma_2,0.051
 lab_FE_grid,[10. 12. 15.]
 lab_FE_grid_size,3
 beta,0.9803921568627451
-alpha,0.4062559375
+alpha,0.398443515625
 sigma_util,0.9999
 phi_n,1.125
 phi_H,0.1
