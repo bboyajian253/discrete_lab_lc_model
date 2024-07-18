@@ -16,6 +16,39 @@ import csv
 import matplotlib.pyplot as plt
 import time
 from typing import List, Dict, Tuple, Callable
+import os
+import subprocess
+
+def list_to_tex(path: str, new_tex_file_name: str, list_of_tex_lines: List[str])->None:
+    # Raise an error if the directory does not exist
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"The specified path does not exist: {path}")
+
+    fullpath = os.path.join(path, new_tex_file_name)
+    
+    # Write the LaTeX content to a file
+    with open(fullpath, 'w', newline='\n') as pen:
+        for row in list_of_tex_lines:
+            pen.write(row)
+    
+def tex_to_pdf(path: str, tex_file_name: str)-> None:
+    
+    # Raise an error if the directory does not exist
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"The specified path does not exist: {path}")
+
+    fullpath = os.path.join(path, tex_file_name)
+
+    # Compile the .tex file to a PDF
+    result = subprocess.run(['pdflatex', '-output-directory', path, fullpath], capture_output=True, text=True)
+    
+    # Check for errors and print the output for debugging
+    if result.returncode != 0:
+        print(f"Error in pdflatex execution: {result.stderr}")
+        print(f"Standard Output: {result.stdout}")
+    else:
+        print(f"PDF successfully created at {os.path.join(path, tex_file_name)}")
+    
 
 def read_specific_column_from_csv(file_path: str, column_index: int)-> List[float]:
     column_values = []

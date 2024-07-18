@@ -54,26 +54,11 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
     if path is None:
         path = myPars.path + 'output/'
     
-    # Raise an error if the directory does not exist
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"The specified path does not exist: {path}")
-
-    fullpath = os.path.join(path, 'parameters_endog.tex')
+    file_name = 'parameters_endog.tex'
     
-    # Write the LaTeX content to a file
-    with open(fullpath, 'w', newline='\n') as pen:
-        for row in tab:
-            pen.write(row)
+    tb.list_to_tex(path, file_name, tab)
+    tb.tex_to_pdf(path, file_name)
     
-    # Compile the .tex file to a PDF
-    result = subprocess.run(['pdflatex', '-output-directory', path, fullpath], capture_output=True, text=True)
-    
-    # Check for errors and print the output for debugging
-    if result.returncode != 0:
-        print(f"Error in pdflatex execution: {result.stderr}")
-        print(f"Standard Output: {result.stdout}")
-    else:
-        print(f"PDF successfully created at {os.path.join(path, 'parameters_endog.pdf')}")
 
 def print_wo_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
     '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
@@ -106,28 +91,11 @@ def print_wo_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
 
     if path is None:
         path = myPars.path + 'output/'
-
-    # Raise an error if the directory does not exist
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"The specified path does not exist: {path}")
     
-    fullpath = os.path.join(path, 'parameters_wo_calib.tex')
+    tex_file_name =  'parameters_wo_calib.tex' 
 
-    # Write the LaTeX content to a file
-    with open (fullpath, 'w', newline='\n') as pen:
-        for row in tab:
-            pen.write(row)
-    
-    # Compile the .tex file to a PDF
-    result = subprocess.run(['pdflatex', '-output-directory', path, fullpath], capture_output=True, text=True)
-
-    # Check for errors and print the output for debugging
-    if result.returncode != 0:
-        print(f"Error in pdflatex execution: {result.stderr}")
-        print(f"Standard Output: {result.stdout}")
-    else:
-        print(f"PDF successfully created at {os.path.join(path, 'parameters_wo_calib.pdf')}")
-
+    tb.list_to_tex(path, tex_file_name, tab)
+    tb.tex_to_pdf(path, tex_file_name)
 
 def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
@@ -151,15 +119,17 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     
     if path is None:
         path = myPars.path + 'output/'
-    fullpath = path + 'wage_coeffs.tex'
-    with open(fullpath, 'w', newline='\n') as pen:
-        for row in tab:
-            pen.write(row)
-
+    
+    tex_file_name = 'wage_coeffs.tex'
+    tb.list_to_tex(path, tex_file_name, tab)
+    tb.tex_to_pdf(path, tex_file_name)
 
 def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
-    tab = ["\\begin{tabular}{l l l l} \n"]
+    tab = ["\\documentclass[border=3mm,preview]{standalone}",
+            "\\begin{document}\n",
+            "\\small\n",
+            "\\begin{tabular}{l l l l} \n"]
     tab.append("\\hline \n")
     tab.append("Parameter & Description & Value & Source \\\\ \n") 
     tab.append("\\hline \n")
@@ -169,15 +139,14 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append(f"$\\phi_n$ & Labor time-cost & {np.round(myPars.phi_n, 4)} & Benchmark \\\\ \n")
     tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
     tab.append("\\hline \n")
-    tab.append(f"\\end{{tabular}}")
+    tab.append("\\end{tabular}")
+    tab.append("\\end{document}")
     if path is None:
         path = myPars.path + 'output/'
-    fullpath = path + 'parameters_exog.tex'
+    tex_file_name = 'parameters_exog.tex'
+    tb.list_to_tex(path, tex_file_name, tab)
+    tb.tex_to_pdf(path, tex_file_name)
 
-
-    with open(fullpath, 'w', newline='\n') as pen:
-        for row in tab:
-            pen.write(row)
 
 def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parameters.csv")-> None:
     # store params in a csv 
@@ -193,14 +162,6 @@ def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parame
 
 def pars_to_dict(pars_instance: Pars) -> Dict:
     return {
-        # 'w_determ_cons': pars_instance.w_determ_cons,
-        # 'w_age': pars_instance.w_age,
-        # 'w_age_2': pars_instance.w_age_2,
-        # 'w_age_3': pars_instance.w_age_3,
-        # 'w_avg_good_health': pars_instance.w_avg_good_health,
-        # 'w_avg_good_health_age': pars_instance.w_avg_good_health_age,
-        # 'w_good_health': pars_instance.w_good_health,
-        # 'w_good_health_age': pars_instance.w_good_health_age,
         'rho_nu': pars_instance.rho_nu,
         'sigma_eps_2': pars_instance.sigma_eps_2,
         'sigma_nu0_2': pars_instance.sigma_nu0_2,
@@ -547,4 +508,5 @@ if __name__ == "__main__":
 
         print_endog_params_to_tex(myPars, targ_moments, model_moments)
         print_wo_calib_to_tex(myPars, w0_targ_moments, w0_mod_moments)
+        print_exog_params_to_tex(myPars)
         tb.print_exec_time("Calibration main ran in", start_time)
