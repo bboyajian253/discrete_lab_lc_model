@@ -60,7 +60,7 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
     tb.tex_to_pdf(path, file_name)
     
 
-def print_wo_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
+def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
     '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
 
     w0_mean_targ_val = np.round(targ_moments['w0_mean'], 3)
@@ -393,60 +393,55 @@ def get_w2_targ(myPars: Pars)-> float:
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[-1])
 
-def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  
-        w0_mean_targ: float, w0_sd_targ: float, w1_mom_targ: float, w2_mom_targ: float)-> (
+def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_targ: float, w0_sd_targ: float,  
+        w1_mom_targ: float, w2_mom_targ: float, w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0,
+        alpha_tol: float = .01, w0_mean_tol: float = 0.5, w0_sd_tol: float = 1.0, w1_tol: float = 0.01, w2_tol: float = 0.01)-> (
         Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
 
     # set up return arrays
     state_sols = {}
     sims = {}
-    # alpha calib set up
-    alpha_tol = 0.001
 
-    # w0 calib set up
-    w0_mean_tol = .1
-    w0_sd_tol = .1
-    # w0_min = 0.0
-    # w0_max = 10.0
-
-    # w1 calib set up
-    w1_tol = 0.01
-    #w1_targ = 0.50
-    w1_min = 0.0
-    w1_max = 10.0
-
-    #w2 calib set up
-    w2_tol = 0.01
-    #w2_targ = 0.50
-    w2_min = -1.0
-    w2_max = 0.0
+    my_alpha_moment = -999.999
+    my_w0_mean_mom = -999.999
+    my_w0_sd_mom = -999.999
+    my_w1_moment = -999.999
+    my_w2_moment = -999.999
 
     for i in range(myPars.max_calib_iters):
+
         print(f"Calibration iteration {i}")
-        # calibrate alpha
-        alpha_calib, alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
-        print(f"alpha = {alpha_calib}, alpha_moment = {alpha_moment}")
-        w0_weights, w0_mean_mom, w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, w0_mean_tol, w0_mean_targ, w0_sd_tol, w0_sd_targ)
-        print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_sd = {w0_sd_mom}")
-        w1_calib, w1_moment, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
-        print(f"w1 = {w1_calib}, w1_moment = {w1_moment}")
-        w2_calib, w2_moment, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
-        print(f"w2 = {w2_calib}, w2_moment = {w2_moment}")
-        if is_calib_cond_met(myPars, sims, alpha_mom_targ, alpha_tol, 
-                             w0_mean_targ, w0_mean_tol, w0_sd_targ, w0_sd_tol,
-                             w1_mom_targ, w1_tol, w2_mom_targ, w2_tol):
-            print(f"Calibration converged after {i+1} iterations: alpha = {alpha_calib}, alpha moment = {alpha_moment}, w1 = {w1_calib}, w1 moment = {w1_moment}, w2 = {w2_calib}, w2 moment = {w2_moment}")
-            print(f"""alpha = {alpha_calib}, alpha moment = {alpha_moment}, alpha mom targ = {alpha_mom_targ},
-                w1 = {w1_calib}, w1 moment = {w1_moment}, w1 mom targ = {w1_mom_targ},
-                w2 = {w2_calib}, w2 moment = {w2_moment}, w2 mom targ = {w2_mom_targ}""")
-            print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
-            return alpha_calib, w0_weights, w1_calib, w2_calib, state_sols, sims
+        w0_weights, my_w0_mean_mom, w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, w0_mean_tol, w0_mean_targ, w0_sd_tol, w0_sd_targ)
+        if (np.abs(my_w0_mean_mom - w0_mean_targ) < w0_mean_tol):
+            w1_calib, my_w1_moment, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
+            my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
+            if (np.abs(my_w0_mean_mom - w0_mean_targ) < w0_mean_tol and np.abs(my_w1_moment - w1_mom_targ) < w1_tol):
+                w2_calib, my_w2_moment, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
+                my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
+                my_w1_moment = w1_moment(myPars)
+                if (np.abs(my_w0_mean_mom - w0_mean_targ) < w0_mean_tol and np.abs(my_w1_moment - w1_mom_targ) < w1_tol
+                    and np.abs(my_w2_moment - w2_mom_targ) < w2_tol):
+                    alpha_calib, my_alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
+                    my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
+                    my_w1_moment = w1_moment(myPars)
+                    my_w2_moment = w2_moment(myPars)
+                    if(np.abs(my_w0_mean_mom - w0_mean_targ) < w0_mean_tol and np.abs(my_w1_moment - w1_mom_targ) < w1_tol
+                        and np.abs(my_w2_moment - w2_mom_targ) < w2_tol and np.abs(my_alpha_moment - alpha_mom_targ) < alpha_tol):
+                        # calibration converges
+                        print(f"Calibration converged after {i+1} iterations")
+                        print(f"""alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ},
+                            w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_moment}, w1 mom targ = {w1_mom_targ},
+                            w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ}""")
+                        print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
+                        return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], state_sols, sims
+
+    # calibration does not converge
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
-    print(f"""alpha = {alpha_calib}, alpha moment = {alpha_moment}, alpha mom targ = {alpha_mom_targ},
-          w1 = {w1_calib}, w1 moment = {w1_moment}, w1 mom targ = {w1_mom_targ},
-          w2 = {w2_calib}, w2 moment = {w2_moment}, w2 mom targ = {w2_mom_targ}""")
-    print(f"w0_weights = {w0_weights}, w0_mean = {w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
-    return alpha_calib, w0_weights, w1_calib, w2_calib, state_sols, sims
+    print(f"""alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ},
+          w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_moment}, w1 mom targ = {w1_mom_targ},
+          w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ}""")
+    print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
+    return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], state_sols, sims
     
 def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ: float, alpha_tol: float, 
                       w0_mean_targ: float, w0_mean_tol: float, w0_sd_targ: float, w0_sd_tol: float,
@@ -507,6 +502,6 @@ if __name__ == "__main__":
         w0_mod_moments = {'w0_mean': 10.0, 'w0_sd': 2.0}
 
         print_endog_params_to_tex(myPars, targ_moments, model_moments)
-        print_wo_calib_to_tex(myPars, w0_targ_moments, w0_mod_moments)
+        print_w0_calib_to_tex(myPars, w0_targ_moments, w0_mod_moments)
         print_exog_params_to_tex(myPars)
         tb.print_exec_time("Calibration main ran in", start_time)
