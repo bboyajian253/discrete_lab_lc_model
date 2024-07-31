@@ -94,22 +94,6 @@ pars_spec = [   # ('w_determ_cons', float64), # constant in the deterministic co
 @jitclass(pars_spec)
 class Pars() :      
     def __init__(self, path,     
-            # earnings parameters
-            #(a lot of these are more like shocks and will be drawn in simulation)
-            # either from data or randomly from a distribution
-
-            # lambda_t_H deterministic component depends on health and age
-            # will need to be estimated for each composite health type, likely normalizing lambda_t_GG
-            # for know lets use captina's calibration she estimates two sets of coeffecients
-            # one for each education group college/noncollege ill take the avg for now
-            # w_determ_cons = 1.011000, # constant in the deterministic comp of wage regression
-            # w_age = 0.078000, # wage coeff on age 
-            # w_age_2 = -0.001035, # wage coeff on age^2 
-            # w_age_3 = 0.000003, # wage coeff on age^3
-            # w_avg_good_health = 0.201000, # wage coeff on avg or good health
-            # w_avg_good_health_age = 0.000250, # wage coeff on avg or good healt X age
-            # w_good_health = 0.149000, # wage coeff on good health
-            # w_good_health_age = 0.000750, # wage coeff on good health X age
 
             wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0], [40.0,1.5,-0.03,0.0]]),
             wage_min = 0.0001, #minimum wage
@@ -174,13 +158,6 @@ class Pars() :
             # w0_grid_size = 2  
         ):
         
-        ###initialize earnings parameters###
-        # lambda_t_H deterministic component
-        # constant and age components
-        #self.w_determ_cons,self.w_age,self.w_age_2,self.w_age_3 = w_determ_cons,w_age,w_age_2,w_age_3
-        # health components
-        #self.w_avg_good_health,self.w_avg_good_health_age,self.w_good_health,self.w_good_health_age = w_avg_good_health,w_avg_good_health_age,w_good_health,w_good_health_age
-        
         self.wage_coeff_grid = wage_coeff_grid
         self.wage_min = wage_min  
         # nu_t persistent AR(1) shock
@@ -236,7 +213,7 @@ class Pars() :
 
         self.start_age = start_age
         self.end_age = start_age + J + 1
-        self.age_grid = np.arange(start_age, self.end_age, 1)
+        self.age_grid = np.arange(self.start_age, self.end_age, 1)
 
         self.sim_draws = sim_draws
         self.print_screen = print_screen

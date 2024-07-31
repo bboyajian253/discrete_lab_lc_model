@@ -240,14 +240,8 @@ def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: int,  nu_ind: int) -> 
     """
     wage process
     """
-    #print the type of each input
-    # print(f'age: {type(age)}, lab_fe_ind: {type(lab_fe_ind)}, h_ind: {type(h_ind)}, nu_ind: {type(nu_ind)}')
     my_wage = tb.cubic(age, myPars.wage_coeff_grid[lab_fe_ind])
     return max(myPars.wage_min, my_wage)
-    
-    #det_wage = det_wage(myPars, health, age)
-    # det_wage = 1.0
-    # nu = 0.0
     # return  det_wage* np.exp(lab_fe) * np.exp(nu)
 @njit
 def gen_wages(myPars: Pars) -> np.ndarray:

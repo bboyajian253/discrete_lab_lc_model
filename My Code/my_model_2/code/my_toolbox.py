@@ -18,6 +18,54 @@ import time
 from typing import List, Dict, Tuple, Callable
 import os
 import subprocess
+from scipy.optimize import minimize
+
+@njit
+def compute_weighted_mean(values: np.ndarray, weights: float) -> float:
+    return np.dot(weights, values)
+
+@njit
+def compute_weighted_std(values: np.ndarray, weights: float, weighted_mean: float) -> float:
+    weighted_var = np.dot(weights, (values - weighted_mean) ** 2)
+    return np.sqrt(weighted_var)
+
+@njit
+def mean_and_sd_objective(weights: np.ndarray, values: np.ndarray, target_mean: float, target_std: float)-> float:
+    # Compute weighted mean
+    weighted_mean = compute_weighted_mean(values, weights)
+    
+    # Compute weighted standard deviation
+    weighted_std = compute_weighted_std(values, weights, weighted_mean)
+    
+    # Calculate the penalty for deviation from target mean and std
+    mean_penalty = (weighted_mean - target_mean) ** 2
+    std_penalty = (weighted_std - target_std) ** 2
+    
+    # Prioritize mean matching more than std
+    return mean_penalty + std_penalty
+
+def weights_to_match_mean_sd(values: np.ndarray, target_mean: float, target_std: float) -> np.ndarray:
+    n = len(values)
+    
+    # Initial guess for weights (equal weights)
+    initial_weights = np.ones(n) / n
+    
+    # Constraints: weights must sum to 1
+    constraints = {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
+    
+    # Bounds for weights: they should be between 0 and 1
+    bounds = [(0, 1) for _ in range(n)]
+    
+    # Objective function for optimization
+    def wrapped_objective(weights):
+        return mean_and_sd_objective(weights, values, target_mean, target_std)
+    
+    # Perform the optimization
+    result = minimize(wrapped_objective, initial_weights, bounds=bounds, constraints=constraints)
+    
+    # Return the optimized weights
+    return result.x
+
 
 def list_to_tex(path: str, new_tex_file_name: str, list_of_tex_lines: List[str])->None:
     # Raise an error if the directory does not exist
@@ -144,7 +192,7 @@ def print_exec_time ( mess : str , start_time) :
     execution_time = end_time - start_time
     print(mess, execution_time, "seconds")
 
-def rouwenhorst(N, rho, sigma, mu=0.0):
+def rouwenhorst(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[np.ndarray, np.ndarray]:
     """
     Rouwenhorst method to discretize AR(1) process
     The Rouwenhorst method, developed by Koen Rouwenhorst in 1995, is another technique for discretizing AR(1) processes, especially useful for highly persistent processes.
@@ -169,7 +217,7 @@ def rouwenhorst(N, rho, sigma, mu=0.0):
     return s, P
 
 @njit
-def rouwenhorst_numba(N, rho, sigma, mu=0.0):
+def rouwenhorst_numba(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[np.ndarray, np.ndarray]:
     q = (rho + 1) / 2
     nu = np.sqrt((N - 1) / (1 - rho**2)) * sigma
     s = np.linspace(mu / (1 - rho) - nu, mu / (1 - rho) + nu, N)
@@ -700,5 +748,13 @@ def cubic(j : int, params : np.ndarray) -> float:
 #run if main
 if __name__ == "__main__":
     print("running my_toolbox.py")
-    print( gen_even_weights(np.ones(10)) )
+    # Example usage
+    values = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    target_mean = 3.0
+    target_std = 1.0
+
+    weights = weights_to_match_mean_sd(values, target_mean, target_std)
+    print("Optimized Weights:", weights)
+    print("Weighted Mean:", np.dot(weights, values))
+    print("Weighted Std:", np.sqrt(np.dot(weights, (values - np.dot(weights, values)) ** 2)))
     print("done running my_toolbox.py")

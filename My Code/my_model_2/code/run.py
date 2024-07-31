@@ -33,7 +33,6 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
     (iii) Calibrate the model
     (iv) Output the results and model aggregates
     """
-    
     #If solve, solve the model
     if solve:
         start_time = time.perf_counter()
@@ -111,6 +110,7 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
         calibration.print_w0_calib_to_tex(myPars, targ_moments, model_moments)
     if get_moments:
         plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc)
+        plot_moments.plot_emp_aggs_and_moms(myPars, sim_lc)
         plot_moments.plot_wage_aggs_and_moms(myPars)
     plot_lc.plot_lc_profiles(myPars, sim_lc)
 
@@ -119,7 +119,7 @@ if __name__ == "__main__":
    
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
 
-    my_lab_FE_grid = np.array([10.0, 12.0, 15.0])
+    my_lab_FE_grid = np.array([5.0, 10.0, 15.0, 20.0])
     # my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
     quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
     w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
     w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-    # w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
+    w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
     print("intial wage coeff grid")
     print(w_coeff_grid)
@@ -139,7 +139,6 @@ if __name__ == "__main__":
     my_lab_FE_weights = tb.gen_even_weights(w_coeff_grid)
     print("even wage coeff grid")
     print(my_lab_FE_weights)
-
 
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
                 nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,

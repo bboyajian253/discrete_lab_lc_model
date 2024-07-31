@@ -74,19 +74,14 @@ def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
             writer.writerow(['model'] + list(sim_values))
             writer.writerow(['data'] + list(data_moments))
 
-def weighted_avg_lab_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> np.ndarray:
-    if path is None:
-        path = myPars.path + 'output/'
+def weighted_avg_lab_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.ndarray:
     # calcualte weighted mean wages by age and sim first
     labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
-    print("labor sims shape:", labor_sims.shape)
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
-    print("weighted labor sims shape:", weighted_labor_sims.shape)
     mean_lab_by_age_and_sim = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
-    print("mean lab by age and sim shape:", mean_lab_by_age_and_sim.shape)
     mean_lab_by_age = np.mean(mean_lab_by_age_and_sim, axis = tuple(range(mean_lab_by_age_and_sim.ndim-1)))
-    print("mean lab by age shape:", mean_lab_by_age.shape)
     return mean_lab_by_age
+
 
 def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
     if path == None:
@@ -137,10 +132,62 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: st
             writer.writerow(['model'] + list(sim_values))
             writer.writerow(['data'] + list(data_moments))
             
+def weighted_emp_rate_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.ndarray:
+    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
+    emp_sims = np.where(labor_sims > 0, 1, 0)
+    weighted_emp_sims = model.gen_weighted_sim(myPars, emp_sims)
+    mean_emp_by_age_and_sim = np.sum(weighted_emp_sims, axis = tuple(range(weighted_emp_sims.ndim-2)))
+    mean_emp_by_age = np.mean(mean_emp_by_age_and_sim, axis = tuple(range(mean_emp_by_age_and_sim.ndim-1)))
+    return mean_emp_by_age     
+
+def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
+    if path == None:
+        path = myPars.path + 'output/'
+    avg_emp = weighted_emp_rate_by_age(myPars, sim_lc)
+    j_last = myPars.J
+    age_grid = myPars.age_grid[:j_last]
+    values = avg_emp
+    sim_y_label = "Average Employment Rate (Weighted)"
+    sim_key_label = "Simulated"
+    data_moments_label = 'From the data'
+    log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
+    data_moments_path = myPars.path + '/input/emp_rate_moments.csv'
+    data_moments_col_ind = 1
+    data_moments = tb.read_specific_column_from_csv(data_moments_path, data_moments_col_ind) # 1 means read the second column
+    log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
+    for modifier in ['','log']:
+        if myPars.print_screen >= 2:
+            print(modifier,sim_y_label)
+        if modifier == 'log':
+            sim_values = log_values
+            mom_values = log_moments
+        else:
+            sim_values = values
+            mom_values = data_moments
         
+        fig, ax = plt.subplots()
+        ax.plot(age_grid, sim_values, label = sim_key_label)
+        ax.plot(age_grid, mom_values, label = data_moments_label)
+        # specify axis and labels
+        ax.set_xlabel('Age')
+        ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
+        ax.set_ylabel(modifier + ' ' + sim_y_label)
+        ax.legend()
 
-    
+        short_name = 'emp_rate'
 
+        #save the figure
+        fullpath = path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fig.savefig(fullpath, bbox_inches='tight')
+        plt.close()
+
+        #save the data
+        fullpath =  path + f'fig_fit_{short_name}_{modifier}.csv'
+        with open(fullpath, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['age'] + list(age_grid))
+            writer.writerow(['model'] + list(sim_values))
+            writer.writerow(['data'] + list(data_moments))
 
 if __name__ == "__main__":
     start_time = time.perf_counter()
