@@ -93,7 +93,7 @@ def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
     if path is None:
         path = myPars.path + 'output/'
     
-    tex_file_name =  'parameters_wo_calib.tex' 
+    tex_file_name =  'parameters_w0_calib.tex' 
 
     tb.list_to_tex(path, tex_file_name, tab)
     tb.tex_to_pdf(path, tex_file_name)
