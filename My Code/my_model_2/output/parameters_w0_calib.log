@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  31 JUL 2024 14:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  31 JUL 2024 14:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -76,7 +76,8 @@ File: l3backend-pdftex.def 2021-10-18 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count195
 \l__pdf_internal_box=\box51
 )
-No file parameters_w0_calib.aux.
+(C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clo
+ne/Model/My Code/my_model_2/output//parameters_w0_calib.aux)
 \openout1 = `parameters_w0_calib.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 1.
@@ -93,6 +94,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 1.
 LaTeX Font Info:    ... okay on input line 1.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 1.
 LaTeX Font Info:    ... okay on input line 1.
+
 Preview: Fontsize 10pt
 Preview: PDFoutput 1
 LaTeX Font Info:    External font `cmex10' loaded for size
@@ -106,8 +108,8 @@ Preview: Tightpage -559403 -559403 559403 559403
 (C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clo
 ne/Model/My Code/my_model_2/output//parameters_w0_calib.aux) ) 
 Here is how much of TeX's memory you used:
- 1172 strings out of 478371
- 22677 string characters out of 5852527
+ 1174 strings out of 478371
+ 22951 string characters out of 5852527
  317165 words of memory out of 5000000
  19314 multiletter control sequences out of 15000+600000
  405253 words of font info for 33 fonts, out of 8000000 for 9000
