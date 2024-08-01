@@ -46,6 +46,7 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
         f"$\\alpha$ & $c$ utility weight & {np.round(myPars.alpha, 4)} & Mean hours worked & {round(alpha_targ_val,2)} & {round(alpha_mod_val, 2)} \\\\ \n", 
         f"$w_{{1}}$ & Linear wage coeff. & {np.round(myPars.wage_coeff_grid[1,1], 4)} & Wage growth & {round(w1_targ_val,2)}\\% & {round(w1_mod_val, 2)}\\% \\\\ \n", 
         f"$w_{{2}}$ & Quad. wage coeff. & {np.round(myPars.wage_coeff_grid[1,2], 4)} & Wage decay & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
+        f"$w_{{H}}$ & Health wage coeff. & {np.round(myPars.wH_coeff, 4)} & Healthy wage premium & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
         "\\hline \n",
         "\\end{tabular}\n",
         "\\end{document}\n"
@@ -209,7 +210,11 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'end_age': pars_instance.end_age,
         'age_grid': pars_instance.age_grid,
         'path': pars_instance.path,
-        'wage_coeff_grid': pars_instance.wage_coeff_grid
+        'wage_coeff_grid': pars_instance.wage_coeff_grid,
+        'wH_coeff': pars_instance.wH_coeff,
+        'wage_min': pars_instance.wage_min,
+        'max_iters': pars_instance.max_iters,
+        'max_calib_iters': pars_instance.max_calib_iters,
     }
 
 def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
@@ -223,13 +228,14 @@ def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: flo
     # define the lambda function to find the zero of     
     get_mean_lab_diff = lambda new_alpha: alpha_moment_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
     # search for the alpha that is the zero of the lambda function
-    calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, myPars.max_iters) 
+    calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, myPars.max_iters, myPars.print_screen) 
     myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
     
     # solve, simulate and plot model for the calibrated alpha
     mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
     print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
-    print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
+    if myPars.print_screen >= 1:
+        print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
     
     # return the alpha, the resulting mean labor worked, and the target mean labor worked; and the model solutions and simulations
     return calib_alpha, mean_lab, state_sols, sim_lc
@@ -276,15 +282,14 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     sim_lc = {}
 
     my_weights = tb.weights_to_match_mean_sd(myPars.lab_FE_grid, mean_target, sd_target)
-    # print("my_weights:", my_weights)
-
     myPars.lab_FE_weights = my_weights
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     mean_wage, sd_wage = w0_moments(myPars)
-    print(f"Calibration exited: mean wage = {mean_wage}, target mean wage = {mean_target}, sd wage = {sd_wage}, target sd wage = {sd_target}")
-    print(f"Calibrated weights = {my_weights}")
+    if myPars.print_screen >= 1:
+        print(f"Calibration exited: mean wage = {mean_wage}, target mean wage = {mean_target}, sd wage = {sd_wage}, target sd wage = {sd_target}")
+        print(f"Calibrated weights = {my_weights}")
     return my_weights, mean_wage, sd_wage, state_sols, sim_lc 
 
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
@@ -308,7 +313,6 @@ def get_w0_sd_targ(myPars: Pars)-> float:
     return sd_wage_col[0]
     # return np.std(mean_wage_by_age)
 
-
 def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
     w1_moment = -999.999
@@ -316,7 +320,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
     sim_lc = {}
     # define the lambda function to find the zero of
     get_w1_diff = lambda new_coeff: w1_moment_giv_w1(myPars, main_path, new_coeff) - target
-    calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, myPars.max_iters)
+    calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, myPars.max_iters, myPars.print_screen)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
     for i in range (1, myPars.lab_FE_grid_size):
         myPars.wage_coeff_grid[i, 1] = calibrated_w1
@@ -328,7 +332,8 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     # plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
-    print(f"Calibration exited: w1 = {calibrated_w1}, wage growth = {w1_moment}, target wage growth = {target}") 
+    if myPars.print_screen >= 1:
+        print(f"Calibration exited: w1 = {calibrated_w1}, wage growth = {w1_moment}, target wage growth = {target}") 
 
     return calibrated_w1, w1_moment, state_sols, sim_lc
 
@@ -361,7 +366,7 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
     # define the lambda function to find the zero of
     get_w2_diff = lambda new_coeff: w2_moment_giv_w2(myPars, main_path, new_coeff) - target
     # search for the w2 that is the zero of the lambda function
-    calibrated_w2 = tb.bisection_search(get_w2_diff, w2_min, w2_max, tol, myPars.max_iters)
+    calibrated_w2 = tb.bisection_search(get_w2_diff, w2_min, w2_max, tol, myPars.max_iters, myPars.print_screen)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
     for i in range (1, myPars.lab_FE_grid_size):
         myPars.wage_coeff_grid[i, 2] = calibrated_w2
@@ -373,7 +378,8 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     # plot_lc.plot_lc_profiles(myPars, sim_lc, main_path)
-    print(f"Calibration exited: w2 = {calibrated_w2}, wage growth = {w2_moment}, target wage growth = {target}")
+    if myPars.print_screen >= 1:
+        print(f"Calibration exited: w2 = {calibrated_w2}, wage growth = {w2_moment}, target wage growth = {target}")
 
     return calibrated_w2, w2_moment, state_sols, sim_lc
 
@@ -400,7 +406,7 @@ def get_w2_targ(myPars: Pars)-> float:
 
 def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_targ: float, w0_sd_targ: float,  
         w1_mom_targ: float, w2_mom_targ: float, w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0,
-        alpha_tol: float = .001, w0_mom_tol: float = 0.5, w1_tol: float = 0.001, w2_tol: float = 0.001)-> (
+        alpha_tol: float = 0.001, w0_mom_tol: float = 0.001, w1_tol: float = 0.001, w2_tol: float = 0.001)-> (
         Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
 
     # set up return arrays
