@@ -117,7 +117,7 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
 #Make run if main function
 if __name__ == "__main__":
    
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/my_model_2/"
 
     my_lab_FE_grid = np.array([5.0, 10.0, 15.0, 20.0])
     # my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
