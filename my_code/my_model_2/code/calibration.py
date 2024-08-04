@@ -35,6 +35,8 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
     w1_mod_val = np.round(model_moments['w1'], 3)*100
     w2_targ_val = np.round(targ_moments['w2'], 3)*100 
     w2_mod_val = np.round(model_moments['w2'], 3)*100
+    wH_targ_val = np.round(targ_moments['wH'], 3)
+    wH_mod_val = np.round(model_moments['wH'], 3)
     tab = [
         "\\documentclass[border=3mm,preview]{standalone}",
         "\\begin{document}\n",
@@ -46,7 +48,7 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
         f"$\\alpha$ & $c$ utility weight & {np.round(myPars.alpha, 4)} & Mean hours worked & {round(alpha_targ_val,2)} & {round(alpha_mod_val, 2)} \\\\ \n", 
         f"$w_{{1}}$ & Linear wage coeff. & {np.round(myPars.wage_coeff_grid[1,1], 4)} & Wage growth & {round(w1_targ_val,2)}\\% & {round(w1_mod_val, 2)}\\% \\\\ \n", 
         f"$w_{{2}}$ & Quad. wage coeff. & {np.round(myPars.wage_coeff_grid[1,2], 4)} & Wage decay & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
-        f"$w_{{H}}$ & Health wage coeff. & {np.round(myPars.wH_coeff, 4)} & Healthy wage premium & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
+        f"$w_{{H}}$ & Health wage coeff. & {np.round(myPars.wH_coeff, 4)} & Healthy wage premium & {round(wH_targ_val,2)}\\pounds & {round(wH_mod_val,2)}\\pounds \\\\ \n", 
         "\\hline \n",
         "\\end{tabular}\n",
         "\\end{document}\n"
@@ -188,6 +190,7 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'a_grid_size': pars_instance.a_grid_size,
         'H_grid': pars_instance.H_grid,
         'H_grid_size': pars_instance.H_grid_size,
+        'H_weights': pars_instance.H_weights,
         'state_space_shape': pars_instance.state_space_shape,
         'state_space_shape_no_j': pars_instance.state_space_shape_no_j,
         'state_space_no_j_size': pars_instance.state_space_no_j_size,
@@ -281,22 +284,45 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     sate_sols = {}
     sim_lc = {}
 
-    my_weights = tb.weights_to_match_mean_sd(myPars.lab_FE_grid, mean_target, sd_target)
+    first_per_wages = model.gen_wages(myPars)[:,:,0,0]
+    first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
+    # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
+    my_weights = tb.weights_to_match_mean_sd(first_per_wages_H_weighted, mean_target, sd_target)
+
     myPars.lab_FE_weights = my_weights
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     mean_wage, sd_wage = w0_moments(myPars)
+
     if myPars.print_screen >= 1:
         print(f"Calibration exited: mean wage = {mean_wage}, target mean wage = {mean_target}, sd wage = {sd_wage}, target sd wage = {sd_target}")
         print(f"Calibrated weights = {my_weights}")
     return my_weights, mean_wage, sd_wage, state_sols, sim_lc 
 
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
-    my_weights = myPars.lab_FE_weights
-    my_lab_FE = myPars.wage_coeff_grid[:, 0]
-    mean_first_per_wage = np.sum(my_weights * my_lab_FE)
-    sd_first_per_wage = np.sqrt(np.sum(my_weights * (my_lab_FE - mean_first_per_wage)**2))
+
+    first_per_wages = model.gen_wages(myPars)[:,:,0,0]
+    # print(f"first_per_wages = {first_per_wages}")
+
+    first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
+    # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
+
+    mean_first_per_wage = np.dot(myPars.lab_FE_weights, first_per_wages_H_weighted)
+    # print(f"mean_first_per_wage = {mean_first_per_wage}")
+
+    # Calculate the deviations from the weighted mean
+    deviations = first_per_wages_H_weighted - mean_first_per_wage
+    # print(f"deviations = {deviations}")
+
+    # Calculate the weighted variance
+    weighted_variance = np.dot(myPars.lab_FE_weights, deviations**2)
+    # print(f"weighted_variance = {weighted_variance}")
+
+    # Calculate the weighted standard deviation
+    sd_first_per_wage = np.sqrt(weighted_variance)
+    # print(f"sd_first_per_wage = {sd_first_per_wage}")
+    
     return mean_first_per_wage, sd_first_per_wage
 
 def get_w0_mean_targ(myPars: Pars)-> float:
@@ -404,8 +430,58 @@ def get_w2_targ(myPars: Pars)-> float:
     my_max = np.max(mean_wage_by_age[:age_60_ind])
     return log(my_max) - log(mean_wage_by_age[-1])
 
-def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_targ: float, w0_sd_targ: float,  
-        w1_mom_targ: float, w2_mom_targ: float, w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0,
+def calib_wH(myPars: Pars, main_path: str, tol: float, target: float, wH_min: float, wH_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    print_params_to_csv(myPars, path = main_path, file_name = "pre_wH_calib_params.csv")
+    wH_moment = -999.999
+    sate_sols = {}
+    sim_lc = {}
+    # define the lambda function to find the zero of
+    get_wH_diff = lambda new_coeff: wH_moment_giv_wH(myPars, main_path, new_coeff) - target
+    # search for the w2 that is the zero of the lambda function
+    calibrated_wH = tb.bisection_search(get_wH_diff, wH_min, wH_max, tol, myPars.max_iters, myPars.print_screen)
+    myPars.wH_coeff = calibrated_wH
+    # solve, simulate and plot model for the calibrated wH
+    wH_moment = wH_moment_giv_wH(myPars, main_path, calibrated_wH)
+    print_params_to_csv(myPars, path = main_path, file_name = "wH_calib_params.csv")
+    shocks = Shocks(myPars)
+    state_sols = solver.solve_lc(myPars, main_path)
+    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
+    if myPars.print_screen >= 1:
+        print(f"Calibration exited: wH = {calibrated_wH}, wage growth = {wH_moment}, target wage growth = {target}")
+    return calibrated_wH, wH_moment, state_sols, sim_lc
+
+
+def wH_moment_giv_wH(myPars: Pars, main_path: str, new_coeff: float)-> float:
+    myPars.wH_coeff = new_coeff
+    return wH_moment(myPars)
+
+def wH_moment(myPars: Pars)-> float:
+    wage_sims = model.gen_weighted_wages(myPars)
+    wage_sims = wage_sims * myPars.H_grid_size # scale wages by the number of health states so that weights by health sum to 1
+    # print(f"wage_sims.shape = {wage_sims.shape}")
+
+    # get the mean of the wage sims when the agent is healthy
+    healthy_wages = wage_sims[:,1,:,:]
+    weighted_healthy_wage_by_age = np.sum(healthy_wages, axis = 0)
+    mean_healthy_wage = np.mean(weighted_healthy_wage_by_age)
+
+    # get the mean of the wage sims when the agent is unhealthy
+    unhealthy_wages = wage_sims[:,0,:,:]
+    weighted_unhealthy_wage_by_age = np.sum(unhealthy_wages, axis = 0)
+    mean_unhealthy_wage = np.mean(weighted_unhealthy_wage_by_age)
+
+    wage_diff = mean_healthy_wage - mean_unhealthy_wage
+    return wage_diff
+
+
+def get_wH_targ(myPars: Pars)-> float:
+    data_moments_path = myPars.path + '/input/MH_wage_moments.csv'
+    data_mom_col_ind = 0
+    mean_wage_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return mean_wage_diff[0]
+
+def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_targ: float, w0_sd_targ: float, w1_mom_targ: float, w2_mom_targ: float, wH_mom_targ: float,
+        w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, wH_tol: float = 0.001,
         alpha_tol: float = 0.001, w0_mom_tol: float = 0.001, w1_tol: float = 0.001, w2_tol: float = 0.001)-> (
         Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
 
@@ -418,9 +494,9 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
     my_w0_sd_mom = -999.999
     my_w1_moment = -999.999
     my_w2_moment = -999.999
+    my_wH_moment = -999.999
 
     for i in range(myPars.max_calib_iters):
-
         print(f"Calibration iteration {i}")
         w0_weights, my_w0_mean_mom, my_w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, w0_mean_targ, w0_sd_targ)
         if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol):
@@ -434,28 +510,40 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
                 if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                     and np.abs(my_w1_moment - w1_mom_targ) < w1_tol
                     and np.abs(my_w2_moment - w2_mom_targ) < w2_tol):
-                    alpha_calib, my_alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
+                    wH_calib, my_wH_moment, state_sols, sims = calib_wH(myPars, calib_path, wH_tol, wH_mom_targ, wH_min, wH_max)                        
+                    my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                     my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                     my_w1_moment = w1_moment(myPars)
                     my_w2_moment = w2_moment(myPars)
-                    if(np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
-                        and np.abs(my_w1_moment - w1_mom_targ) < w1_tol
-                        and np.abs(my_w2_moment - w2_mom_targ) < w2_tol and np.abs(my_alpha_moment - alpha_mom_targ) < alpha_tol):
-                        # calibration converges
-                        print(f"Calibration converged after {i+1} iterations")
-                        print(f"""alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ},
-                            w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_moment}, w1 mom targ = {w1_mom_targ},
-                            w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ}""")
-                        print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {my_w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
-                        return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], state_sols, sims
+                    if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
+                        and np.abs(my_w1_moment - w1_mom_targ) < w1_tol and np.abs(my_w2_moment - w2_mom_targ) < w2_tol
+                        and np.abs(my_wH_moment - wH_mom_targ) < wH_tol):
+                        alpha_calib, my_alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
+                        my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
+                        my_w1_moment = w1_moment(myPars)
+                        my_w2_moment = w2_moment(myPars)
+                        my_wH_moment = wH_moment(myPars)
+                        if(np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
+                            and np.abs(my_w1_moment - w1_mom_targ) < w1_tol and np.abs(my_w2_moment - w2_mom_targ) < w2_tol 
+                            and np.abs(my_wH_moment - wH_mom_targ) < wH_tol
+                            and np.abs(my_alpha_moment - alpha_mom_targ) < alpha_tol):
+                            # calibration converges
+                            print(f"Calibration converged after {i+1} iterations")
+                            print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {my_w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
+                            print(f""" w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_moment}, w1 mom targ = {w1_mom_targ},
+                                w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ},
+                                wH = {myPars.wH_coeff}, wH moment = {my_wH_moment}, wH mom targ = {wH_mom_targ},""")
+                            print( f"alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ}")
+                            return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
 
     # calibration does not converge
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
-    print(f"""alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ},
-          w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_moment}, w1 mom targ = {w1_mom_targ},
-          w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ}""")
     print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {my_w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
-    return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], state_sols, sims
+    print(f""" w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_moment}, w1 mom targ = {w1_mom_targ},
+        w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ},
+        wH = {myPars.wH_coeff}, wH moment = {my_wH_moment}, wH mom targ = {wH_mom_targ},""")
+    print( f"alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ}")
+    return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
     
 def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ: float, alpha_tol: float, 
                       w0_mean_targ: float, w0_mean_tol: float, w0_sd_targ: float, w0_sd_tol: float,
@@ -475,8 +563,7 @@ def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ:
 
 if __name__ == "__main__":
         start_time = time.perf_counter()
-        calib_path= "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
-        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
+        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/my_model_2/"
         
         # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
         my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
@@ -502,21 +589,11 @@ if __name__ == "__main__":
         
         max_iters = 100
         alpha_mom_targ = 0.40
-        w0_mean_targ = 20.0
-        w0_sd_targ = 5.0
+        w0_mean_targ = 22.0
+        w0_sd_targ = 3.0
         w1_mom_targ = 0.20
         w2_mom_targ = 0.25
 
-        # alpha, w0_weights, w1, w2, state_sols, sims = calib_all(myPars, calib_path, alpha_mom_targ, 
-                                                                    # w0_mean_targ, w0_sd_targ, w1_mom_targ, w2_mom_targ)
-        targ_moments = {'alpha': alpha_mom_targ, 'w1': w1_mom_targ, 'w2': w2_mom_targ}
-        model_moments = {'alpha': 0.30, 'w1': 0.10, 'w2': 0.20}
+        print(calib_w0(myPars, main_path, w0_mean_targ, w0_sd_targ)[:3])
 
-        w0_targ_moments = {'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ}
-        w0_mod_moments = {'w0_mean': 10.0, 'w0_sd': 2.0}
-
-        # print_endog_params_to_tex(myPars, targ_moments, model_moments)
-        # print_w0_calib_to_tex(myPars, w0_targ_moments, w0_mod_moments)
-        # print_exog_params_to_tex(myPars)
-        
-        tb.print_exec_time("Calibration main ran in", start_time)
+        tb.print_exec_time("Calibration main ran in", start_time)   

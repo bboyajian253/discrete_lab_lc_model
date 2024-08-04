@@ -25,7 +25,7 @@ import plot_moments
 
 # Run the model
 def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, get_moments: bool = True, sim_no_calib  : bool = False, 
-              output_flag: bool = True, no_tex: bool = False)-> List[Dict[str, np.ndarray]]:
+              output_flag: bool = True, tex: bool = True)-> List[Dict[str, np.ndarray]]:
     """
     Given the model parameters, solve, calibrate, simulate, and, if desired, output the results.
     (i) Solve the model
@@ -62,28 +62,29 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
             alpha_lab_targ = calibration.get_alpha_targ(myPars)
             w0_mean_targ, w0_sd_targ = calibration.get_w0_mean_targ(myPars), calibration.get_w0_sd_targ(myPars)
             w1_targ = calibration.get_w1_targ(myPars)
-            # w1_targ = 0.2
             w2_targ = calibration.get_w2_targ(myPars)
-            # w2_targ = 0.2
+            wH_targ = calibration.get_wH_targ(myPars)
         else:
-            alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ = 0.40, 20.0, 5.0, 0.2, 0.2
+            alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ = 0.40, 20.0, 5.0, 0.2, 0.2, 0.2
 
         print("alpha_lab_targ", alpha_lab_targ)
         print("w0_mean_targ", w0_mean_targ)
         print("w0_sd_targ", w0_sd_targ)
         print("w1_targ", w1_targ)
         print("w2_targ", w2_targ)
+        print("wH_targ", wH_targ)
 
         # calib_path = myPars.path + 'calibration/'
         calib_path = None
-        calib_alpha, w0_weights, calib_w1, calib_w2, state_sols, sim_lc = calibration.calib_all(myPars, calib_path,  
+        calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, calib_path,  
                                                                                     alpha_lab_targ, w0_mean_targ, w0_sd_targ, 
-                                                                                    w1_targ, w2_targ)
-        calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ, 'w1': w1_targ, 'w2': w2_targ}
+                                                                                    w1_targ, w2_targ, wH_targ)
+        calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ, 
+                                'w1': w1_targ, 'w2': w2_targ, 'wH': wH_targ}
         calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
                                     'w0_mean': calibration.w0_moments(myPars)[0], 'w0_sd': calibration.w0_moments(myPars)[1],
-                                    'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars) 
-                                 }
+                                    'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
+                                    'wH': calibration.wH_moment(myPars)}
         for label in sim_lc.keys():
             np.save(myPars.path + 'output/' + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
@@ -96,15 +97,15 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
 
     #if output, output the results
     if output_flag:
-        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, no_tex, get_moments)
+        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, tex, get_moments)
     
     return [state_sols, sim_lc]
 
-def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], model_moments: Dict[str, np.ndarray],no_tex, get_moments)-> None:
+def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], model_moments: Dict[str, np.ndarray], tex, get_moments)-> None:
     # Print parameters
     calibration.print_params_to_csv(myPars)
     #calib_path = myPars.path + 'calibration/'
-    if not no_tex:
+    if tex:
         calibration.print_exog_params_to_tex(myPars)
         calibration.print_endog_params_to_tex(myPars, targ_moments, model_moments)
         calibration.print_w0_calib_to_tex(myPars, targ_moments, model_moments)
@@ -137,14 +138,13 @@ if __name__ == "__main__":
     print(w_coeff_grid)
 
     my_lab_FE_weights = tb.gen_even_weights(w_coeff_grid)
-    print("even wage coeff grid")
-    print(my_lab_FE_weights)
 
-    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
+    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]), H_weights=np.array([0.4, 0.6]),
                 nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
                 print_screen=0)
-    # Set up the shocks
+
     myShocks = Shocks(myPars)
     myPars.path = main_path
-    sols, sims =run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, get_moments = True, output_flag = True, no_tex = False)
+    sols, sims =run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
+                          get_moments = True, output_flag = True, tex = True)

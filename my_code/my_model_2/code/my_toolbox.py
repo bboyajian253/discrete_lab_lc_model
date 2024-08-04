@@ -130,7 +130,7 @@ def bisection_search(func: Callable, min_val: float, max_val: float, tol: float,
     for i in range(max_iter):
         x_mid = (x0 + x1) / 2
         f_mid = func(x_mid)
-        if print_screen > 0:
+        if print_screen >= 1:
             print(f"iteration {i}: x_mid = {x_mid}, f_mid = {f_mid}")
         
         if abs(f_mid) < tol:
