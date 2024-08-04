@@ -264,13 +264,14 @@ def gen_weighted_wages(myPars: Pars) -> np.ndarray:
     # Pre-allocate the weights array
     my_sim_weights = np.empty((myPars.lab_FE_grid_size, myPars.H_grid_size))
     # Fill the weights array
-    for i in range(myPars.H_grid_size):
-        my_sim_weights[:, i] = myPars.lab_FE_weights
+    for r in range(myPars.lab_FE_grid_size):
+        for c in range(myPars.H_grid_size):
+            my_sim_weights[r, c] = myPars.lab_FE_weights[r] * myPars.H_weights[c]
     # Reshape weights for broadcasting
     my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1)
     wage_sims = gen_wages(myPars)
     weighted_wage_sims = wage_sims * my_sim_weights_reshaped
-    weighted_wage_sims = weighted_wage_sims / myPars.H_grid_size
+    # weighted_wage_sims = myPars.H_weights * weighted_wage_sims 
     return weighted_wage_sims
 
 @njit
@@ -309,5 +310,5 @@ if __name__ == "__main__":
     lab_fe_ind = 1
     health_ind = 1
     nu_ind = 1
-    print(wage(myPars, j, lab_fe_ind, health_ind, nu_ind))
+    print(gen_weighted_wages(myPars))
                     

@@ -70,8 +70,8 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             ax.set_xlabel('Age')
             ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2]) #set the x axis limits
             ax.set_ylabel(modifier + ' ' + label)
-            if short_name == 'lab' and modifier != 'log':
-                ax.set_ylim([0, 1])
+            # if short_name == 'lab' and modifier != 'log':
+                # ax.set_ylim([0, 1])
             # elif short_name == 'a' and modifier != 'log':
             #     ax.set_ylim([myPars.a_min - 2, myPars.a_max + 2])
 

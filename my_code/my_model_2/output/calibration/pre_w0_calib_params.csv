@@ -65,6 +65,7 @@ a_grid,"[-500. -498. -496. -494. -492. -490. -488. -486. -484. -482. -480. -478.
 a_grid_size,501
 H_grid,[0. 1.]
 H_grid_size,2
+H_weights,[0.5 0.5]
 state_space_shape,"(501, 4, 2, 1, 51)"
 state_space_shape_no_j,"(501, 4, 2, 1)"
 state_space_no_j_size,4008
