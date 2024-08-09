@@ -120,10 +120,9 @@ if __name__ == "__main__":
    
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/my_model_2/"
 
-    # my_lab_FE_grid = np.array([np.log(5.0), np.log(10.0), np.log(15.0), np.log(20.0)])
     my_lab_FE_grid = np.array([5.0, 10.0, 15.0, 20.0])
-    my_lab_FE_grid = np.log(my_lab_FE_grid)
     # my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
+    my_lab_FE_grid = np.log(my_lab_FE_grid)
     lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
     quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
     cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]

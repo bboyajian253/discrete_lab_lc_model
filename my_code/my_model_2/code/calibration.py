@@ -28,15 +28,6 @@ import plot_lc as plot_lc
 
 def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
     '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
-
-    # alpha_targ_val = np.round(targ_moments['alpha']*100, 3)
-    # alpha_mod_val = np.round(model_moments['alpha']*100, 3)
-    # w1_targ_val = np.round(targ_moments['w1']*100, 3)
-    # w1_mod_val = np.round(model_moments['w1']*100, 3)
-    # w2_targ_val = np.round(targ_moments['w2']*100, 3)
-    # w2_mod_val = np.round(model_moments['w2']*100, 3)
-    # wH_targ_val = np.round(targ_moments['wH']*100, 3)
-    # wH_mod_val = np.round(model_moments['wH']*100, 3)
     
     alpha_targ_val = targ_moments['alpha']*100
     alpha_mod_val = model_moments['alpha']*100
