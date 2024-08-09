@@ -172,7 +172,7 @@ class Pars() :
         
         self.H_grid, self.H_trans = H_grid, H_trans
         self.H_grid_size = len(H_grid)
-        self.H_weights = np.ones(self.H_grid_size) / self.H_grid_size
+        self.H_weights = H_weights 
 
         self.H_by_nu_flat_trans = tb.gen_flat_joint_trans(self.H_trans, self.nu_trans)
         self.H_by_nu_size = self.H_grid_size * self.nu_grid_size
@@ -242,8 +242,9 @@ if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
         start_time = time.time()
         path = "C:/Users/benja/Documents/My Code/my_model_2"
-        myPars = Pars(path) 
-        print(myPars.beta * (1 + myPars.r))  
+        myPars = Pars(path, H_weights = np.array([0.4, 0.6]))
+        print(myPars.H_weights)
+
 
         # myShocks = Shocks(myPars)
         # print(myShocks)

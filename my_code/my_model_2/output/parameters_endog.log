@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  4 AUG 2024 14:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  8 AUG 2024 21:08
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -113,25 +113,24 @@ Preview: Tightpage -559403 -559403 559403 559403
 (C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_
 code/my_model_2/output//parameters_endog.aux) ) 
 Here is how much of TeX's memory you used:
- 1176 strings out of 478371
- 22807 string characters out of 5852527
+ 1174 strings out of 478371
+ 22786 string characters out of 5852527
  317159 words of memory out of 5000000
- 19315 multiletter control sequences out of 15000+600000
- 405590 words of font info for 34 fonts, out of 8000000 for 9000
+ 19314 multiletter control sequences out of 15000+600000
+ 405253 words of font info for 33 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,9n,71p,360b,199s stack positions out of 5000i,500n,10000p,200000b,80000s
-{c:/texlive/2021/texmf-dist/font
-s/enc/dvips/cm-super/cm-super-ts1.enc}<c:/texlive/2021/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmmi6.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsf
-onts/cm/cmmi9.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r6.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb><c:/
-texlive/2021/texmf-dist/fonts/type1/public/cm-super/sfrm0900.pfb>
+ 55i,9n,71p,360b,170s stack positions out of 5000i,500n,10000p,200000b,80000s
+<c:/texlive/2021/texmf-dist/font
+s/type1/public/amsfonts/cm/cmmi6.pfb><c:/texlive/2021/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmmi9.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr6.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9
+.pfb>
 Output written on "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My
- Code/MH_Model/my_code/my_model_2/output//parameters_endog.pdf" (1 page, 57361 
+ Code/MH_Model/my_code/my_model_2/output//parameters_endog.pdf" (1 page, 43932 
 bytes).
 PDF statistics:
- 34 PDF objects out of 1000 (max. 8388607)
- 20 compressed objects within 1 object stream
+ 28 PDF objects out of 1000 (max. 8388607)
+ 16 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

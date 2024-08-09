@@ -29,14 +29,24 @@ import plot_lc as plot_lc
 def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
     '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
 
-    alpha_targ_val = np.round(targ_moments['alpha'], 3) * 100
-    alpha_mod_val = np.round(model_moments['alpha'], 3) * 100
-    w1_targ_val = np.round(targ_moments['w1'], 3)*100 
-    w1_mod_val = np.round(model_moments['w1'], 3)*100
-    w2_targ_val = np.round(targ_moments['w2'], 3)*100 
-    w2_mod_val = np.round(model_moments['w2'], 3)*100
-    wH_targ_val = np.round(targ_moments['wH'], 3)
-    wH_mod_val = np.round(model_moments['wH'], 3)
+    # alpha_targ_val = np.round(targ_moments['alpha']*100, 3)
+    # alpha_mod_val = np.round(model_moments['alpha']*100, 3)
+    # w1_targ_val = np.round(targ_moments['w1']*100, 3)
+    # w1_mod_val = np.round(model_moments['w1']*100, 3)
+    # w2_targ_val = np.round(targ_moments['w2']*100, 3)
+    # w2_mod_val = np.round(model_moments['w2']*100, 3)
+    # wH_targ_val = np.round(targ_moments['wH']*100, 3)
+    # wH_mod_val = np.round(model_moments['wH']*100, 3)
+    
+    alpha_targ_val = targ_moments['alpha']*100
+    alpha_mod_val = model_moments['alpha']*100
+    w1_targ_val = targ_moments['w1']*100
+    w1_mod_val = model_moments['w1']*100
+    w2_targ_val = targ_moments['w2']*100
+    w2_mod_val = model_moments['w2']*100
+    wH_targ_val = targ_moments['wH']*100
+    wH_mod_val = model_moments['wH']*100
+
     tab = [
         "\\documentclass[border=3mm,preview]{standalone}",
         "\\begin{document}\n",
@@ -45,10 +55,10 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
         "\\hline \n",
         "Parameter & Description & Par. Value & Target Moment & Target Value & Model Value \\\\ \n", 
         "\\hline \n",   
-        f"$\\alpha$ & $c$ utility weight & {np.round(myPars.alpha, 4)} & Mean hours worked & {round(alpha_targ_val,2)} & {round(alpha_mod_val, 2)} \\\\ \n", 
-        f"$w_{{1}}$ & Linear wage coeff. & {np.round(myPars.wage_coeff_grid[1,1], 4)} & Wage growth & {round(w1_targ_val,2)}\\% & {round(w1_mod_val, 2)}\\% \\\\ \n", 
-        f"$w_{{2}}$ & Quad. wage coeff. & {np.round(myPars.wage_coeff_grid[1,2], 4)} & Wage decay & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
-        f"$w_{{H}}$ & Health wage coeff. & {np.round(myPars.wH_coeff, 4)} & Healthy wage premium & {round(wH_targ_val,2)}\\pounds & {round(wH_mod_val,2)}\\pounds \\\\ \n", 
+        f"$\\alpha$ & $c$ utility weight & {round(myPars.alpha, 4)} & Mean hours worked & {round(alpha_targ_val,2)} & {round(alpha_mod_val, 2)} \\\\ \n", 
+        f"$w_{{1}}$ & Linear wage coeff. & {round(myPars.wage_coeff_grid[1,1], 4)} & Wage growth & {round(w1_targ_val,2)}\\% & {round(w1_mod_val, 2)}\\% \\\\ \n", 
+        f"$w_{{2}}$ & Quad. wage coeff. & {round(myPars.wage_coeff_grid[1,2], 4)} & Wage decay & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
+        f"$w_{{H}}$ & Health wage coeff. & {round(myPars.wH_coeff, 4)} & Healthy wage premium & {round(wH_targ_val,2)}\\% & {round(wH_mod_val,2)}\\% \\\\ \n", 
         "\\hline \n",
         "\\end{tabular}\n",
         "\\end{document}\n"
@@ -79,10 +89,10 @@ def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
         "\\hline \n",
         "Constant wage coeff. & Ability Level & Value & Weight \\\\ \n",
         "\\hline \n",
-        f"$w_{{0\\gamma_{{1}}}}$ & Low & {myPars.wage_coeff_grid[0, 0]} & {round(myPars.lab_FE_weights[0],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{2}}}}$ & Medium & {myPars.wage_coeff_grid[1, 0]} & {round(myPars.lab_FE_weights[1],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{3}}}}$ & Medium High & {myPars.wage_coeff_grid[2, 0]} & {round(myPars.lab_FE_weights[2],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{4}}}}$ & High & {myPars.wage_coeff_grid[3, 0]} & {round(myPars.lab_FE_weights[3],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{1}}}}$ & Low & {round(np.exp(myPars.wage_coeff_grid[0, 0]))} & {round(myPars.lab_FE_weights[0],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{2}}}}$ & Medium & {round(np.exp(myPars.wage_coeff_grid[1, 0]))} & {round(myPars.lab_FE_weights[1],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{3}}}}$ & Medium High & {round(np.exp(myPars.wage_coeff_grid[2, 0]))} & {round(myPars.lab_FE_weights[2],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{4}}}}$ & High & {round(np.exp(myPars.wage_coeff_grid[3, 0]))} & {round(myPars.lab_FE_weights[3],2)} \\\\ \n",
         "\\hline \n",
         "Target Moment & Target Value & Model Value & \\\\ \n",
         "\\hline \n",
@@ -142,6 +152,9 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append(f"$\\sigma$ & CRRA & {np.round(myPars.sigma_util, 4)} & Benchmark \\\\ \n")
     tab.append(f"$\\phi_n$ & Labor time-cost & {np.round(myPars.phi_n, 4)} & Benchmark \\\\ \n")
     tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
+    tab.append(f"$\\omega_{{H=1}}$ & Healthy pop. weight & {np.round(myPars.H_weights[-1], 4)} & UKHLS \\\\ \n") 
+    tab.append(f"$\\omega_{{H=0}}$ & Unhealthy pop. weight & {np.round(myPars.H_weights[0], 4)} & $1-\\omega_{{H=1}}$ \\\\ \n") 
+    # tab.append(f"$\\omega_{{H=0}}$ & Unhealthy pop. weight & {np.round(1 - myPars.H_weights[-1], 4)} & $1-\\omega_{{H=1}} \\\\ \n") 
     tab.append("\\hline \n")
     tab.append("\\end{tabular}")
     tab.append("\\end{document}")
@@ -447,7 +460,7 @@ def calib_wH(myPars: Pars, main_path: str, tol: float, target: float, wH_min: fl
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     if myPars.print_screen >= 1:
-        print(f"Calibration exited: wH = {calibrated_wH}, wage growth = {wH_moment}, target wage growth = {target}")
+        print(f"Calibration exited: wH = {calibrated_wH}, wage premium = {wH_moment}, target wage premium = {target}")
     return calibrated_wH, wH_moment, state_sols, sim_lc
 
 
@@ -456,22 +469,22 @@ def wH_moment_giv_wH(myPars: Pars, main_path: str, new_coeff: float)-> float:
     return wH_moment(myPars)
 
 def wH_moment(myPars: Pars)-> float:
-    wage_sims = model.gen_weighted_wages(myPars)
-    wage_sims = wage_sims * myPars.H_grid_size # scale wages by the number of health states so that weights by health sum to 1
-    # print(f"wage_sims.shape = {wage_sims.shape}")
+    wage_sims = model.gen_wages(myPars) 
 
     # get the mean of the wage sims when the agent is healthy
-    healthy_wages = wage_sims[:,1,:,:]
-    weighted_healthy_wage_by_age = np.sum(healthy_wages, axis = 0)
-    mean_healthy_wage = np.mean(weighted_healthy_wage_by_age)
+    healthy_wages = wage_sims[:,1,:,:][:,0,:]
+    mean_healthy_wage_by_age = np.dot(myPars.lab_FE_weights, healthy_wages)
+    mean_healthy_wage = np.mean(mean_healthy_wage_by_age)
 
     # get the mean of the wage sims when the agent is unhealthy
-    unhealthy_wages = wage_sims[:,0,:,:]
-    weighted_unhealthy_wage_by_age = np.sum(unhealthy_wages, axis = 0)
-    mean_unhealthy_wage = np.mean(weighted_unhealthy_wage_by_age)
+    unhealthy_wages = wage_sims[:,0,:,:][:,0,:]
+    mean_unhealthy_wage_by_age = np.dot(myPars.lab_FE_weights, unhealthy_wages)
+    mean_unhealthy_wage = np.mean(mean_unhealthy_wage_by_age)
 
-    wage_diff = mean_healthy_wage - mean_unhealthy_wage
+    wage_diff = log(mean_healthy_wage) - log(mean_unhealthy_wage)
+    # print(f"mean_healthy_wage = {mean_healthy_wage}, mean_unhealthy_wage = {mean_unhealthy_wage}, wage_diff = {wage_diff}")
     return wage_diff
+
 
 
 def get_wH_targ(myPars: Pars)-> float:
@@ -545,21 +558,6 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
     print( f"alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ}")
     return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
     
-def is_calib_cond_met(myPars: Pars, sims: Dict[str, np.ndarray], alpha_mom_targ: float, alpha_tol: float, 
-                      w0_mean_targ: float, w0_mean_tol: float, w0_sd_targ: float, w0_sd_tol: float,
-                      w1_mom_targ: float, w1_tol: float, w2_mom_target:float, w2_tol: float)-> bool:
-    # get alpha_moment and w1_moment
-    alpha_moment = alpha_moment_giv_sims(myPars, sims)
-    w0_mean, w0_sd = w0_moments(myPars)
-    my_w1_moment = w1_moment(myPars)
-    my_w2_moment = w2_moment(myPars)
-    # if alpha_moment is within alpha_mom_targ and w1_moment is within w1_mom_targ
-    if (abs(alpha_moment - alpha_mom_targ) < alpha_tol and abs(my_w1_moment - w1_mom_targ) < w1_tol 
-        and abs(my_w2_moment - w2_mom_target) < w2_tol 
-        and abs(w0_mean - w0_mean_targ) < w0_mean_tol and abs(w0_sd - w0_sd_targ) < w0_sd_tol):
-        return True
-    else:
-        return False
 
 if __name__ == "__main__":
         start_time = time.perf_counter()
@@ -593,7 +591,9 @@ if __name__ == "__main__":
         w0_sd_targ = 3.0
         w1_mom_targ = 0.20
         w2_mom_targ = 0.25
+        wH_mom_targ = 0.3
 
-        print(calib_w0(myPars, main_path, w0_mean_targ, w0_sd_targ)[:3])
+        # print(calib_w0(myPars, main_path, w0_mean_targ, w0_sd_targ)[:3])
+        print(wH_moment(myPars))
 
         tb.print_exec_time("Calibration main ran in", start_time)   

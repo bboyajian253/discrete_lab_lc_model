@@ -243,6 +243,7 @@ def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: int,  nu_ind: int) -> 
     age_comp = tb.cubic(age, myPars.wage_coeff_grid[lab_fe_ind])
     health_comp = myPars.H_grid[h_ind] * myPars.wH_coeff
     my_wage = age_comp + health_comp
+    my_wage = np.exp(my_wage)
     return max(myPars.wage_min, my_wage)
     # return  det_wage* np.exp(lab_fe) * np.exp(nu)
 @njit
