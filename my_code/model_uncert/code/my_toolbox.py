@@ -98,16 +98,31 @@ def tex_to_pdf(path: str, tex_file_name: str)-> None:
         print(f"PDF successfully created at {os.path.join(path, tex_file_name)}")
     
 
-def read_specific_column_from_csv(file_path: str, column_index: int)-> List[float]:
+def read_specific_column_from_csv(file_path: str, column_index: int, skip_header: bool = True)-> np.ndarray:
     column_values = []
     with open(file_path, mode='r', newline='') as file:
         csv_reader = csv.reader(file)
         # Skip the header row
-        next(csv_reader)
+        if skip_header:
+            next(csv_reader)
         for row in csv_reader:
             if len(row) > column_index:
                 column_values.append(float(row[column_index]))  # Assuming the values are float numbers
     return np.array(column_values)
+
+def read_matrix_from_csv(file_path: str, column_index: int = 1, skip_header: bool = True) -> np.ndarray:
+     # Load the entire file first to determine the number of columns
+    sample_data = np.genfromtxt(file_path, delimiter=',', max_rows=1, skip_header=1 if skip_header else 0)
+    num_columns = sample_data.shape[0]
+
+    # Then read the file, specifying the correct range for usecols
+    matrix = np.genfromtxt(
+        file_path,
+        delimiter=',',
+        skip_header=1 if skip_header else 0,
+        usecols=range(column_index, num_columns)  # Use the determined number of columns
+    )
+    return matrix
 
 @njit
 def gen_even_weights(matrix: np.ndarray) -> np.ndarray:
@@ -752,9 +767,12 @@ if __name__ == "__main__":
     values = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     target_mean = 3.0
     target_std = 1.0
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    input_path = main_path + "input/"
+    file_path = input_path + "MH_trans.csv"
+    col_ind = 1
+    my_mat = read_matrix_from_csv(file_path, col_ind)
+    print("my_mat:", my_mat) 
 
-    weights = weights_to_match_mean_sd(values, target_mean, target_std)
-    print("Optimized Weights:", weights)
-    print("Weighted Mean:", np.dot(weights, values))
-    print("Weighted Std:", np.sqrt(np.dot(weights, (values - np.dot(weights, values)) ** 2)))
+    # weights = weights_to_match_mean_sd(values, target_mean, target_std)
     print("done running my_toolbox.py")

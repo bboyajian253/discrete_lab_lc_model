@@ -16,8 +16,8 @@ import csv
 import time
 
 # My code
-from pars_shocks_and_wages import Pars, Shocks
-import model_no_uncert as model
+from pars_shocks import Pars, Shocks
+import model_uncert as model
 import my_toolbox as tb
 import solver
 import simulate

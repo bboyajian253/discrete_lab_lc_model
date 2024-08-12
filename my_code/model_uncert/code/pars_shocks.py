@@ -40,9 +40,10 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('a_grid_growth', float64), # spacing/curvature/growth of asset grid parameter
                 ('a_grid', float64[:]), # stores the asset grid
                 ('a_grid_size', int64), # total number of points on the asset grid
+                ('H_type_perm_grid', float64[:]), #grid to hold the premanent health types
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
-                ('H_trans', float64[:,:]), #matrix of health transition probabilities
+                ('H_trans', float64[:, :, :, :]), #matrix of health transition probabilities
                 ('H_weights', float64[:]), #weights for the health grid
                 ('state_space_shape', UniTuple(int64, 5)), #the shape/dimensions of the full state space with time/age J
                 ('state_space_shape_no_j', UniTuple(int64, 4)),
@@ -59,7 +60,7 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('print_screen', int64),  #indicator for what type of printing to do... may drop
                 ('interp_c_prime_grid', float64[:]),
                 ('interp_eval_points', float64[:]),
-                ('H_by_nu_flat_trans', float64[:]),
+                # ('H_by_nu_flat_trans', float64[:]),
                 ('H_by_nu_size', int64),
                 ('sim_interp_grid_spec', types.Tuple((float64, float64, int64))),
                 ('start_age', int64), #age to start the model at
@@ -75,8 +76,7 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
 
 @jitclass(pars_spec)
 class Pars() :      
-    def __init__(self, path,     
-
+    def __init__(self, path,    
             wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0], [40.0,1.5,-0.03,0.0]]),
             wage_min = 0.0001, #minimum wage
 
@@ -113,11 +113,14 @@ class Pars() :
             a_max = 250, # max of the asset grid
             a_grid_growth = 0.0, #detrmines growth rate and thus curvature of asset grid at 0 just doe slinear space
             a_grid_size = 300, #set up for gride with curvature
+            H_type_perm_grid = np.array([0.0,1.0]), #grid to hold the premanent health types
             H_grid = np.array([0.0,1.0]),
             H_weights = np.array([0.5,0.5]),
-            H_trans = np.array([[0.7, 0.3],
-                               [0.2, 0.8]]), 
-
+        #     H_trans = np.array([[0.7, 0.3],
+        #                        [0.5, 0.5]]),
+                #can make H_trans above a row and np.repeat it the number of times needed (e.g. H_grid_size*J+1 or something like that)
+         
+            H_trans = np.repeat(np.array([[0.7, 0.3], [0.5, 0.5]])[np.newaxis, :,:], 100, axis=0).reshape(2,50,2,2),
             lab_min = 0.00,
             lab_max = 1.0,
             c_min = 0.0001,
@@ -170,11 +173,12 @@ class Pars() :
         self.a_grid_growth = a_grid_growth
         self.a_grid = tb.gen_grid(a_grid_size, a_min, a_max, a_grid_growth)
         
+        self.H_type_perm_grid = H_type_perm_grid
         self.H_grid, self.H_trans = H_grid, H_trans
         self.H_grid_size = len(H_grid)
         self.H_weights = H_weights 
 
-        self.H_by_nu_flat_trans = tb.gen_flat_joint_trans(self.H_trans, self.nu_trans)
+        # self.H_by_nu_flat_trans = tb.gen_flat_joint_trans(self.H_trans, self.nu_trans)
         self.H_by_nu_size = self.H_grid_size * self.nu_grid_size
 
         self.interp_c_prime_grid = np.zeros(self.H_by_nu_size)
@@ -210,9 +214,7 @@ class Pars() :
 
 shock_spec = [
         ('myPars', Pars.class_type.instance_type),
-        ('health_shocks', float64[:]),
-        ('nu_shocks', float64[:]),
-        ('eps_nu_shocks', float64[:]),
+        ('H_shocks', float64[:,:]),
         ]
 
 #i feel like drawing shocks using numpy instead of scipy should be jit-able
@@ -224,30 +226,23 @@ class Shocks:
                 ):
         self.myPars = myPars
 
-        #draw health shocks
-        #reshape them appropriately
-        #self.health_shocks = reshaped_draws
-         
-
-        #draw ar1 peristent lab shocks nu
-        #reshape them appropriately
-        #self.nu_shocks = reshaped_draws
+        # draw health shocks
         np.random.seed(1234)
-        self.eps_nu_shocks = np.random.normal(0,  sqrt(myPars. sigma_eps_2), 1000)
+        draws = np.random.uniform(0,1, myPars.sim_draws * myPars.J)
+        # reshape the draws to be the correct size
+        reshaped_draws = draws.reshape(myPars.sim_draws, myPars.J)
+        self.H_shocks = reshaped_draws
 
-        #could maybe calculate corresponding labor_income "shocks" here and pass those in as the shokcs?
-        
 
 if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
         start_time = time.time()
         path = "C:/Users/benja/Documents/My Code/my_model_2"
-        myPars = Pars(path, H_weights = np.array([0.4, 0.6]))
-        print(myPars.H_weights)
-
-
-        # myShocks = Shocks(myPars)
-        # print(myShocks)
+        myPars = Pars(path)
+        print(myPars.H_trans)
+        myShocks = Shocks(myPars)
+        print(myShocks.H_shocks.shape)
+        print(myPars.H_trans.shape)
                 
         end_time = time.time()
         execution_time = end_time - start_time

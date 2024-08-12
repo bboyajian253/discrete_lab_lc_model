@@ -210,7 +210,7 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'print_screen': pars_instance.print_screen,
         'interp_c_prime_grid': pars_instance.interp_c_prime_grid,
         'interp_eval_points': pars_instance.interp_eval_points,
-        'H_by_nu_flat_trans': pars_instance.H_by_nu_flat_trans,
+        # 'H_by_nu_flat_trans': pars_instance.H_by_nu_flat_trans,
         'H_by_nu_size': pars_instance.H_by_nu_size,
         'sim_interp_grid_spec': pars_instance.sim_interp_grid_spec,
         'start_age': pars_instance.start_age,
