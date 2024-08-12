@@ -15,7 +15,7 @@ import my_toolbox
 from typing import List, Dict
 import csv
 # My code
-from pars_shocks_and_wages import Pars
+from pars_shocks import Pars
 
 
 def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:

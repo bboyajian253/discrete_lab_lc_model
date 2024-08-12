@@ -6,8 +6,8 @@ This file contains the solver module for the project.
 Author: Ben Boyajian
 Date: 2024-05-31 11:42:26
 """
-import model_no_uncert as model
-from pars_shocks_and_wages import Pars
+import model_uncert as model
+from pars_shocks import Pars
 import my_toolbox as tb
 
 from numba import njit, prange, float64

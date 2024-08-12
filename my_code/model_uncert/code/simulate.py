@@ -19,8 +19,8 @@ from interpolation import interp # i use this for interpolation instead of eval_
 from typing import List, Dict
 
 # My code
-from pars_shocks_and_wages import Pars, Shocks
-import model_no_uncert as model
+from pars_shocks import Pars, Shocks
+import model_uncert as model
 
 #@njit(parallel=True) # to paralleliize swap this decorator for the one below
 @njit

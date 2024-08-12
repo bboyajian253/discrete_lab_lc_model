@@ -20,7 +20,7 @@ import solver
 import simulate as simulate
 import calibration
 import plot_lc as plot_lc
-from pars_shocks_and_wages import Pars, Shocks
+from pars_shocks import Pars, Shocks
 import plot_moments 
 
 # Run the model

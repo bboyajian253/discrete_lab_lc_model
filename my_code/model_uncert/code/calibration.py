@@ -20,9 +20,9 @@ import subprocess
 # My code
 import my_toolbox as tb
 import solver
-import model_no_uncert as model
-import pars_shocks_and_wages as ps
-from pars_shocks_and_wages import Pars, Shocks
+import model_uncert as model
+import pars_shocks as ps
+from pars_shocks import Pars, Shocks
 import simulate
 import plot_lc as plot_lc
 

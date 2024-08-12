@@ -10,7 +10,7 @@ Date: 2024-05-29 20:16:01
 # Import packages
 import time
 import numpy as np
-from my_code.model_uncert.code.pars_shocks import Pars
+from pars_shocks import Pars
 import my_toolbox as tb
 from numba import njit, guvectorize, prange 
 from interpolation import interp

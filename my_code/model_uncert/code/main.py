@@ -5,8 +5,8 @@ Author: Ben Boyajian
 Date: 2024-05-31 11:38:38
 """
 import time
-import pars_shocks_and_wages as ps
-import model_no_uncert as model
+import pars_shocks as ps
+import model_uncert as model
 import my_toolbox as tb
 import solver
 import simulate as simulate

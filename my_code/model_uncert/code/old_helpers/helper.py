@@ -2,7 +2,7 @@ import csv
 import numpy as np
 import my_toolbox as tb
 
-import pars_shocks_and_wages as ps
+import pars_shocks as ps
 
 def write_nd_array(writer, array, depth=0):
     if array.ndim == 1:
