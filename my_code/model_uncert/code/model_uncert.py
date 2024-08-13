@@ -140,18 +140,23 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe_ind: int, health_in
     """
     #fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
     fut_wage = wage(myPars, age+1, lab_fe_ind, health_ind, nu_ind)
-    # fut_wage0 = wage(myPars, age+1, lab_fe_ind, 0, nu_ind)
-    # fut_wage1 = wage(myPars, age+1, lab_fe_ind, 1, nu_ind)
+    fut_wage0 = wage(myPars, age+1, lab_fe_ind, 0, nu_ind)
+    fut_wage1 = wage(myPars, age+1, lab_fe_ind, 1, nu_ind)
         
+    prob0 = 0.5
+    prob1 = 0.5
     # try:
     util_c_prime = util_c(myPars, c_prime, fut_wage)
+    expect_util_c_prime = (prob0 * util_c(myPars, c_prime, fut_wage0)) + (prob1 * util_c(myPars, c_prime, fut_wage1))
     # expect_util_c_prime = (prob0 * util_c(myPars, c_prime0, fut_wage0)) + (prob1 * util_c(myPars, c_prime1, fut_wage1))
+
     # except ZeroDivisionError:
     #     print("util_c: Cannot divide by zero.")
     #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
     #     sys.exit()
     
     expect = util_c_prime
+    # expect = expect_util_c_prime
     rhs = myPars.beta *(1 + myPars.r) * expect
     
     #try:

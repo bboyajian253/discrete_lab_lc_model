@@ -120,7 +120,7 @@ class Pars() :
         #                        [0.5, 0.5]]),
                 #can make H_trans above a row and np.repeat it the number of times needed (e.g. H_grid_size*J+1 or something like that)
          
-            H_trans = np.repeat(np.array([[0.7, 0.3], [0.5, 0.5]])[np.newaxis, :,:], 100, axis=0).reshape(2,50,2,2),
+            H_trans = np.repeat(np.array([[0.5, 0.5], [0.5, 0.5]])[np.newaxis, :,:], 102, axis=0).reshape(2,51,2,2),
             lab_min = 0.00,
             lab_max = 1.0,
             c_min = 0.0001,
