@@ -21,7 +21,7 @@ def read_and_shape_h_trans(myPars: Pars) -> np.ndarray:
     """
     path = myPars.path + "input/MH_trans.csv"
     # Read in the data
-    all_trans = tb.read_matrix_from_csv(path).reshape(myPars.H_type_perm_grid.size, myPars.J+1, myPars.H_grid_size, myPars.H_grid_size)
+    all_trans = tb.read_matrix_from_csv(path).reshape(myPars.H_type_perm_grid.size, myPars.J, myPars.H_grid_size, myPars.H_grid_size)
     # Reshape
     return all_trans
 
