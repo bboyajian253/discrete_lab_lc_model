@@ -251,7 +251,8 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
 							# get previous health state
 							prev_health_state_ind = hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j-1]
 							# get health transition probability of going from previous health state to good health
-							health_trans_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, 1]
+							fut_health_state_ind = 1
+							health_trans_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, fut_health_state_ind]
 							# get shock pulled in the last period
 							shock = H_shocks[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j-1]       
 							# calculate new health state and update zero array if necessary
