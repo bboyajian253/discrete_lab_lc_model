@@ -299,7 +299,7 @@ def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     weighted_sim = lc_moment_sim * my_sim_weights_reshaped
     # since the weights are calculated only with the labor_fe in mind, we need to divide by the number of health states
     # else weights essentially sum to 2 instead of 1
-    weighted_sim = weighted_sim / myPars.H_grid_size
+    weighted_sim = weighted_sim / (myPars.H_grid_size*myPars.H_type_perm_grid_size)
     return weighted_sim
 
 @njit

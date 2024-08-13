@@ -266,13 +266,13 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     labor_sims = sims['lab'][:,:,:,:,:myPars.J]
-    print(f"labor_sims mean = {np.mean(labor_sims)}")
+    # print(f"labor_sims mean = {np.mean(labor_sims)}")
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
-    print(f"weighted_labor_sims mean = {np.mean(weighted_labor_sims)}")
+    # print(f"weighted_labor_sims mean = {np.mean(weighted_labor_sims)}")
     mean_lab_by_age_and_sim = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
-    print(f"mean_lab_by_age_and_sim = {mean_lab_by_age_and_sim}")
+    # print(f"mean_lab_by_age_and_sim = {mean_lab_by_age_and_sim}")
     mean_lab = np.mean(mean_lab_by_age_and_sim)
-    print(f"mean labor worked = {mean_lab}")
+    # print(f"mean labor worked = {mean_lab}")
     return mean_lab
 
 def get_alpha_targ(myPars: Pars) -> float:

@@ -87,7 +87,7 @@ leis_max,1.0
 dt,2500
 sim_draws,1000
 J,51
-print_screen,1
+print_screen,0
 interp_c_prime_grid,[0. 0.]
 interp_eval_points,[0.]
 H_by_nu_size,2

@@ -44,7 +44,7 @@ def main_1():
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), H_weights=np.array([0.5, 0.5]),
                 nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
-                print_screen=1)
+                print_screen=0)
     myShocks = Shocks(myPars)
     myPars.path = main_path
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
