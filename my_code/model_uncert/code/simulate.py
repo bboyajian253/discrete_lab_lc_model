@@ -24,7 +24,7 @@ import model_uncert as model
 
 #@njit(parallel=True) # to paralleliize swap this decorator for the one below
 @njit
-def sim_lc_numba(myPars : Pars, sim_vals_list: List[np.ndarray], state_sols_list: List[np.ndarray]) -> List[np.ndarray]:
+def sim_lc_numba(myPars : Pars, myShocks: Shocks, sim_vals_list: List[np.ndarray], state_sols_list: List[np.ndarray]) -> List[np.ndarray]:
     [sim_c, sim_lab, sim_a, sim_wage, sim_lab_income]  = sim_vals_list
     [c_lc, lab_lc, a_prime_lc] = state_sols_list
 
@@ -77,7 +77,7 @@ def sim_lc(myPars : Pars, myShocks : Shocks, state_sols: Dict[str, np.ndarray])-
     # get the initial values
     sim_vals_list = list(sim.values())
     state_sols_list = list(state_sols.values())
-    sim_list = sim_lc_numba(myPars, sim_vals_list, state_sols_list)
+    sim_list = sim_lc_numba(myPars, myShocks, sim_vals_list, state_sols_list)
 
     # store simulation results in dictionary with matching keys and return
     sim = {v: s for v, s in zip(sim.keys(), sim_list)}

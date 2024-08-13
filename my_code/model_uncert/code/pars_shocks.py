@@ -216,7 +216,8 @@ class Pars() :
 
 shock_spec = [
         ('myPars', Pars.class_type.instance_type),
-        ('H_shocks', float64[:,:]),
+        ('H_shocks', float64[:, :, :, :, :]),
+        ('H_hist', int64[:, :, :, :, :]),
         ]
 
 #i feel like drawing shocks using numpy instead of scipy should be jit-able
@@ -230,12 +231,33 @@ class Shocks:
 
         # draw health shocks
         np.random.seed(1234)
-        draws = np.random.uniform(0,1, myPars.sim_draws * myPars.J)
+        draws = np.random.uniform(0,1, tb.tuple_product(myPars.state_space_shape_sims))
         # reshape the draws to be the correct size
-        reshaped_draws = draws.reshape(myPars.sim_draws, myPars.J)
+        reshaped_draws = draws.reshape(myPars.state_space_shape_sims)
         self.H_shocks = reshaped_draws
+        self.H_hist = gen_H_hist(myPars, self.H_shocks)
 
-
+@njit
+def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
+	hist = np.zeros(myPars.state_space_shape_sims, dtype=np.int64)
+	for lab_fe_ind in range(myPars.lab_FE_grid_size):
+		for start_H_ind in range(myPars.H_grid_size):
+			for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+				for sim_ind in range(myPars.sim_draws):
+					for j in range(myPars.J):
+						if j == 0:
+							hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j] = start_H_ind
+						else:
+							# get previous health state
+							prev_health_state_ind = hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j-1]
+							# get health transition probability of going from previous health state to good health
+							health_trans_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, 1]
+							# get shock pulled in the last period
+							shock = H_shocks[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j-1]       
+							# calculate new health state and update zero array if necessary
+							if shock <= health_trans_prob:
+								hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j] = 1
+	return hist
 if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
         start_time = time.time()
@@ -243,8 +265,11 @@ if __name__ == "__main__":
         myPars = Pars(path)
         print(myPars.H_trans)
         myShocks = Shocks(myPars)
-        print(myShocks.H_shocks.shape)
-        print(myPars.H_trans.shape)
+        print(f" H_hist: {myShocks.H_hist}")
+        print(f" H_shocks.shape: {myShocks.H_shocks.shape}")
+        print(f"H_trans.shape: {myPars.H_trans.shape}")
+        print(f" H_hist.shape: {myShocks.H_hist.shape}")
+		
                 
         end_time = time.time()
         execution_time = end_time - start_time

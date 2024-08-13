@@ -144,8 +144,10 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe_ind: int, health_in
     fut_wage1 = wage(myPars, age+1, lab_fe_ind, 1)
 
     # get real probabilities start with default parameterizaqtion from myPars
-    prob0 = 0.5
-    prob1 = 0.5
+    # prob0 = 0.5
+    # prob1 = 0.5
+    prob0 = myPars.H_trans[H_type_perm_ind, age, health_ind, 0]
+    prob1 = myPars.H_trans[H_type_perm_ind, age, health_ind, 1]
     # try:
     # util_c_prime = util_c(myPars, c_prime, fut_wage)
     # expect_util_c_prime = (prob0 * util_c(myPars, c_prime, fut_wage0)) + (prob1 * util_c(myPars, c_prime, fut_wage1))

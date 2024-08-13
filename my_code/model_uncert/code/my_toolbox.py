@@ -20,6 +20,14 @@ import os
 import subprocess
 from scipy.optimize import minimize
 
+# Define a function to manually multiply elements in the tuple
+@njit
+def tuple_product(shape_tuple):
+    product = 1
+    for dim in shape_tuple:
+        product *= dim
+    return product
+
 @njit
 def compute_weighted_mean(values: np.ndarray, weights: float) -> float:
     return np.dot(weights, values)
