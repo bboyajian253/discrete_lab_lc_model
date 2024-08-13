@@ -134,29 +134,30 @@ def util_c_inv(myPars: Pars, u: float, wage: float) ->float:
 
 # infer what current consumption should be given future consumption, curr wage, and the curr state space
 @njit
-def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe_ind: int, health_ind: int, nu_ind: int, c_prime: float ) -> float: 
+def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe_ind: int, health_ind: int, H_type_perm_ind: int, c_prime0: float, c_prime1: float ) -> float: 
     """
     calculated expectation on rhs of euler, calc the rest of the rhs, then invert util_c to get the curr c on the lhs
     """
     #fut_wage = wage(myPars, health, age+1, lab_fe, nu)    
-    fut_wage = wage(myPars, age+1, lab_fe_ind, health_ind, nu_ind)
-    fut_wage0 = wage(myPars, age+1, lab_fe_ind, 0, nu_ind)
-    fut_wage1 = wage(myPars, age+1, lab_fe_ind, 1, nu_ind)
-        
+    # fut_wage = wage(myPars, age+1, lab_fe_ind, health_ind, nu_ind)
+    fut_wage0 = wage(myPars, age+1, lab_fe_ind, 0)
+    fut_wage1 = wage(myPars, age+1, lab_fe_ind, 1)
+
+    # get real probabilities start with default parameterizaqtion from myPars
     prob0 = 0.5
     prob1 = 0.5
     # try:
-    util_c_prime = util_c(myPars, c_prime, fut_wage)
-    expect_util_c_prime = (prob0 * util_c(myPars, c_prime, fut_wage0)) + (prob1 * util_c(myPars, c_prime, fut_wage1))
-    # expect_util_c_prime = (prob0 * util_c(myPars, c_prime0, fut_wage0)) + (prob1 * util_c(myPars, c_prime1, fut_wage1))
+    # util_c_prime = util_c(myPars, c_prime, fut_wage)
+    # expect_util_c_prime = (prob0 * util_c(myPars, c_prime, fut_wage0)) + (prob1 * util_c(myPars, c_prime, fut_wage1))
+    expect_util_c_prime = (prob0 * util_c(myPars, c_prime0, fut_wage0)) + (prob1 * util_c(myPars, c_prime1, fut_wage1))
 
     # except ZeroDivisionError:
     #     print("util_c: Cannot divide by zero.")
     #     print("curr-wage:", curr_wage, "c_prime:", c_prime, "health: ", health, "age: ", age, "lab_fe: ", lab_fe, "nu: ", nu)
     #     sys.exit()
     
-    expect = util_c_prime
-    # expect = expect_util_c_prime
+    # expect = util_c_prime
+    expect = expect_util_c_prime
     rhs = myPars.beta *(1 + myPars.r) * expect
     
     #try:
@@ -244,7 +245,7 @@ def det_wage(myPars: Pars, health: float, age: int) -> float:
 
 #calculate the wage given health, age, lab_fe, and nu i.e. the shocks
 @njit
-def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: int,  nu_ind: int) -> float:
+def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: int) -> float:
     """
     wage process
     """
@@ -260,13 +261,12 @@ def gen_wages(myPars: Pars) -> np.ndarray:
     generate the wage grid
     """
     #initialize the wage grid
-    wage_grid = np.zeros((myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size, myPars.J))
+    wage_grid = np.zeros((myPars.lab_FE_grid_size, myPars.H_grid_size,  myPars.J))
     #loop through the wage grid
     for j in range(myPars.J):
         for h_ind in range(myPars.H_grid_size):
-            for nu_ind in range(myPars.nu_grid_size):
-                for lab_fe_ind in range(myPars.lab_FE_grid_size):
-                    wage_grid[lab_fe_ind, h_ind, nu_ind, j] = wage(myPars, j, lab_fe_ind, h_ind, nu_ind)
+            for lab_fe_ind in range(myPars.lab_FE_grid_size):
+                wage_grid[lab_fe_ind, h_ind, j] = wage(myPars, j, lab_fe_ind, h_ind)
     return wage_grid
 @njit
 def gen_weighted_wages(myPars: Pars) -> np.ndarray:
@@ -277,7 +277,7 @@ def gen_weighted_wages(myPars: Pars) -> np.ndarray:
         for c in range(myPars.H_grid_size):
             my_sim_weights[r, c] = myPars.lab_FE_weights[r] * myPars.H_weights[c]
     # Reshape weights for broadcasting
-    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1)
+    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1)
     wage_sims = gen_wages(myPars)
     weighted_wage_sims = wage_sims * my_sim_weights_reshaped
     # weighted_wage_sims = myPars.H_weights * weighted_wage_sims 

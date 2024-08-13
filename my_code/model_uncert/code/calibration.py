@@ -266,10 +266,13 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     labor_sims = sims['lab'][:,:,:,:,:myPars.J]
+    print(f"labor_sims mean = {np.mean(labor_sims)}")
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
+    print(f"weighted_labor_sims mean = {np.mean(weighted_labor_sims)}")
     mean_lab_by_age_and_sim = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
+    print(f"mean_lab_by_age_and_sim = {mean_lab_by_age_and_sim}")
     mean_lab = np.mean(mean_lab_by_age_and_sim)
-    # print(f"mean labor worked = {mean_lab}")
+    print(f"mean labor worked = {mean_lab}")
     return mean_lab
 
 def get_alpha_targ(myPars: Pars) -> float:
@@ -288,7 +291,7 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     sate_sols = {}
     sim_lc = {}
 
-    first_per_wages = model.gen_wages(myPars)[:,:,0,0]
+    first_per_wages = model.gen_wages(myPars)[:,:,0]
     first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
     # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
     my_weights = tb.weights_to_match_mean_sd(first_per_wages_H_weighted, mean_target, sd_target)
@@ -306,7 +309,7 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
 
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
 
-    first_per_wages = model.gen_wages(myPars)[:,:,0,0]
+    first_per_wages = model.gen_wages(myPars)[:,:,0]
     # print(f"first_per_wages = {first_per_wages}")
 
     first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
@@ -463,12 +466,12 @@ def wH_moment(myPars: Pars)-> float:
     wage_sims = model.gen_wages(myPars) 
 
     # get the mean of the wage sims when the agent is healthy
-    healthy_wages = wage_sims[:,1,:,:][:,0,:]
+    healthy_wages = wage_sims[:,1,:][:,0]
     mean_healthy_wage_by_age = np.dot(myPars.lab_FE_weights, healthy_wages)
     mean_healthy_wage = np.mean(mean_healthy_wage_by_age)
 
     # get the mean of the wage sims when the agent is unhealthy
-    unhealthy_wages = wage_sims[:,0,:,:][:,0,:]
+    unhealthy_wages = wage_sims[:,0,:][:,0]
     mean_unhealthy_wage_by_age = np.dot(myPars.lab_FE_weights, unhealthy_wages)
     mean_unhealthy_wage = np.mean(mean_unhealthy_wage_by_age)
 

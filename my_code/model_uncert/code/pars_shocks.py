@@ -41,6 +41,7 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('a_grid', float64[:]), # stores the asset grid
                 ('a_grid_size', int64), # total number of points on the asset grid
                 ('H_type_perm_grid', float64[:]), #grid to hold the premanent health types
+                ('H_type_perm_grid_size', int64), #size of the permanent health type grid
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
                 ('H_trans', float64[:, :, :, :]), #matrix of health transition probabilities
@@ -174,6 +175,7 @@ class Pars() :
         self.a_grid = tb.gen_grid(a_grid_size, a_min, a_max, a_grid_growth)
         
         self.H_type_perm_grid = H_type_perm_grid
+        self.H_type_perm_grid_size = len(H_type_perm_grid)
         self.H_grid, self.H_trans = H_grid, H_trans
         self.H_grid_size = len(H_grid)
         self.H_weights = H_weights 
@@ -201,10 +203,10 @@ class Pars() :
         self.sim_draws = sim_draws
         self.print_screen = print_screen
 
-        self.state_space_shape = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.J) 
-        self.state_space_shape_no_j = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size)
-        self.state_space_shape_sims = (self.lab_FE_grid_size, self.H_grid_size, self.nu_grid_size, self.sim_draws, self.J + 1)
-        self.state_space_no_j_size = self.a_grid_size * self.lab_FE_grid_size * self.H_grid_size * self.nu_grid_size
+        self.state_space_shape = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.H_type_perm_grid_size, self.J) 
+        self.state_space_shape_no_j = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.H_type_perm_grid_size)
+        self.state_space_shape_sims = (self.lab_FE_grid_size, self.H_grid_size, self.H_type_perm_grid_size, self.sim_draws, self.J + 1)
+        self.state_space_no_j_size = self.a_grid_size * self.lab_FE_grid_size * self.H_grid_size * self.H_type_perm_grid_size
 
         self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
 

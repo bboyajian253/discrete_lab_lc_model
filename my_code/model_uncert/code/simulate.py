@@ -33,27 +33,27 @@ def sim_lc_numba(myPars : Pars, sim_vals_list: List[np.ndarray], state_sols_list
     for j in prange(myPars.J):
         for lab_fe_ind in prange(myPars.lab_FE_grid_size):
             for h_ind in prange(myPars.H_grid_size):        
-                for nu_ind in prange(myPars.nu_grid_size):
+                for H_type_perm_ind in prange(myPars.H_type_perm_grid_size):
                     for sim_ind in prange(myPars.sim_draws):
                         # get the value of a from the previous period
-                        a = sim_a[lab_fe_ind, h_ind, nu_ind, sim_ind, j]
+                        a = sim_a[lab_fe_ind, h_ind, H_type_perm_ind, sim_ind, j]
                         evals = a # for clarity, this is the value of a at which we are evaluating the state solutions
 
                         # interp the value of c, labor, and a_prime from the state solutions
-                        c = interp(myPars.a_grid, c_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
-                        lab = interp(myPars.a_grid, lab_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
-                        a_prime = interp(myPars.a_grid, a_prime_lc[:, lab_fe_ind, h_ind, nu_ind, j], evals)
+                        c = interp(myPars.a_grid, c_lc[:, lab_fe_ind, h_ind, H_type_perm_ind, j], evals)
+                        lab = interp(myPars.a_grid, lab_lc[:, lab_fe_ind, h_ind, H_type_perm_ind, j], evals)
+                        a_prime = interp(myPars.a_grid, a_prime_lc[:, lab_fe_ind, h_ind, H_type_perm_ind, j], evals)
                         # wage = myPars.wage_grid[lab_fe_ind, h_ind, nu_ind, j] #not doing it this way since pulling from memory is likely slower than computation
                         # wage = model.recover_wage(myPars, c, lab, a_prime, a) # has divide by zero issues
-                        wage = model.wage(myPars, j, lab_fe_ind, h_ind, nu_ind)
+                        wage = model.wage(myPars, j, lab_fe_ind, h_ind)
                         lab_income = wage * lab # will  need  adjustment for taxes, etc. eventually, may need a function in model.py like recover_wage
 
                         # store the values of c, labor, and a_prime in the simulation arrays
-                        sim_c[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = c
-                        sim_lab[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = lab
-                        sim_a[lab_fe_ind, h_ind, nu_ind, sim_ind, j + 1] = a_prime
-                        sim_wage[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = wage
-                        sim_lab_income[lab_fe_ind, h_ind, nu_ind, sim_ind, j] = lab_income
+                        sim_c[lab_fe_ind, h_ind, H_type_perm_ind, sim_ind, j] = c
+                        sim_lab[lab_fe_ind, h_ind, H_type_perm_ind, sim_ind, j] = lab
+                        sim_a[lab_fe_ind, h_ind, H_type_perm_ind, sim_ind, j + 1] = a_prime
+                        sim_wage[lab_fe_ind, h_ind, H_type_perm_ind, sim_ind, j] = wage
+                        sim_lab_income[lab_fe_ind, h_ind, H_type_perm_ind, sim_ind, j] = lab_income
 
     # infer wage and earnings outcomes given labor, constuption and assets 
     return [sim_c, sim_lab, sim_a, sim_wage, sim_lab_income]
