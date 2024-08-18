@@ -84,7 +84,6 @@ lab_max,0.8888888888888888
 c_min,0.0001
 leis_min,0.0
 leis_max,1.0
-dt,2500
 sim_draws,1000
 J,51
 print_screen,0

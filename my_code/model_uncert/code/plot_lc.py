@@ -65,6 +65,13 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
                         ax.plot(a_age_grid, lc_mean, label=myLab) 
                     else:
                         ax.plot(age_grid, lc_mean, label=myLab)
+                    #save the data
+                    fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
+                    with open(fullpath, 'w', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow(['age'] + list(age_grid))
+                        for row in lc:
+                            writer.writerows(['model'] + list(lc))
             
             #specify axes and legend
             ax.set_xlabel('Age')
@@ -82,13 +89,13 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             fig.savefig(fullpath, bbox_inches='tight')
             plt.close()
 
-            #save the data
-            fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
-            with open(fullpath, 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(['age'] + list(age_grid))
-                for row in lc:
-                    writer.writerows(['model'] + list(lc))
+            # #save the data
+            # fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
+            # with open(fullpath, 'w', newline='') as file:
+            #     writer = csv.writer(file)
+            #     writer.writerow(['age'] + list(age_grid))
+            #     for row in lc:
+            #         writer.writerows(['model'] + list(lc))
 
 # probably should plot policy functions as a function of states evetually
 def plot_c_by_a(myPars : Pars, sim_lc):

@@ -204,7 +204,6 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'c_min': pars_instance.c_min,
         'leis_min': pars_instance.leis_min,
         'leis_max': pars_instance.leis_max,
-        'dt': pars_instance.dt,
         'sim_draws': pars_instance.sim_draws,
         'J': pars_instance.J,
         'print_screen': pars_instance.print_screen,

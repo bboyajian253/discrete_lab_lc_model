@@ -47,7 +47,10 @@ def main_1():
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
                 print_screen=0)
     myShocks = Shocks(myPars)
-    myPars.path = main_path
+
+    trans0 = myPars.H_trans[0, :, :, :]
+    print(f"main_1 H_trans0: {trans0}")
+
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
                           get_moments = True, output_flag = True, tex = True)
     
@@ -77,17 +80,21 @@ def main_io():
 
     my_lab_FE_weights = tb.gen_even_weights(w_coeff_grid)
 
-    myPars = Pars(main_path, J=51, a_grid_size=1001, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), H_weights=np.array([0.5, 0.5]),
-                nu_grid_size=1, alpha = 0.45, sim_draws=10000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
+    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), H_weights=np.array([0.5, 0.5]),
+                nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
                 print_screen=0)
+    myPars.H_trans = io.read_and_shape_h_trans_full(myPars)
+    trans0 = myPars.H_trans[0, :, :, :]
+    print(f"main_io H_trans0: {trans0}")
     myShocks = Shocks(myPars)
-    myPars.H_trans = io.read_and_shape_h_trans(myPars)
+
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
                           get_moments = True, output_flag = True, tex = True)
+
 #run stuff here
 start_time = time.perf_counter()
 print("Running main")
-# main_io()
-main_1()
+main_io()
+# main_1()
 tb.print_exec_time("Main.py executed in", start_time) 

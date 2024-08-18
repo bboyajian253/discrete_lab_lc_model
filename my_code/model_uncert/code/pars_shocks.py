@@ -55,7 +55,6 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
                 ('leis_min', float64), #min possible choice for leisure
                 ('leis_max', float64), #max possible choice for leisure 
-                ('dt', int64),              # number of monte-carlo integration draws
                 ('sim_draws', int64),       # number of simulation draws
                 ('J', int64),                 # number of time periods -1 (period 0 is first
                 ('print_screen', int64),  #indicator for what type of printing to do... may drop
@@ -121,7 +120,8 @@ class Pars() :
         #                        [0.5, 0.5]]),
                 #can make H_trans above a row and np.repeat it the number of times needed (e.g. H_grid_size*J+1 or something like that)
          
-            H_trans = np.repeat(np.array([[0.5, 0.5], [0.5, 0.5]])[np.newaxis, :,:], 102, axis=0).reshape(2,51,2,2),
+        #     H_trans = np.repeat(np.array([[1.0, 0.0], [0.0, 1.0]])[np.newaxis, :,:], 102, axis=0).reshape(2,51,2,2),
+            H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
             lab_min = 0.00,
             lab_max = 1.0,
             c_min = 0.0001,
@@ -129,8 +129,7 @@ class Pars() :
             leis_max = 1.0,    
 
             # number of draws and other procedural parameters
-            dt = 2500,              # number of monte-carlo integration draws
-            sim_draws = 1000 ,       # number of simulation draws
+            sim_draws = 1000,       # number of simulation draws
             J = 50,                 # number of time periods -1 (period 0 is first)
             start_age = 25, #age to start the model at
 
@@ -194,7 +193,7 @@ class Pars() :
         self.lab_max = leis_max / self.phi_n
 
         ###initialize time/age, number of draws and other procedural parameters
-        self.dt,self.J = dt,J
+        self.J = J
 
         self.start_age = start_age
         self.end_age = start_age + J + 1
@@ -230,7 +229,7 @@ class Shocks:
         self.myPars = myPars
 
         # draw health shocks
-        np.random.seed(1234)
+        np.random.seed(1111)
         draws = np.random.uniform(0,1, tb.tuple_product(myPars.state_space_shape_sims))
         # reshape the draws to be the correct size
         reshaped_draws = draws.reshape(myPars.state_space_shape_sims)
@@ -263,7 +262,7 @@ if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
         start_time = time.time()
         path = "C:/Users/benja/Documents/My Code/my_model_2"
-        myPars = Pars(path)
+        myPars = Pars(path, J = 51, sim_draws = 1000)
         print(myPars.H_trans)
         myShocks = Shocks(myPars)
         print(f" H_hist: {myShocks.H_hist}")
@@ -271,7 +270,6 @@ if __name__ == "__main__":
         print(f"H_trans.shape: {myPars.H_trans.shape}")
         print(f" H_hist.shape: {myShocks.H_hist.shape}")
 		
-                
         end_time = time.time()
         execution_time = end_time - start_time
         print("Execution time:", execution_time, "seconds")
