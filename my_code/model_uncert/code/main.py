@@ -56,7 +56,7 @@ def main_1():
     
 
 
-def main_io():
+def main_io( H_trans_ind = 0):
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
     my_lab_FE_grid = np.array([5.0, 10.0, 15.0, 20.0])
@@ -84,7 +84,19 @@ def main_io():
                 nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
                 print_screen=0)
-    myPars.H_trans = io.read_and_shape_h_trans_full(myPars)
+    
+
+    dummy_path = main_path + "input/MH_trans_dummy.csv"
+    if H_trans_ind == 0:
+        myPars.H_trans = io.read_and_shape_h_trans_full(myPars, path = dummy_path)
+    elif H_trans_ind == 1:
+        myPars.H_trans = io.read_and_shape_H_trans_uncond(myPars)
+    elif H_trans_ind == 2:
+        myPars.H_trans = io.read_and_shape_H_trans_H_type(myPars)
+    else:
+        myPars.H_trans = io.read_and_shape_H_trans_full(myPars) 
+    
+    
     trans0 = myPars.H_trans[0, :, :, :]
     print(f"main_io H_trans0: {trans0}")
     myShocks = Shocks(myPars)
@@ -95,6 +107,5 @@ def main_io():
 #run stuff here
 start_time = time.perf_counter()
 print("Running main")
-main_io()
-# main_1()
+main_io(H_trans_ind=3)
 tb.print_exec_time("Main.py executed in", start_time) 

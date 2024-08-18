@@ -118,6 +118,17 @@ def read_specific_column_from_csv(file_path: str, column_index: int, skip_header
                 column_values.append(float(row[column_index]))  # Assuming the values are float numbers
     return np.array(column_values)
 
+def read_specific_row_from_csv(file_path: str, row_index: int, skip_header: bool = True)-> np.ndarray:
+    with open(file_path, mode='r', newline='') as file:
+        csv_reader = csv.reader(file)
+        # Skip the header row
+        if skip_header:
+            next(csv_reader)
+        for i, row in enumerate(csv_reader):
+            if i == row_index:
+                return np.array([float(value) for value in row])  # Assuming the values are float numbers
+    raise ValueError(f"Row index {row_index} is out of bounds for the file {file_path}")
+
 def read_matrix_from_csv(file_path: str, column_index: int = 1, skip_header: bool = True) -> np.ndarray:
      # Load the entire file first to determine the number of columns
     sample_data = np.genfromtxt(file_path, delimiter=',', max_rows=1, skip_header=1 if skip_header else 0)
