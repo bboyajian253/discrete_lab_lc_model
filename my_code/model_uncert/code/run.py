@@ -13,6 +13,7 @@ Date: 2024-06-19 12:07:5
 import numpy as np
 import time
 from typing import List, Dict
+import os
 
 # My code
 import my_toolbox as tb
@@ -25,7 +26,7 @@ import plot_moments
 
 # Run the model
 def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, get_moments: bool = True, sim_no_calib  : bool = False, 
-              output_flag: bool = True, tex: bool = True)-> List[Dict[str, np.ndarray]]:
+              output_flag: bool = True, tex: bool = True, output_path: str = None)-> List[Dict[str, np.ndarray]]:
     """
     Given the model parameters, solve, calibrate, simulate, and, if desired, output the results.
     (i) Solve the model
@@ -33,12 +34,17 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
     (iii) Calibrate the model
     (iv) Output the results and model aggregates
     """
+    if output_path is None:
+        output_path = myPars.path + 'output/'
+    # Create output directory if it does not exist
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
     #If solve, solve the model
     if solve:
         start_time = time.perf_counter()
         state_sols = solver.solve_lc(myPars)
         for label, value in state_sols.items():
-            np.save(myPars.path + 'output/' + label + '_lc', value)
+            np.save(output_path + label + '_lc', value)
         tb.print_exec_time("Solver ran in", start_time)
     
     #always load state specific solutions
@@ -52,7 +58,7 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         sim_lc = simulate.sim_lc(myPars, myShocks, state_sols)
         for label in sim_lc.keys():
-            np.save(myPars.path + 'output/' + f'sim{label}.npy', sim_lc[label])
+            np.save(output_path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Simulate ran in", start_time)
     elif calib:
         start_time = time.perf_counter()
@@ -86,34 +92,39 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
                                     'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
                                     'wH': calibration.wH_moment(myPars)}
         for label in sim_lc.keys():
-            np.save(myPars.path + 'output/' + f'sim{label}.npy', sim_lc[label])
+            np.save(output_path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
 
     #always load simulated life cycles
     sim_labels = ['c', 'lab', 'a', 'wage', 'lab_income']
     sim_lc = {}
     for label in sim_labels:
-        sim_lc[label] = np.load(myPars.path + 'output/' + f'sim{label}.npy')
+        sim_lc[label] = np.load(output_path + f'sim{label}.npy')
 
     #if output, output the results
     if output_flag:
-        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, tex, get_moments)
+        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, tex, get_moments, output_path)
     
     return [state_sols, sim_lc]
 
-def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], model_moments: Dict[str, np.ndarray], tex, get_moments)-> None:
+def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], model_moments: Dict[str, np.ndarray], tex: bool, get_moments: bool,
+           path: str = None)-> None:
+    if path is None:
+        path = myPars.path + 'output/'
+    # Create output directory if it does not exist
+    if not os.path.exists(path):
+        os.makedirs(path)
     # Print parameters
-    calibration.print_params_to_csv(myPars)
-    #calib_path = myPars.path + 'calibration/'
+    calibration.print_params_to_csv(myPars, path)
     if tex:
-        calibration.print_exog_params_to_tex(myPars)
-        calibration.print_endog_params_to_tex(myPars, targ_moments, model_moments)
-        calibration.print_w0_calib_to_tex(myPars, targ_moments, model_moments)
+        calibration.print_exog_params_to_tex(myPars, path)
+        calibration.print_endog_params_to_tex(myPars, targ_moments, model_moments, path)
+        calibration.print_w0_calib_to_tex(myPars, targ_moments, model_moments, path)
     if get_moments:
-        plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc)
-        plot_moments.plot_emp_aggs_and_moms(myPars, sim_lc)
-        plot_moments.plot_wage_aggs_and_moms(myPars)
-    plot_lc.plot_lc_profiles(myPars, sim_lc)
+        plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc, path)
+        plot_moments.plot_emp_aggs_and_moms(myPars, sim_lc, path)
+        plot_moments.plot_wage_aggs_and_moms(myPars, path)
+    plot_lc.plot_lc_profiles(myPars, sim_lc, path)
 
 #Make run if main function
 if __name__ == "__main__":

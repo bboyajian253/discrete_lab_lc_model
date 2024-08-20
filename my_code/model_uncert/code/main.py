@@ -56,8 +56,12 @@ def main_1():
     
 
 
-def main_io( H_trans_ind = 0):
+def main_io( H_trans_ind: int = 0, out_folder_name: str = None, H_trans_path: str = None):
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    if out_folder_name is not None:
+        print(f"*****Running main_io with out_folder_name = {out_folder_name}*****")
+    else:
+        print(f"*****Running main_io with H_trans_ind ={H_trans_ind}*****")
 
     my_lab_FE_grid = np.array([5.0, 10.0, 15.0, 20.0])
     # my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
@@ -86,26 +90,60 @@ def main_io( H_trans_ind = 0):
                 print_screen=0)
     
 
-    dummy_path = main_path + "input/MH_trans_dummy.csv"
-    if H_trans_ind == 0:
-        myPars.H_trans = io.read_and_shape_h_trans_full(myPars, path = dummy_path)
+    out_path = None
+    if out_folder_name is not None:
+        out_path = myPars.path + out_folder_name + '/'
+    if H_trans_path is not None:
+        myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
+    elif H_trans_ind == 0:
+        dummy_path = myPars.path + "input/MH_trans_no_uncert.csv"
+        myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = dummy_path)
+        out_path = myPars.path + 'output_H_trans_no_uncert/'
     elif H_trans_ind == 1:
         myPars.H_trans = io.read_and_shape_H_trans_uncond(myPars)
+        out_path = myPars.path + 'output_H_trans_uncond/'
     elif H_trans_ind == 2:
         myPars.H_trans = io.read_and_shape_H_trans_H_type(myPars)
-    else:
+        out_path = myPars.path + 'output_H_trans_H_type/'
+    elif H_trans_ind == 3:
         myPars.H_trans = io.read_and_shape_H_trans_full(myPars) 
+        out_path = myPars.path + 'output_H_trans_full/'
     
-    
-    trans0 = myPars.H_trans[0, :, :, :]
-    print(f"main_io H_trans0: {trans0}")
+    print(f"Age {myPars.age_grid[0]} health transitions:")
+    print(myPars.H_trans[:,0,:,:])
     myShocks = Shocks(myPars)
 
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
-                          get_moments = True, output_flag = True, tex = True)
+                          get_moments = True, output_flag = True, tex = True, output_path = out_path)
 
 #run stuff here
 start_time = time.perf_counter()
 print("Running main")
-main_io(H_trans_ind=3)
+
+main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+
+trans_path = main_path + "input/MH_trans_no_uncert.csv"
+of_name = "output_no_uncert"
+main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+trans_path = main_path + "input/MH_trans_low_uncert.csv"
+of_name = "output_low_uncert"
+main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+trans_path = main_path + "input/MH_trans_mod_uncert.csv"
+of_name = "output_mod_uncert"
+main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+trans_path = main_path + "input/MH_trans_high_uncert.csv"
+of_name = "output_high_uncert"
+main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+trans_path = main_path + "input/MH_trans_iid_mod_uncert.csv"
+of_name = "output_iid_mod_uncert"
+main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+for trans_ind in range(4):
+    # print(f"*****Running main_io with trans_ind = {trans_ind}*****")
+    main_io(H_trans_ind = trans_ind)
+
 tb.print_exec_time("Main.py executed in", start_time) 

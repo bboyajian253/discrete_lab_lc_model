@@ -161,6 +161,10 @@ def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parame
     # print a table of the calibration results
     if path is None:
         path = myPars.path + 'output/calibration/'
+    else:
+        path = path + 'calibration/'
+    if not os.path.exists(path):
+        os.makedirs(path)
     my_path = path + file_name
     with open(my_path, mode='w', newline='') as file:
         writer = csv.writer(file)
