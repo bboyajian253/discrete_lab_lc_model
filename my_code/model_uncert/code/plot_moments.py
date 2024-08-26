@@ -21,6 +21,7 @@ import model_uncert as model
 import my_toolbox as tb
 import solver
 import simulate
+import io_manager as io
 
 def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
     if path == None:
@@ -195,10 +196,89 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: s
             writer.writerow(['model'] + list(sim_values))
             writer.writerow(['data'] + list(data_moments))
 
+def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> None:
+    if path == None:
+        path = myPars.path + 'output/'
+
+    j_last = myPars.J
+    age_grid = myPars.age_grid[:j_last]
+    values = myPars.H_trans
+    y_label = "Health Transition Probability"
+    fig, ax = plt.subplots()
+
+    if plot_and_csv_name == None:
+        plot_and_csv_name = "H_trans_by_H_type"
+    csv_path = path + f'{plot_and_csv_name}.csv'
+    with open(csv_path, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['age'] + list(age_grid))
+
+    for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+        for curr_H_state in range(myPars.H_grid_size):
+            for fut_H_state in range(myPars.H_grid_size):
+                #we want transitions that are H changes
+                if curr_H_state != fut_H_state:
+                    trans = values[H_type_perm_ind,:,curr_H_state,fut_H_state] 
+                    lab = f"From {curr_H_state} to {fut_H_state} at u_H = {myPars.H_type_perm_grid[H_type_perm_ind]}"
+                    ax.plot(age_grid, trans, label = lab)
+                    #save the data
+                    with open(csv_path, 'a', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow(["Transitions"] + list(trans))
+
+    ax.set_xlabel('Age')
+    ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
+    ax.set_ylabel(y_label)
+    ax.legend()
+
+    #save the figure
+    fullpath = path + f'fig_{plot_and_csv_name}.pdf'
+    fig.savefig(fullpath, bbox_inches='tight')
+    plt.close()
+
+def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> None:
+    if path == None:
+        path = myPars.path + 'output/'
+
+    j_last = myPars.J
+    age_grid = myPars.age_grid[:j_last]
+    values = myPars.H_trans 
+    y_label = "Health Transition Probability"
+    fig, ax = plt.subplots()
+
+    if plot_and_csv_name == None:
+        plot_and_csv_name = "H_trans_uncond"
+    csv_path = path + f'{plot_and_csv_name}.csv'
+    with open(csv_path, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['age'] + list(age_grid))
+
+    for curr_H_state in range(myPars.H_grid_size):
+        for fut_H_state in range(myPars.H_grid_size):
+            #we want transitions that are H changes
+            if curr_H_state != fut_H_state:
+                
+                trans = values[0,:,curr_H_state,fut_H_state] 
+                lab = f"From {curr_H_state} to {fut_H_state}"
+                ax.plot(age_grid, trans, label = lab)
+                #save the data
+                with open(csv_path, 'a', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Transitions"] + list(trans))
+
+    ax.set_xlabel('Age')
+    ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
+    ax.set_ylabel(y_label)
+    ax.legend()
+
+    #save the figure
+    fullpath = path + f'fig_{plot_and_csv_name}.pdf'
+    fig.savefig(fullpath, bbox_inches='tight')
+    plt.close()
+
 if __name__ == "__main__":
     start_time = time.perf_counter()
-    calib_path= "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output/calibration/"
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     
     # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
     my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
@@ -222,13 +302,9 @@ if __name__ == "__main__":
                 wage_coeff_grid = w_coeff_grid,
                 print_screen=3)
     
-    # sim_lc = np.ones(1)
-    plot_wage_aggs_and_moms(myPars)
-    shocks = Shocks(myPars)
-    sols = solver.solve_lc(myPars)
-    sims = simulate.sim_lc(myPars, shocks, sols)
-    print(weighted_avg_lab_by_age(myPars, sims))
-    plot_lab_aggs_and_moms(myPars, sims)
-
+    trans_path = main_path + 'input/MH_trans_by_MH_clust_age.csv'
+    myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = trans_path)
+    # print(f"myPars.H_trans = {myPars.H_trans}")
+    plot_H_trans_H_type(myPars)
     
     

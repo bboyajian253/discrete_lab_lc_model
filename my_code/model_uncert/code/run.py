@@ -120,6 +120,7 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
         calibration.print_exog_params_to_tex(myPars, path)
         calibration.print_endog_params_to_tex(myPars, targ_moments, model_moments, path)
         calibration.print_w0_calib_to_tex(myPars, targ_moments, model_moments, path)
+        # calibration.print_H_trans_to_tex(myPars, path)
     if get_moments:
         plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc, path)
         plot_moments.plot_emp_aggs_and_moms(myPars, sim_lc, path)

@@ -108,6 +108,21 @@ def main_io( H_trans_ind: int = 0, out_folder_name: str = None, H_trans_path: st
     elif H_trans_ind == 3:
         myPars.H_trans = io.read_and_shape_H_trans_full(myPars) 
         out_path = myPars.path + 'output_H_trans_full/'
+    elif H_trans_ind == 4: # START HERE FOR 50th PERCENTILE
+        trans_path = main_path + "input/50_50/MH_trans_uncond.csv"
+        of_name = "50th_output_H_trans_uncond"
+        myPars.H_trans = io.read_and_shape_H_trans_uncond(myPars, path = trans_path)
+        out_path = myPars.path + of_name +'/'
+    elif H_trans_ind == 5:
+        trans_path = main_path + "input/50_50/MH_trans_H_type.csv"
+        of_name = "50th_output_H_trans_H_type"
+        myPars.H_trans = io.read_and_shape_H_trans_H_type(myPars)
+        out_path = myPars.path + of_name +'/'
+    elif H_trans_ind == 6:
+        trans_path = main_path + "input/50_50/MH_trans_H_type.csv"
+        of_name = "50th_output_H_trans_full"
+        myPars.H_trans = io.read_and_shape_H_trans_full(myPars) 
+        out_path = myPars.path + of_name +'/'
     
     print(f"Age {myPars.age_grid[0]} health transitions:")
     print(myPars.H_trans[:,0,:,:])
@@ -116,34 +131,74 @@ def main_io( H_trans_ind: int = 0, out_folder_name: str = None, H_trans_path: st
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
                           get_moments = True, output_flag = True, tex = True, output_path = out_path)
 
+def main_io_k_means(main_path: str = None)-> None:
+    if main_path is None:
+        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+
+    trans_path = main_path + "input/MH_trans_no_uncert.csv"
+    of_name = "output_no_uncert"
+    main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    trans_path = main_path + "input/MH_trans_low_uncert.csv"
+    of_name = "output_low_uncert"
+    main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    trans_path = main_path + "input/MH_trans_mod_uncert.csv"
+    of_name = "output_mod_uncert"
+    main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    trans_path = main_path + "input/MH_trans_high_uncert.csv"
+    of_name = "output_high_uncert"
+    main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    trans_path = main_path + "input/MH_trans_iid_mod_uncert.csv"
+    of_name = "output_iid_mod_uncert"
+    main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    for trans_ind in range(4):
+        # print(f"*****Running main_io with trans_ind = {trans_ind}*****")
+        main_io(H_trans_ind = trans_ind)
+
+def main_io_50_perct(main_path: str = None)-> None:
+    if main_path is None:
+        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+
+    # trans_path = main_path + "input/50_50/MH_trans_no_uncert.csv"
+    # of_name = "50th_output_no_uncert"
+    # main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    # trans_path = main_path + "input/50_50/MH_trans_low_uncert.csv"
+    # of_name = "50th_output_low_uncert"
+    # main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    # trans_path = main_path + "input/50_50/MH_trans_mod_uncert.csv"
+    # of_name = "50th_output_mod_uncert"
+    # main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    # trans_path = main_path + "input/50_50/MH_trans_high_uncert.csv"
+    # of_name = "50th_output_high_uncert"
+    # main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    # trans_path = main_path + "input/50_50/MH_trans_iid_mod_uncert.csv"
+    # of_name = "50th_output_iid_mod_uncert"
+    # main_io(out_folder_name = of_name, H_trans_path = trans_path)
+
+    # loop from 4 to 6
+    for trans_ind in range(4, 7):
+        main_io(H_trans_ind = trans_ind)
+
+
 #run stuff here
 start_time = time.perf_counter()
 print("Running main")
-
+# main_io_k_means()
 main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-trans_path = main_path + "input/MH_trans_no_uncert.csv"
-of_name = "output_no_uncert"
-main_io(out_folder_name = of_name, H_trans_path = trans_path)
-
-trans_path = main_path + "input/MH_trans_low_uncert.csv"
-of_name = "output_low_uncert"
-main_io(out_folder_name = of_name, H_trans_path = trans_path)
-
 trans_path = main_path + "input/MH_trans_mod_uncert.csv"
-of_name = "output_mod_uncert"
+# of_name = "output"
+of_name = None
 main_io(out_folder_name = of_name, H_trans_path = trans_path)
-
-trans_path = main_path + "input/MH_trans_high_uncert.csv"
-of_name = "output_high_uncert"
-main_io(out_folder_name = of_name, H_trans_path = trans_path)
-
-trans_path = main_path + "input/MH_trans_iid_mod_uncert.csv"
-of_name = "output_iid_mod_uncert"
-main_io(out_folder_name = of_name, H_trans_path = trans_path)
-
-for trans_ind in range(4):
-    # print(f"*****Running main_io with trans_ind = {trans_ind}*****")
-    main_io(H_trans_ind = trans_ind)
+# main_io_50_perct(main_path)
+# main_io_k_means(main_path)
 
 tb.print_exec_time("Main.py executed in", start_time) 

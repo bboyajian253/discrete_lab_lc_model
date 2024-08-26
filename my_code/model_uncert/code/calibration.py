@@ -129,6 +129,30 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     tb.list_to_tex(path, tex_file_name, tab)
     tb.tex_to_pdf(path, tex_file_name)
 
+def print_H_trans_to_tex(myPars: Pars, path: str = None)-> None:
+    # \left[\begin{array}{cc}
+    # 0.7, & 0.3\\
+    # 0.3, & 0.7
+    # \end{array}\right]
+
+    tab = [
+        "\\documentclass[border=3mm,preview]{standalone}",
+        "\\usepackage{amsmath}\n",  # Added this line for better array formatting
+        "\\begin{document}\n",
+        "\\[ \\left[\\begin{array}{cc} \n"
+    ]
+    tab.append(f"{round(myPars.H_trans[0, 0, 0, 0], 2)}, & {round(myPars.H_trans[0, 0, 0, 1], 2)} \\\\ \n")
+    tab.append(f"{round(myPars.H_trans[0, 0, 1, 0], 2)}, & {round(myPars.H_trans[0, 0, 1, 1], 2)} \n")
+    tab.append("\\end{array}\\right] \\] \n")  # Added \\] to properly close the matrix environment
+    tab.append("\\end{document}")
+
+    if path is None:
+        path = myPars.path + 'output/'
+    tex_file_name = 'H_trans0.tex'
+    tb.list_to_tex(path, tex_file_name, tab)
+    tb.tex_to_pdf(path, tex_file_name)
+
+
 def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
     tab = ["\\documentclass[border=3mm,preview]{standalone}",
@@ -145,7 +169,6 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
     tab.append(f"$\\omega_{{H=1}}$ & Healthy pop. weight & {np.round(myPars.H_weights[-1], 4)} & UKHLS \\\\ \n") 
     tab.append(f"$\\omega_{{H=0}}$ & Unhealthy pop. weight & {np.round(myPars.H_weights[0], 4)} & $1-\\omega_{{H=1}}$ \\\\ \n") 
-    # tab.append(f"$\\omega_{{H=0}}$ & Unhealthy pop. weight & {np.round(1 - myPars.H_weights[-1], 4)} & $1-\\omega_{{H=1}} \\\\ \n") 
     tab.append("\\hline \n")
     tab.append("\\end{tabular}")
     tab.append("\\end{document}")
@@ -535,7 +558,7 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
                         my_wH_moment = wH_moment(myPars)
                         if(np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                             and np.abs(my_w1_moment - w1_mom_targ) < w1_tol and np.abs(my_w2_moment - w2_mom_targ) < w2_tol 
-                            and np.abs(my_wH_moment - wH_mom_targ) < wH_tol
+                            and np.abs(my_wH_moment - wH_mom_targ) < wH_tol 
                             and np.abs(my_alpha_moment - alpha_mom_targ) < alpha_tol):
                             # calibration converges
                             print(f"Calibration converged after {i+1} iterations")
@@ -558,9 +581,9 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
 
 if __name__ == "__main__":
         start_time = time.perf_counter()
-        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/my_model_2/"
-        
-        # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
+
+        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+
         my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
         lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
         quad_wage_coeffs = [-0.000, -0.030, -0.030, -0.030] 
@@ -582,15 +605,6 @@ if __name__ == "__main__":
                     wage_coeff_grid = w_coeff_grid,
                     print_screen=0)
         
-        max_iters = 100
-        alpha_mom_targ = 0.40
-        w0_mean_targ = 22.0
-        w0_sd_targ = 3.0
-        w1_mom_targ = 0.20
-        w2_mom_targ = 0.25
-        wH_mom_targ = 0.3
-
-        # print(calib_w0(myPars, main_path, w0_mean_targ, w0_sd_targ)[:3])
-        print(wH_moment(myPars))
+        print_H_trans_to_tex(myPars)
 
         tb.print_exec_time("Calibration main ran in", start_time)   

@@ -54,6 +54,11 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             else:
                 lc = values
 
+            fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
+            with open(fullpath, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(['age'] + list(age_grid))
+
             #iterate through labor fixed effect groups (this is basically ability groups)
             for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
                 for lab_fe_ind in range(myPars.lab_FE_grid_size):    
@@ -66,12 +71,9 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
                     else:
                         ax.plot(age_grid, lc_mean, label=myLab)
                     #save the data
-                    fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
-                    with open(fullpath, 'w', newline='') as file:
+                    with open(fullpath, 'a', newline='') as file:
                         writer = csv.writer(file)
-                        writer.writerow(['age'] + list(age_grid))
-                        for row in lc:
-                            writer.writerows(['model'] + list(lc))
+                        writer.writerow([myLab] + list(lc_mean))
             
             #specify axes and legend
             ax.set_xlabel('Age')

@@ -87,14 +87,21 @@ def list_to_tex(path: str, new_tex_file_name: str, list_of_tex_lines: List[str])
         for row in list_of_tex_lines:
             pen.write(row)
     
-def tex_to_pdf(path: str, tex_file_name: str)-> None:
-    
+def tex_to_pdf(path: str, tex_file_name: str) -> None:
     # Raise an error if the directory does not exist
     if not os.path.exists(path):
         raise FileNotFoundError(f"The specified path does not exist: {path}")
 
     fullpath = os.path.join(path, tex_file_name)
-
+    
+    # Ensure pdflatex is in the system path
+    try:
+        result = subprocess.run(['pdflatex', '--version'], capture_output=True, text=True)
+        if result.returncode != 0:
+            raise EnvironmentError("pdflatex is not installed or not in the system path.")
+    except FileNotFoundError:
+        raise EnvironmentError("pdflatex is not installed or not in the system path.")
+    
     # Compile the .tex file to a PDF
     result = subprocess.run(['pdflatex', '-output-directory', path, fullpath], capture_output=True, text=True)
     
@@ -102,8 +109,9 @@ def tex_to_pdf(path: str, tex_file_name: str)-> None:
     if result.returncode != 0:
         print(f"Error in pdflatex execution: {result.stderr}")
         print(f"Standard Output: {result.stdout}")
+        raise RuntimeError(f"pdflatex failed to compile {tex_file_name}. See output above for details.")
     else:
-        print(f"PDF successfully created at {os.path.join(path, tex_file_name)}")
+        print(f"PDF successfully created at {os.path.join(path, tex_file_name.replace('.tex', '.pdf'))}")
     
 
 def read_specific_column_from_csv(file_path: str, column_index: int, skip_header: bool = True)-> np.ndarray:

@@ -282,7 +282,6 @@ def gen_weighted_wages(myPars: Pars) -> np.ndarray:
     my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1)
     wage_sims = gen_wages(myPars)
     weighted_wage_sims = wage_sims * my_sim_weights_reshaped
-    # weighted_wage_sims = myPars.H_weights * weighted_wage_sims 
     return weighted_wage_sims
 
 @njit

@@ -42,6 +42,7 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('a_grid_size', int64), # total number of points on the asset grid
                 ('H_type_perm_grid', float64[:]), #grid to hold the premanent health types
                 ('H_type_perm_grid_size', int64), #size of the permanent health type grid
+                ('H_type_perm_weights', float64[:]), #weights for the permanent health type grid
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
                 ('H_trans', float64[:, :, :, :]), #matrix of health transition probabilities
@@ -114,13 +115,10 @@ class Pars() :
             a_grid_growth = 0.0, #detrmines growth rate and thus curvature of asset grid at 0 just doe slinear space
             a_grid_size = 300, #set up for gride with curvature
             H_type_perm_grid = np.array([0.0,1.0]), #grid to hold the premanent health types
+            H_type_perm_weights = np.array([0.5,0.5]), #weights for the permanent health type grid
             H_grid = np.array([0.0,1.0]),
             H_weights = np.array([0.5,0.5]),
-        #     H_trans = np.array([[0.7, 0.3],
-        #                        [0.5, 0.5]]),
-                #can make H_trans above a row and np.repeat it the number of times needed (e.g. H_grid_size*J+1 or something like that)
          
-        #     H_trans = np.repeat(np.array([[1.0, 0.0], [0.0, 1.0]])[np.newaxis, :,:], 102, axis=0).reshape(2,51,2,2),
             H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
             lab_min = 0.00,
             lab_max = 1.0,
@@ -175,6 +173,7 @@ class Pars() :
         
         self.H_type_perm_grid = H_type_perm_grid
         self.H_type_perm_grid_size = len(H_type_perm_grid)
+        self.H_type_perm_weights = H_type_perm_weights
         self.H_grid, self.H_trans = H_grid, H_trans
         self.H_grid_size = len(H_grid)
         self.H_weights = H_weights 
