@@ -22,7 +22,8 @@ import simulate as simulate
 import calibration
 import plot_lc as plot_lc
 from pars_shocks import Pars, Shocks
-import plot_moments 
+import plot_moments  
+import io_manager as io
 
 # Run the model
 def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, get_moments: bool = True, sim_no_calib  : bool = False, 
@@ -115,11 +116,11 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
     if not os.path.exists(path):
         os.makedirs(path)
     # Print parameters
-    calibration.print_params_to_csv(myPars, path)
+    io.print_params_to_csv(myPars, path)
     if tex:
-        calibration.print_exog_params_to_tex(myPars, path)
-        calibration.print_endog_params_to_tex(myPars, targ_moments, model_moments, path)
-        calibration.print_w0_calib_to_tex(myPars, targ_moments, model_moments, path)
+        io.print_exog_params_to_tex(myPars, path)
+        io.print_endog_params_to_tex(myPars, targ_moments, model_moments, path)
+        io.print_w0_calib_to_tex(myPars, targ_moments, model_moments, path)
         # calibration.print_H_trans_to_tex(myPars, path)
     if get_moments:
         plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc, path)

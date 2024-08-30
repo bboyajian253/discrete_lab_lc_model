@@ -25,233 +25,10 @@ import pars_shocks as ps
 from pars_shocks import Pars, Shocks
 import simulate
 import plot_lc as plot_lc
-
-def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
-    '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
-    
-    alpha_targ_val = targ_moments['alpha']*100
-    alpha_mod_val = model_moments['alpha']*100
-    w1_targ_val = targ_moments['w1']*100
-    w1_mod_val = model_moments['w1']*100
-    w2_targ_val = targ_moments['w2']*100
-    w2_mod_val = model_moments['w2']*100
-    wH_targ_val = targ_moments['wH']*100
-    wH_mod_val = model_moments['wH']*100
-
-    tab = [
-        "\\documentclass[border=3mm,preview]{standalone}",
-        "\\begin{document}\n",
-        "\\small\n",
-        "\\begin{tabular}{l l l l l l} \n",
-        "\\hline \n",
-        "Parameter & Description & Par. Value & Target Moment & Target Value & Model Value \\\\ \n", 
-        "\\hline \n",   
-        f"$\\alpha$ & $c$ utility weight & {round(myPars.alpha, 4)} & Mean hours worked & {round(alpha_targ_val,2)} & {round(alpha_mod_val, 2)} \\\\ \n", 
-        f"$w_{{1}}$ & Linear wage coeff. & {round(myPars.wage_coeff_grid[1,1], 4)} & Wage growth & {round(w1_targ_val,2)}\\% & {round(w1_mod_val, 2)}\\% \\\\ \n", 
-        f"$w_{{2}}$ & Quad. wage coeff. & {round(myPars.wage_coeff_grid[1,2], 4)} & Wage decay & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
-        f"$w_{{H}}$ & Health wage coeff. & {round(myPars.wH_coeff, 4)} & Healthy wage premium & {round(wH_targ_val,2)}\\% & {round(wH_mod_val,2)}\\% \\\\ \n", 
-        "\\hline \n",
-        "\\end{tabular}\n",
-        "\\end{document}\n"
-    ]
-    
-    if path is None:
-        path = myPars.path + 'output/'
-    
-    file_name = 'parameters_endog.tex'
-    
-    tb.list_to_tex(path, file_name, tab)
-    tb.tex_to_pdf(path, file_name)
-    
-
-def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
-    '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
-
-    w0_mean_targ_val = np.round(targ_moments['w0_mean'], 3)
-    w0_mean_mod_val = np.round(model_moments['w0_mean'], 3)
-    w0_sd_targ_val = np.round(targ_moments['w0_sd'], 3)
-    w0_sd_mod_val = np.round(model_moments['w0_sd'], 3)
-
-    tab = [
-        "\\documentclass[border=3mm,preview]{standalone}",
-        "\\begin{document}\n",
-        "\\small\n",
-        "\\begin{tabular}{l l l l} \n",
-        "\\hline \n",
-        "Constant wage coeff. & Ability Level & Value & Weight \\\\ \n",
-        "\\hline \n",
-        f"$w_{{0\\gamma_{{1}}}}$ & Low & {round(np.exp(myPars.wage_coeff_grid[0, 0]))} & {round(myPars.lab_FE_weights[0],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{2}}}}$ & Medium & {round(np.exp(myPars.wage_coeff_grid[1, 0]))} & {round(myPars.lab_FE_weights[1],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{3}}}}$ & Medium High & {round(np.exp(myPars.wage_coeff_grid[2, 0]))} & {round(myPars.lab_FE_weights[2],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{4}}}}$ & High & {round(np.exp(myPars.wage_coeff_grid[3, 0]))} & {round(myPars.lab_FE_weights[3],2)} \\\\ \n",
-        "\\hline \n",
-        "Target Moment & Target Value & Model Value & \\\\ \n",
-        "\\hline \n",
-        f"Mean wage, $j=0$ & {w0_mean_targ_val} & {w0_mean_mod_val} & \\\\ \n",
-        f"SD wage, $j=0$ & {w0_sd_targ_val} & {w0_sd_mod_val} & \\\\ \n",
-        "\\hline \n",
-        "\\end{tabular}\n",
-        "\\end{document}\n"
-    ]
-
-    if path is None:
-        path = myPars.path + 'output/'
-    
-    tex_file_name =  'parameters_w0_calib.tex' 
-
-    tb.list_to_tex(path, tex_file_name, tab)
-    tb.tex_to_pdf(path, tex_file_name)
-
-def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
-    '''this generates a latex table of the parameters'''
-    tab = ["\\small\\begin{tabular}{l l l l l l} \n"]        
-    tab.append("\\hline \n")
-    tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & $\\gamma_4$ & Description & Source \\\\ \n") 
-    tab.append("\\hline \n")   
-    # for i in myPars.lab_FE_grid:
-    #     tab.append(f"$\\beta_{{{i}\\gamma}}$ & {myPars.wage_coeff_grid[0][i]} &  {myPars.wage_coeff_grid[1][i]} & {myPars.wage_coeff_grid[2][i]} & $j^{{{i}}}$ Coeff. & Moment Matched \\\\ \n") 
-    tab.append(f"""$w_{{0\\gamma}}$ & {round(myPars.wage_coeff_grid[0][0], 3)} & {round(myPars.wage_coeff_grid[1][0], 3)} 
-               & {round(myPars.wage_coeff_grid[2][0], 3)} 
-               & Constant & Benchmark \\\\ \n""")
-    tab.append(f"""$w_{{1\\gamma}}$ & {round(myPars.wage_coeff_grid[0][1], 3)} & {round(myPars.wage_coeff_grid[1][1], 3)} 
-               & {round(myPars.wage_coeff_grid[2][1], 3)} 
-               & $j$ Coeff. & Wage Growth \\\\ \n""")
-    tab.append(f"""$w_{{2\\gamma}}$ & {round(myPars.wage_coeff_grid[0][2], 3)} & {round(myPars.wage_coeff_grid[1][2], 3)} 
-               & {round(myPars.wage_coeff_grid[2][2], 3)}  
-               & $j^{{2}}$ Coeff. & Wage Decline \\\\ \n""")
-    tab.append("\\hline \n")
-    tab.append(f"\\end{{tabular}}")
-    
-    if path is None:
-        path = myPars.path + 'output/'
-    
-    tex_file_name = 'wage_coeffs.tex'
-    tb.list_to_tex(path, tex_file_name, tab)
-    tb.tex_to_pdf(path, tex_file_name)
-
-def print_H_trans_to_tex(myPars: Pars, path: str = None)-> None:
-    # \left[\begin{array}{cc}
-    # 0.7, & 0.3\\
-    # 0.3, & 0.7
-    # \end{array}\right]
-
-    tab = [
-        "\\documentclass[border=3mm,preview]{standalone}",
-        "\\usepackage{amsmath}\n",  # Added this line for better array formatting
-        "\\begin{document}\n",
-        "\\[ \\left[\\begin{array}{cc} \n"
-    ]
-    tab.append(f"{round(myPars.H_trans[0, 0, 0, 0], 2)}, & {round(myPars.H_trans[0, 0, 0, 1], 2)} \\\\ \n")
-    tab.append(f"{round(myPars.H_trans[0, 0, 1, 0], 2)}, & {round(myPars.H_trans[0, 0, 1, 1], 2)} \n")
-    tab.append("\\end{array}\\right] \\] \n")  # Added \\] to properly close the matrix environment
-    tab.append("\\end{document}")
-
-    if path is None:
-        path = myPars.path + 'output/'
-    tex_file_name = 'H_trans0.tex'
-    tb.list_to_tex(path, tex_file_name, tab)
-    tb.tex_to_pdf(path, tex_file_name)
-
-
-def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
-    '''this generates a latex table of the parameters'''
-    tab = ["\\documentclass[border=3mm,preview]{standalone}",
-            "\\begin{document}\n",
-            "\\small\n",
-            "\\begin{tabular}{l l l l} \n"]
-    tab.append("\\hline \n")
-    tab.append("Parameter & Description & Value & Source \\\\ \n") 
-    tab.append("\\hline \n")
-    tab.append(f"$R$ & Gross interest rate  & {np.round(1 + myPars.r, 4)} & Benchmark \\\\ \n")
-    tab.append(f"$\\beta$ & Patience & {np.round(myPars.beta, 4)} & $1/R$ \\\\ \n")
-    tab.append(f"$\\sigma$ & CRRA & {np.round(myPars.sigma_util, 4)} & Benchmark \\\\ \n")
-    tab.append(f"$\\phi_n$ & Labor time-cost & {np.round(myPars.phi_n, 4)} & Benchmark \\\\ \n")
-    tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
-    tab.append(f"$\\omega_{{H=1}}$ & Healthy pop. weight & {np.round(myPars.H_weights[-1], 4)} & UKHLS \\\\ \n") 
-    tab.append(f"$\\omega_{{H=0}}$ & Unhealthy pop. weight & {np.round(myPars.H_weights[0], 4)} & $1-\\omega_{{H=1}}$ \\\\ \n") 
-    tab.append("\\hline \n")
-    tab.append("\\end{tabular}")
-    tab.append("\\end{document}")
-    if path is None:
-        path = myPars.path + 'output/'
-    tex_file_name = 'parameters_exog.tex'
-    tb.list_to_tex(path, tex_file_name, tab)
-    tb.tex_to_pdf(path, tex_file_name)
-
-
-def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parameters.csv")-> None:
-    # store params in a csv 
-    # print a table of the calibration results
-    if path is None:
-        path = myPars.path + 'output/calibration/'
-    else:
-        path = path + 'calibration/'
-    if not os.path.exists(path):
-        os.makedirs(path)
-    my_path = path + file_name
-    with open(my_path, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Parameter", "Value"])
-        for param, value in pars_to_dict(myPars).items():
-            writer.writerow([param, value])
-
-def pars_to_dict(pars_instance: Pars) -> Dict:
-    return {
-        'rho_nu': pars_instance.rho_nu,
-        'sigma_eps_2': pars_instance.sigma_eps_2,
-        'sigma_nu0_2': pars_instance.sigma_nu0_2,
-        'nu_grid': pars_instance.nu_grid,
-        'nu_grid_size': pars_instance.nu_grid_size,
-        'nu_trans': pars_instance.nu_trans,
-        'sigma_gamma_2': pars_instance.sigma_gamma_2,
-        'lab_FE_grid': pars_instance.lab_FE_grid,
-        'lab_FE_grid_size': pars_instance.lab_FE_grid_size,
-        'beta': pars_instance.beta,
-        'alpha': pars_instance.alpha,
-        'sigma_util': pars_instance.sigma_util,
-        'phi_n': pars_instance.phi_n,
-        'phi_H': pars_instance.phi_H,
-        'B2B': pars_instance.B2B,
-        'G2G': pars_instance.G2G,
-        'r': pars_instance.r,
-        'a_min': pars_instance.a_min,
-        'a_max': pars_instance.a_max,
-        'a_grid_growth': pars_instance.a_grid_growth,
-        'a_grid': pars_instance.a_grid,
-        'a_grid_size': pars_instance.a_grid_size,
-        'H_grid': pars_instance.H_grid,
-        'H_grid_size': pars_instance.H_grid_size,
-        'H_weights': pars_instance.H_weights,
-        'state_space_shape': pars_instance.state_space_shape,
-        'state_space_shape_no_j': pars_instance.state_space_shape_no_j,
-        'state_space_no_j_size': pars_instance.state_space_no_j_size,
-        'state_space_shape_sims': pars_instance.state_space_shape_sims,
-        'lab_min': pars_instance.lab_min,
-        'lab_max': pars_instance.lab_max,
-        'c_min': pars_instance.c_min,
-        'leis_min': pars_instance.leis_min,
-        'leis_max': pars_instance.leis_max,
-        'sim_draws': pars_instance.sim_draws,
-        'J': pars_instance.J,
-        'print_screen': pars_instance.print_screen,
-        'interp_c_prime_grid': pars_instance.interp_c_prime_grid,
-        'interp_eval_points': pars_instance.interp_eval_points,
-        # 'H_by_nu_flat_trans': pars_instance.H_by_nu_flat_trans,
-        'H_by_nu_size': pars_instance.H_by_nu_size,
-        'sim_interp_grid_spec': pars_instance.sim_interp_grid_spec,
-        'start_age': pars_instance.start_age,
-        'end_age': pars_instance.end_age,
-        'age_grid': pars_instance.age_grid,
-        'path': pars_instance.path,
-        'wage_coeff_grid': pars_instance.wage_coeff_grid,
-        'wH_coeff': pars_instance.wH_coeff,
-        'wage_min': pars_instance.wage_min,
-        'max_iters': pars_instance.max_iters,
-        'max_calib_iters': pars_instance.max_calib_iters,
-    }
+import io_manager as io
 
 def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    print_params_to_csv(myPars, path = main_path, file_name = "pre_alpha_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_alpha_calib_params.csv")
     mean_lab = -999.999
     state_sols = {}
     sim_lc = {}
@@ -266,7 +43,7 @@ def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: flo
     
     # solve, simulate and plot model for the calibrated alpha
     mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
-    print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
     if myPars.print_screen >= 1:
         print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
     
@@ -311,7 +88,7 @@ def get_alpha_targ(myPars: Pars) -> float:
 
 
 def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float):
-    print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_calib_params.csv")
     mean_wage = -999.999
     sd_wage = -999.999
     sate_sols = {}
@@ -373,7 +150,7 @@ def get_w0_sd_targ(myPars: Pars)-> float:
     # return np.std(mean_wage_by_age)
 
 def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_w1_calib_params.csv")
     w1_moment = -999.999
     sate_sols = {}
     sim_lc = {}
@@ -386,7 +163,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
 
     # solve, simulate and plot model for the calibrated w1
     w1_moment = w1_moment_giv_w1(myPars, main_path, calibrated_w1) 
-    print_params_to_csv(myPars, path = main_path, file_name = "w1_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "w1_calib_params.csv")
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
@@ -418,7 +195,7 @@ def get_w1_targ(myPars: Pars)-> float:
     return log(my_max)- log(mean_wage_by_age[0])
 
 def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: float, w2_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    print_params_to_csv(myPars, path = main_path, file_name = "pre_w2_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_w2_calib_params.csv")
     w2_moment = -999.999
     sate_sols = {}
     sim_lc = {}
@@ -432,7 +209,7 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
     
     # solve, simulate and plot model for the calibrated w2
     w2_moment = w2_moment_giv_w2(myPars, main_path, calibrated_w2)
-    print_params_to_csv(myPars, path = main_path, file_name = "w2_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "w2_calib_params.csv")
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
@@ -464,7 +241,7 @@ def get_w2_targ(myPars: Pars)-> float:
     return log(my_max) - log(mean_wage_by_age[-1])
 
 def calib_wH(myPars: Pars, main_path: str, tol: float, target: float, wH_min: float, wH_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    print_params_to_csv(myPars, path = main_path, file_name = "pre_wH_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_wH_calib_params.csv")
     wH_moment = -999.999
     sate_sols = {}
     sim_lc = {}
@@ -475,7 +252,7 @@ def calib_wH(myPars: Pars, main_path: str, tol: float, target: float, wH_min: fl
     myPars.wH_coeff = calibrated_wH
     # solve, simulate and plot model for the calibrated wH
     wH_moment = wH_moment_giv_wH(myPars, main_path, calibrated_wH)
-    print_params_to_csv(myPars, path = main_path, file_name = "wH_calib_params.csv")
+    io.print_params_to_csv(myPars, path = main_path, file_name = "wH_calib_params.csv")
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
@@ -604,7 +381,9 @@ if __name__ == "__main__":
                     H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
                     wage_coeff_grid = w_coeff_grid,
                     print_screen=0)
-        
-        print_H_trans_to_tex(myPars)
+        trans_mat = myPars.H_trans[0, 0, :, :]
+        print(trans_mat)
+        my_file_name = "H_trans_TEST"
+        io.print_H_trans_to_tex(myPars, trans_mat, new_file_name = my_file_name)
 
         tb.print_exec_time("Calibration main ran in", start_time)   

@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from typing import  List, Dict
 import csv
 import time
+import os
 
 # My code
 from pars_shocks import Pars, Shocks
@@ -199,6 +200,9 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: s
 def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> None:
     if path == None:
         path = myPars.path + 'output/'
+    #if the path doesn't exist, create it
+    if not os.path.exists(path):
+        os.makedirs(path)
 
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
@@ -229,6 +233,7 @@ def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str =
     ax.set_xlabel('Age')
     ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
     ax.set_ylabel(y_label)
+    ax.set_ylim([0, 1])
     ax.legend()
 
     #save the figure
@@ -239,6 +244,8 @@ def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str =
 def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> None:
     if path == None:
         path = myPars.path + 'output/'
+    if not os.path.exists(path):
+        os.makedirs(path)
 
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
@@ -269,6 +276,7 @@ def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str =
     ax.set_xlabel('Age')
     ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
     ax.set_ylabel(y_label)
+    ax.set_ylim([0, 1])
     ax.legend()
 
     #save the figure

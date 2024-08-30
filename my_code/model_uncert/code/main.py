@@ -135,7 +135,7 @@ def main_io_k_means(main_path: str = None)-> None:
     if main_path is None:
         main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-    trans_path = main_path + "input/MH_trans_no_uncert.csv"
+    trans_path = main_path + "input/MH_trans/MH_trans_no_uncert.csv"
     of_name = "output_no_uncert"
     main_io(out_folder_name = of_name, H_trans_path = trans_path)
 
@@ -194,7 +194,7 @@ print("Running main")
 # main_io_k_means()
 main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-trans_path = main_path + "input/MH_trans_mod_uncert.csv"
+trans_path = main_path + "input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
 # of_name = "output"
 of_name = None
 main_io(out_folder_name = of_name, H_trans_path = trans_path)
