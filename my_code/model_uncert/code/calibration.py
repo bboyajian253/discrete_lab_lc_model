@@ -68,7 +68,7 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
     return mean_lab, state_sols, sim_lc
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
-    labor_sims = sims['lab'][:,:,:,:,:myPars.J]
+    labor_sims = sims['lab'][:,:,:,:myPars.J]
     # print(f"labor_sims mean = {np.mean(labor_sims)}")
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
     # print(f"weighted_labor_sims mean = {np.mean(weighted_labor_sims)}")
