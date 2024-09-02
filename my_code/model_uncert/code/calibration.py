@@ -68,7 +68,7 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
     return mean_lab, state_sols, sim_lc
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
-    labor_sims = sims['lab'][:,:,:,:myPars.J]
+    labor_sims = sims['lab'][:, :, :, :myPars.J]
     # print(f"labor_sims mean = {np.mean(labor_sims)}")
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
     # print(f"weighted_labor_sims mean = {np.mean(weighted_labor_sims)}")
@@ -95,7 +95,9 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     sim_lc = {}
 
     first_per_wages = model.gen_wages(myPars)[:,:,0]
-    first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
+    pop_weigths_by_type, type_weights = myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights
+    first_per_H_weights = np.matmul(pop_weigths_by_type, type_weights) 
+    first_per_wages_H_weighted = np.dot(first_per_wages, first_per_H_weights)
     # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
     my_weights = tb.weights_to_match_mean_sd(first_per_wages_H_weighted, mean_target, sd_target)
 
@@ -113,8 +115,9 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
 
     first_per_wages = model.gen_wages(myPars)[:,:,0]
-    # print(f"first_per_wages = {first_per_wages}")
-
+    pop_weigths_by_type, type_weights = myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights
+    first_per_H_weights = np.matmul(pop_weigths_by_type, type_weights) 
+    first_per_wages_H_weighted = np.dot(first_per_wages, first_per_H_weights)
     first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
     # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
 
