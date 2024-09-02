@@ -43,6 +43,7 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('H_type_perm_grid', float64[:]), #grid to hold the premanent health types
                 ('H_type_perm_grid_size', int64), #size of the permanent health type grid
                 ('H_type_perm_weights', float64[:]), #weights for the permanent health type grid
+                ('H_beg_pop_weights_by_H_type', float64[:, :]), #weights for the permanent health type grid
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
                 ('H_trans', float64[:, :, :, :]), #matrix of health transition probabilities
@@ -116,6 +117,7 @@ class Pars() :
             a_grid_size = 300, #set up for gride with curvature
             H_type_perm_grid = np.array([0.0,1.0]), #grid to hold the premanent health types
             H_type_perm_weights = np.array([0.5,0.5]), #weights for the permanent health type grid
+            H_beg_pop_weights_by_H_type = np.array([[0.5, 0.5], [0.5, 0.5]]), #weights for the permanent health type grid
             H_grid = np.array([0.0,1.0]),
             H_weights = np.array([0.5,0.5]),
          
@@ -174,6 +176,7 @@ class Pars() :
         self.H_type_perm_grid = H_type_perm_grid
         self.H_type_perm_grid_size = len(H_type_perm_grid)
         self.H_type_perm_weights = H_type_perm_weights
+        self.H_beg_pop_weights_by_H_type = H_beg_pop_weights_by_H_type
         self.H_grid, self.H_trans = H_grid, H_trans
         self.H_grid_size = len(H_grid)
         self.H_weights = H_weights 
@@ -257,6 +260,7 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
 							if shock <= health_trans_prob:
 								hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j] = 1
 	return hist
+
 if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
         start_time = time.time()

@@ -14,11 +14,56 @@ from scipy.stats import multivariate_normal as mvn
 from scipy.stats import norm
 import csv
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure as MPL_Fig
+from matplotlib.axes import Axes as MPL_Ax
 import time
 from typing import List, Dict, Tuple, Callable
 import os
 import subprocess
 from scipy.optimize import minimize
+
+
+def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax) -> Tuple[MPL_Fig, MPL_Ax]:
+    """
+    Combines two plots into a single plot. The first plot is plotted as solid lines, and the second plot is plotted as dashed lines.
+    """
+    # Get lines from both plots
+    lines1 = ax1.get_lines()
+    lines2 = ax2.get_lines()
+    
+    # Create a new figure and axis
+    fig, ax = plt.subplots()
+    
+    # Add lines from the first plot as solid lines
+    for line in lines1:
+        ax.plot(line.get_xdata(), line.get_ydata(), label=line.get_label(), color=line.get_color(), linestyle='-')
+    
+    # Add lines from the second plot as dashed lines
+    for line in lines2:
+        ax.plot(line.get_xdata(), line.get_ydata(), label=line.get_label(), color=line.get_color(), linestyle='--')
+    
+    ax.set_xlabel(ax1.get_xlabel())
+    ax.set_xlim(ax1.get_xlim())
+    ax.set_ylabel(ax1.get_ylabel())
+    ax.set_ylim(ax1.get_ylim())
+    ax.legend()
+
+    plt.show()
+    return fig, ax
+
+# Define a function to save a plot given a figure and a save path
+def save_plot(figure: MPL_Fig, path: str) -> None:
+    """
+    Save a plot to a specified path.
+    """
+    # Ensure the directory exists
+    directory = os.path.dirname(path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    # Save the plot to the specified path
+    figure.savefig(path)
+    plt.close(figure)
 
 # Define a function to manually multiply elements in the tuple
 @njit

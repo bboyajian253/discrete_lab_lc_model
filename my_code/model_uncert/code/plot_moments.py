@@ -11,7 +11,7 @@ plots simulated moments and matched moments together to compare fit
 #General
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import  List, Dict
+from typing import  List, Dict, Tuple
 import csv
 import time
 import os
@@ -197,7 +197,78 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: s
             writer.writerow(['model'] + list(sim_values))
             writer.writerow(['data'] + list(data_moments))
 
-def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> None:
+from typing import Tuple
+import matplotlib.pyplot as plt
+
+def plot_H_trans_H_type_alg(myPars1: Pars, myPars2: Pars, path: str = None, 
+                            low_type_out_file_name: str = None, high_type_out_file_name: str = None, 
+                            plot_and_csv_name1: str = None, plot_and_csv_name2: str = None
+                            ) -> Tuple[plt.Figure, plt.Axes, plt.Figure, plt.Axes]:
+    if path is None:
+        print("***path is none***")
+        path = myPars1.path + 'output/'
+    if plot_and_csv_name1 is None:
+        plot_and_csv_name1 = "test_H_trans_by_H_type_alg1"
+    if plot_and_csv_name2 is None:
+        plot_and_csv_name2 = "test_H_trans_by_H_type_alg2"
+    if low_type_out_file_name is None:
+        low_type_out_file_name = "test_fig_low_type_H_trans"
+    if high_type_out_file_name is None:
+        high_type_out_file_name = "test_fig_high_type_H_trans"
+    
+    # Generate the first set of plots
+    fig1, ax1 = plot_H_trans_H_type(myPars1, path, plot_and_csv_name1)
+    fig2, ax2 = plot_H_trans_H_type(myPars2, path, plot_and_csv_name2)
+    
+    # Get lines from both plots
+    lines1 = ax1.get_lines()
+    lines2 = ax2.get_lines()
+    
+    # Create new figures and axes for the low and high type plots
+    low_fig, low_ax = plt.subplots()
+    high_fig, high_ax = plt.subplots()
+    color_list = ['g', 'r', 'g','r']
+
+    # Plot the first two lines on the low figure
+    for i, (line1, line2) in enumerate(zip(lines1, lines2)):
+        if i % 2 == 0:
+            new_label1 = f"Bad to Good (k2)"
+            new_label2 = f"Bad to Good (50p)"
+        else:
+            new_label1 = f"Good to Bad (k2)"
+            new_label2 = f"Good to Bad (50p)"
+        if i < 2:
+            # Solid lines from fig1, dashed lines from fig2
+            low_ax.plot(line1.get_xdata(), line1.get_ydata(), color= color_list[i], linestyle='-', label=new_label1)
+            low_ax.plot(line2.get_xdata(), line2.get_ydata(), color= color_list[i], linestyle='--', label=new_label2)
+        else:
+            # Remaining lines go to the high figure
+            high_ax.plot(line1.get_xdata(), line1.get_ydata(), color= color_list[i], linestyle='-', label=new_label1)
+            high_ax.plot(line2.get_xdata(), line2.get_ydata(), color= color_list[i], linestyle='--', label=new_label2)
+
+    # Set labels, limits, and legends for both figures
+    for ax in (low_ax, high_ax):
+        ax.set_xlabel('Age')
+        ax.set_xlim([myPars1.age_grid[0] - 2, myPars1.age_grid[-1] + 2])
+        ax.set_ylabel('Probability (%)')
+        ax.set_ylim([0, 1])
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), ncols=2)
+
+    low_ax.title.set_text('Low Type Mental Health Transitions by Typing Alg.')
+    high_ax.title.set_text('High Type Mental Health Transitions by Typing Alg.')
+    # Save and display the low-type plot
+    low_path = path + f'fig_{low_type_out_file_name}.pdf'
+    low_fig.savefig(low_path, bbox_inches='tight')
+    plt.show()
+
+    # Save and display the high-type plot
+    high_path = path + f'fig_{high_type_out_file_name}.pdf'
+    high_fig.savefig(high_path, bbox_inches='tight')
+    plt.show()
+
+    return low_fig, low_ax, high_fig, high_ax
+
+def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> Tuple[plt.Figure, plt.Axes]:
     if path == None:
         path = myPars.path + 'output/'
     #if the path doesn't exist, create it
@@ -207,7 +278,7 @@ def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str =
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
     values = myPars.H_trans
-    y_label = "Health Transition Probability"
+    y_label = "Probability (%)"
     fig, ax = plt.subplots()
 
     if plot_and_csv_name == None:
@@ -223,7 +294,7 @@ def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str =
                 #we want transitions that are H changes
                 if curr_H_state != fut_H_state:
                     trans = values[H_type_perm_ind,:,curr_H_state,fut_H_state] 
-                    lab = f"From {curr_H_state} to {fut_H_state} at u_H = {myPars.H_type_perm_grid[H_type_perm_ind]}"
+                    lab = f"{curr_H_state} to {fut_H_state}, u_{{H}} = {myPars.H_type_perm_grid[H_type_perm_ind]}"
                     ax.plot(age_grid, trans, label = lab)
                     #save the data
                     with open(csv_path, 'a', newline='') as file:
@@ -239,7 +310,8 @@ def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str =
     #save the figure
     fullpath = path + f'fig_{plot_and_csv_name}.pdf'
     fig.savefig(fullpath, bbox_inches='tight')
-    plt.close()
+    plt.close(fig)
+    return fig, ax
 
 def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> None:
     if path == None:
