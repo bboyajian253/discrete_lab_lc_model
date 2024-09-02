@@ -78,7 +78,7 @@ def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
 
 def weighted_avg_lab_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.ndarray:
     # calcualte weighted mean wages by age and sim first
-    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
+    labor_sims = sim_lc['lab'][:, :, :, :myPars.J]
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
     mean_lab_by_age_and_sim = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
     mean_lab_by_age = np.mean(mean_lab_by_age_and_sim, axis = tuple(range(mean_lab_by_age_and_sim.ndim-1)))
@@ -135,7 +135,7 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: st
             writer.writerow(['data'] + list(data_moments))
             
 def weighted_emp_rate_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.ndarray:
-    labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
+    labor_sims = sim_lc['lab'][:, :, :, :myPars.J]
     emp_sims = np.where(labor_sims > 0, 1, 0)
     # print(emp_sims.shape)
     # print(np.mean(emp_sims))

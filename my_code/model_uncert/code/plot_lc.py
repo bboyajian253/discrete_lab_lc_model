@@ -38,9 +38,9 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
 
         #prep the sim variable for estimation
         if short_name == 'a':
-            values = sim_lc[short_name][:, :, :, :, :j_last+1]
+            values = sim_lc[short_name][:, :, :, :j_last+1]
         else:
-            values = sim_lc[short_name][:, :, :, :, :j_last] # for each var get the the array of choices until the last age
+            values = sim_lc[short_name][:, :, :, :j_last] # for each var get the the array of choices until the last age
         log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
 
         #Plot life-cycle profiles
@@ -63,7 +63,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
                 for lab_fe_ind in range(myPars.lab_FE_grid_size):    
                     #get the mean of the values over the labor fixed effects and health types 
-                    lc_mean = np.mean(lc[lab_fe_ind, :, H_type_perm_ind, :], axis=(0, 1))
+                    lc_mean = np.mean(lc[lab_fe_ind, H_type_perm_ind, :], axis=0)
                     myLab = f"FE:{round(np.exp(myPars.lab_FE_grid[lab_fe_ind]))} u_H:{round(myPars.H_type_perm_grid[H_type_perm_ind])}"
                     if short_name == 'a':
                         a_age_grid = np.append(age_grid, age_grid[-1] + 1)
