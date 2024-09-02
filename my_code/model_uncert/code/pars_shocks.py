@@ -51,7 +51,7 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('state_space_shape', UniTuple(int64, 5)), #the shape/dimensions of the full state space with time/age J
                 ('state_space_shape_no_j', UniTuple(int64, 4)),
                 ('state_space_no_j_size', int64), #size of the state space with out time/age J
-                ('state_space_shape_sims', UniTuple(int64, 5)), #the shape/dimensions of the period state space for simulations
+                ('state_space_shape_sims', UniTuple(int64, 4)), #the shape/dimensions of the period state space for simulations
                 ('lab_min', float64 ), #minimum possible choice for labor, cannot pick less than 0 hours
                 ('lab_max', float64), # max possible for labor choice
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
@@ -206,7 +206,7 @@ class Pars() :
 
         self.state_space_shape = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.H_type_perm_grid_size, self.J) 
         self.state_space_shape_no_j = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.H_type_perm_grid_size)
-        self.state_space_shape_sims = (self.lab_FE_grid_size, self.H_grid_size, self.H_type_perm_grid_size, self.sim_draws, self.J + 1)
+        self.state_space_shape_sims = (self.lab_FE_grid_size, self.H_type_perm_grid_size, self.sim_draws, self.J + 1)
         self.state_space_no_j_size = self.a_grid_size * self.lab_FE_grid_size * self.H_grid_size * self.H_type_perm_grid_size
 
         self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
@@ -217,8 +217,8 @@ class Pars() :
 
 shock_spec = [
         ('myPars', Pars.class_type.instance_type),
-        ('H_shocks', float64[:, :, :, :, :]),
-        ('H_hist', int64[:, :, :, :, :]),
+        ('H_shocks', float64[:, :, :, :]),
+        ('H_hist', int64[:, :, :, :]),
         ]
 
 #i feel like drawing shocks using numpy instead of scipy should be jit-able
@@ -240,26 +240,29 @@ class Shocks:
 
 @njit
 def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
-	hist = np.zeros(myPars.state_space_shape_sims, dtype=np.int64)
-	for lab_fe_ind in range(myPars.lab_FE_grid_size):
-		for start_H_ind in range(myPars.H_grid_size):
-			for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
-				for sim_ind in range(myPars.sim_draws):
-					for j in range(myPars.J):
-						if j == 0:
-							hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j] = start_H_ind
-						else:
-							# get previous health state
-							prev_health_state_ind = hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j-1]
-							# get health transition probability of going from previous health state to good health
-							fut_health_state_ind = 1
-							health_trans_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, fut_health_state_ind]
-							# get shock pulled in the last period
-							shock = H_shocks[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j-1]       
-							# calculate new health state and update zero array if necessary
-							if shock <= health_trans_prob:
-								hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j] = 1
-	return hist
+        hist = np.zeros(myPars.state_space_shape_sims, dtype=np.int64)
+        for lab_fe_ind in range(myPars.lab_FE_grid_size):
+                # for start_H_ind in range(myPars.H_grid_size):
+                for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+                        for sim_ind in range(myPars.sim_draws):
+                                for j in range(myPars.J):
+                                        if j == 0:
+                                                # hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j] = start_H_ind
+                                                if sim_ind / myPars.sim_draws < myPars.H_beg_pop_weights_by_H_type[H_type_perm_ind, 1]:
+                                                        hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
+                                        else:
+                                                # get previous health state
+                                                prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
+                                                # get health transition probability of going from previous health state to good health
+                                                fut_health_state_ind = 1
+                                                health_trans_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, fut_health_state_ind]
+                                                # get shock pulled in the last period
+                                                shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
+                                                # calculate new health state and update zero array if necessary
+                                                if shock <= health_trans_prob:
+                                                        hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
+        return hist
+
 
 if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
