@@ -61,8 +61,9 @@ def main_io( H_trans_ind: int = 0, out_folder_name: str = None, H_trans_path: st
     if out_folder_name is not None:
         print(f"*****Running main_io with out_folder_name = {out_folder_name}*****")
     else:
-        print(f"*****Running main_io with H_trans_ind ={H_trans_ind}*****")
+        print(f"*****Running main_io with default*****")
 
+    # my_lab_FE_grid = np.array([10.0, 15.0, 20.0, 25.0])
     my_lab_FE_grid = np.array([5.0, 10.0, 15.0, 20.0])
     # my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
     my_lab_FE_grid = np.log(my_lab_FE_grid)
