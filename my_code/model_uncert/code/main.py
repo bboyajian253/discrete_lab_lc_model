@@ -109,14 +109,12 @@ def main_io( H_trans_ind: int = 0, out_folder_name: str = None, H_trans_path: st
 #run stuff here
 start_time = time.perf_counter()
 print("Running main")
-# main_io_k_means()
 main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-trans_path = main_path + "input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
+# trans_path = main_path + "input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
+trans_path = main_path + "input/k-means/MH_trans_by_MH_clust_age.csv"
 # of_name = "output"
 of_name = None
 main_io(out_folder_name = of_name, H_trans_path = trans_path)
-# main_io_50_perct(main_path)
-# main_io_k_means(main_path)
 
 tb.print_exec_time("Main.py executed in", start_time) 
