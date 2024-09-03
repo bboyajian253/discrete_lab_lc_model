@@ -115,10 +115,10 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
 
     first_per_wages = model.gen_wages(myPars)[:,:,0]
-    pop_weigths_by_type, type_weights = myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights
-    first_per_H_weights = np.matmul(pop_weigths_by_type, type_weights) 
+    state_pop_weights_by_type, type_weights = myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights
+    first_per_H_weights = np.matmul(state_pop_weights_by_type, type_weights) 
     first_per_wages_H_weighted = np.dot(first_per_wages, first_per_H_weights)
-    first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
+    # first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
     # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
 
     mean_first_per_wage = np.dot(myPars.lab_FE_weights, first_per_wages_H_weighted)
@@ -311,36 +311,51 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
 
     for i in range(myPars.max_calib_iters):
         print(f"Calibration iteration {i}")
+        print("***Calibrating w0***")
         w0_weights, my_w0_mean_mom, my_w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, w0_mean_targ, w0_sd_targ)
+        print("***Checking calibration of w0***")
         if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol):
+            print("***w0 calibrated***")
+            print("***Calibrating w1***")
             w1_calib, my_w1_moment, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
             my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
+            print("***Checking calibration of w1***")
             if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                 and np.abs(my_w1_moment - w1_mom_targ) < w1_tol):
+                print("***w1 calibrated***")
+                print("***Calibrating w2***")
                 w2_calib, my_w2_moment, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
                 my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                 my_w1_moment = w1_moment(myPars)
+                print("***Checking calibration of w2***")
                 if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                     and np.abs(my_w1_moment - w1_mom_targ) < w1_tol
                     and np.abs(my_w2_moment - w2_mom_targ) < w2_tol):
+                    print("***w2 calibrated***")
+                    print("***Calibrating wH***")
                     wH_calib, my_wH_moment, state_sols, sims = calib_wH(myPars, calib_path, wH_tol, wH_mom_targ, wH_min, wH_max)                        
                     my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                     my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                     my_w1_moment = w1_moment(myPars)
                     my_w2_moment = w2_moment(myPars)
+                    print("***Checking calibration of wH***")
                     if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                         and np.abs(my_w1_moment - w1_mom_targ) < w1_tol and np.abs(my_w2_moment - w2_mom_targ) < w2_tol
                         and np.abs(my_wH_moment - wH_mom_targ) < wH_tol):
+                        print("***wH calibrated***")
+                        print("***Calibrating alpha***")
                         alpha_calib, my_alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
                         my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                         my_w1_moment = w1_moment(myPars)
                         my_w2_moment = w2_moment(myPars)
                         my_wH_moment = wH_moment(myPars)
+                        print("***Checking calibration of alpha***")
                         if(np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                             and np.abs(my_w1_moment - w1_mom_targ) < w1_tol and np.abs(my_w2_moment - w2_mom_targ) < w2_tol 
                             and np.abs(my_wH_moment - wH_mom_targ) < wH_tol 
                             and np.abs(my_alpha_moment - alpha_mom_targ) < alpha_tol):
                             # calibration converges
+                            print("***alpha calibrated***")
                             print(f"Calibration converged after {i+1} iterations")
                             print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mean_mom}, w0_mean_targ = {w0_mean_targ}, w0_sd = {my_w0_sd_mom}, w0_sd_targ = {w0_sd_targ}")
                             print(f""" w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_moment}, w1 mom targ = {w1_mom_targ},
