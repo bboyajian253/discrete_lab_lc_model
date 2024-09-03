@@ -20,7 +20,7 @@ import time
 from typing import List, Dict, Tuple, Callable
 import os
 import subprocess
-from scipy.optimize import minimize
+from scipy.optimize import minimize, differential_evolution
 
 
 def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax) -> Tuple[MPL_Fig, MPL_Ax]:
@@ -97,28 +97,107 @@ def mean_and_sd_objective(weights: np.ndarray, values: np.ndarray, target_mean: 
     # Prioritize mean matching more than std
     return mean_penalty + std_penalty
 
-def weights_to_match_mean_sd(values: np.ndarray, target_mean: float, target_std: float) -> np.ndarray:
+# def weights_to_match_mean_sd(values: np.ndarray, target_mean: float, target_std: float) -> np.ndarray:
+#     n = len(values)
+    
+#     # Initial guess for weights (equal weights)
+#     initial_weights = np.ones(n) / n
+    
+#     # Constraints: weights must sum to 1
+#     constraints = {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
+    
+#     # Bounds for weights: they should be between 0 and 1
+#     bounds = [(0, 1) for _ in range(n)]
+    
+#     # Objective function for optimization
+#     def wrapped_objective(weights):
+#         return mean_and_sd_objective(weights, values, target_mean, target_std)
+    
+#     # Perform the optimization
+#     result = minimize(wrapped_objective, initial_weights, bounds=bounds, constraints=constraints)
+    
+#     # Return the optimized weights
+#     return result.x
+
+def weighted_stats(fe_weights, values, wage_hist, sim_draws, H_type_weights):
+    """
+    Calculate the weighted mean and weighted standard deviation.
+    """
+    weights = np.array(fe_weights)
+    values = np.array(values)
+    
+    weighted_mean = np.sum(weights * values)
+    
+    # Variance calculation adjusted to account for weights summing to 1
+    # weighted_variance = np.sum(weights * (values - weighted_mean) ** 2)
+    # weighted_std = np.sqrt(weighted_variance)
+
+    # Calculate the deviations from the weighted mean
+    deviations =  wage_hist - weighted_mean
+    # Square the deviations
+    squared_deviations = deviations ** 2
+    # Apply the simulation weight (scalar)
+    weighted_squared_deviations = squared_deviations * (1.0 / sim_draws)
+    # Apply the H_type_weights along the second dimension
+    weighted_squared_deviations = weighted_squared_deviations * H_type_weights[np.newaxis, :, np.newaxis]
+    # Apply the lab_FE_weights along the first dimension
+    weighted_squared_variance = np.sum(weighted_squared_deviations * fe_weights[:, np.newaxis, np.newaxis])
+    # Calculate the weighted standard deviation
+    weighted_sd = np.sqrt(weighted_squared_variance)   # Calculate the weighted standard deviation
+
+    return weighted_mean, weighted_sd
+
+def objective(fe_weights, values, target_mean, target_std, wage_hist, sim_draws, H_type_weights):
+    """
+    Objective function to minimize: squared difference from target mean and std.
+    """
+    weighted_mean, weighted_std = weighted_stats(fe_weights, values, wage_hist, sim_draws, H_type_weights)
+    
+    # Calculate squared differences
+    mean_diff = (weighted_mean - target_mean) ** 2
+    std_diff = (weighted_std - target_std) ** 2
+    
+    # Combine differences
+    total_diff = mean_diff + std_diff
+    
+    return total_diff
+
+def optimize_weights(values, target_mean, target_std, wage_hist, sim_draws, H_type_weights):
+    """
+    Optimize the weights to match the target mean and std as closely as possible.
+    """
+    np.random.seed(42)  # Set a fixed seed for consistency
     n = len(values)
     
-    # Initial guess for weights (equal weights)
-    initial_weights = np.ones(n) / n
+    # Initial guess: equal weights
+    # initial_weights = np.ones(n) / n
+    #start with half the weight on each end
+    initial_weights = np.zeros(n)
+    initial_weights[0] = 0.5
+    initial_weights[-1] = 0.5
+
     
     # Constraints: weights must sum to 1
-    constraints = {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
+    constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
     
-    # Bounds for weights: they should be between 0 and 1
+    # Bounds: weights between 0 and 1
     bounds = [(0, 1) for _ in range(n)]
     
-    # Objective function for optimization
-    def wrapped_objective(weights):
-        return mean_and_sd_objective(weights, values, target_mean, target_std)
+    # Optimization using SLSQP
+    result = minimize(
+        objective,
+        initial_weights,
+        args=(values, target_mean, target_std, wage_hist, sim_draws, H_type_weights),
+        method='SLSQP',
+        bounds=bounds,
+        constraints=constraints,
+        options={'ftol': 1e-9, 'disp': False, 'maxiter': 1000}
+    )
     
-    # Perform the optimization
-    result = minimize(wrapped_objective, initial_weights, bounds=bounds, constraints=constraints)
+    if not result.success:
+        raise ValueError(f"Optimization failed: {result.message}")
     
-    # Return the optimized weights
     return result.x
-
 
 def list_to_tex(path: str, new_tex_file_name: str, list_of_tex_lines: List[str])->None:
     # Raise an error if the directory does not exist

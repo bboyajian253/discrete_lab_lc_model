@@ -69,13 +69,9 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     labor_sims = sims['lab'][:, :, :, :myPars.J]
-    # print(f"labor_sims mean = {np.mean(labor_sims)}")
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
-    # print(f"weighted_labor_sims mean = {np.mean(weighted_labor_sims)}")
-    mean_lab_by_age_and_sim = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
-    # print(f"mean_lab_by_age_and_sim = {mean_lab_by_age_and_sim}")
-    mean_lab = np.mean(mean_lab_by_age_and_sim)
-    # print(f"mean labor worked = {mean_lab}")
+    mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
+    mean_lab = np.mean(mean_lab_by_age)
     return mean_lab
 
 def get_alpha_targ(myPars: Pars) -> float:
@@ -88,52 +84,70 @@ def get_alpha_targ(myPars: Pars) -> float:
 
 
 def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float):
+    # mean_target = 12.664071
+    # sd_target = 3.1353517
+
+    # calib.calib_w0(myPars, main_path, w0_mean_targ, w0_sd_targ)
+
+    myShocks = Shocks(myPars)
     io.print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_calib_params.csv")
     mean_wage = -999.999
     sd_wage = -999.999
     sate_sols = {}
     sim_lc = {}
 
-    first_per_wages = model.gen_wages(myPars)[:,:,0]
-    pop_weigths_by_type, type_weights = myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights
-    first_per_H_weights = np.matmul(pop_weigths_by_type, type_weights) 
-    first_per_wages_H_weighted = np.dot(first_per_wages, first_per_H_weights)
-    # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
-    my_weights = tb.weights_to_match_mean_sd(first_per_wages_H_weighted, mean_target, sd_target)
+    first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0]
+    first_per_wages = first_per_wages * (1/myPars.sim_draws)
+    first_per_wages = first_per_wages * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis]
+    # print("first_per_wages.shape:", first_per_wages.shape)
+    # print("mean of first_per_wages",np.mean(first_per_wages))
 
+    collapsed_weighted_wages = np.sum(first_per_wages, axis = tuple(range(1,first_per_wages.ndim)))
+    # print("collapsed_weighted_wages.shape", collapsed_weighted_wages.shape)
+    # print("collapsed_weighted_wages", collapsed_weighted_wages)
+
+    first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0] 
+    my_weights = tb.optimize_weights(collapsed_weighted_wages, mean_target, sd_target, first_per_wages, myPars.sim_draws, myPars.H_type_perm_weights)
+    weigthed_mean, weighted_std = tb.weighted_stats(my_weights, collapsed_weighted_wages, first_per_wages, myPars.sim_draws, myPars.H_type_perm_weights)
+    # print("my_weights", my_weights)
+    # print("weigthed_mean", weigthed_mean, "weighted_std", weighted_std)
+    # print("mean_targ", mean_target, "sd_targ", sd_target)
+
+    #update the labor fixed effect weights
     myPars.lab_FE_weights = my_weights
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     mean_wage, sd_wage = w0_moments(myPars)
-
+    # print(f"myPars updated lab_FE_weights = {myPars.lab_FE_weights}")
+    # print(f"w0_moments_mean_wage = {mean_wage}, w0_moments_sd_wage = {sd_wage}")
+    # print("mean_targ", mean_target, "sd_targ", sd_target)
     if myPars.print_screen >= 1:
         print(f"Calibration exited: mean wage = {mean_wage}, target mean wage = {mean_target}, sd wage = {sd_wage}, target sd wage = {sd_target}")
         print(f"Calibrated weights = {my_weights}")
     return my_weights, mean_wage, sd_wage, state_sols, sim_lc 
 
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
+    myShocks = Shocks(myPars)
 
-    first_per_wages = model.gen_wages(myPars)[:,:,0]
-    state_pop_weights_by_type, type_weights = myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights
-    first_per_H_weights = np.matmul(state_pop_weights_by_type, type_weights) 
-    first_per_wages_H_weighted = np.dot(first_per_wages, first_per_H_weights)
-    # first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
-    # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
-
-    mean_first_per_wage = np.dot(myPars.lab_FE_weights, first_per_wages_H_weighted)
+    first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0]
+    first_per_weighted_wages = model.gen_weighted_wage_hist(myPars, myShocks)[:,:,:,0] 
+    mean_first_per_wage = np.sum(first_per_weighted_wages)
     # print(f"mean_first_per_wage = {mean_first_per_wage}")
 
-    # Calculate the deviations from the weighted mean
-    deviations = first_per_wages_H_weighted - mean_first_per_wage
-    # print(f"deviations = {deviations}")
-
     # Calculate the weighted variance
-    weighted_variance = np.dot(myPars.lab_FE_weights, deviations**2)
-    # print(f"weighted_variance = {weighted_variance}")
-
+    # Calculate the deviations from the weighted mean
+    deviations =  first_per_wages - mean_first_per_wage
+    # Square the deviations
+    squared_deviations = deviations ** 2
+    # Apply the simulation weight (scalar)
+    weighted_squared_deviations = squared_deviations * (1.0 / myPars.sim_draws)
+    # Apply the H_type_weights along the second dimension
+    weighted_squared_deviations = weighted_squared_deviations * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis]
+    # Apply the lab_FE_weights along the first dimension
+    weighted_squared_variance = np.sum(weighted_squared_deviations * myPars.lab_FE_weights[:, np.newaxis, np.newaxis])
     # Calculate the weighted standard deviation
-    sd_first_per_wage = np.sqrt(weighted_variance)
+    sd_first_per_wage = np.sqrt(weighted_squared_variance)
     # print(f"sd_first_per_wage = {sd_first_per_wage}")
     
     return mean_first_per_wage, sd_first_per_wage
@@ -165,7 +179,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
         myPars.wage_coeff_grid[i, 1] = calibrated_w1
 
     # solve, simulate and plot model for the calibrated w1
-    w1_moment = w1_moment_giv_w1(myPars, main_path, calibrated_w1) 
+    w1_moment = w1_moment_giv_w1(myPars,  main_path, calibrated_w1) 
     io.print_params_to_csv(myPars, path = main_path, file_name = "w1_calib_params.csv")
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
@@ -182,7 +196,8 @@ def w1_moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
     return w1_moment(myPars)
 
 def w1_moment(myPars: Pars)-> float:
-    wage_sims = model.gen_weighted_wages(myPars)
+    myShocks = Shocks(myPars)
+    wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
     mean_wage = np.sum(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[0])
     return wage_diff
@@ -228,7 +243,8 @@ def w2_moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
     return w2_moment(myPars)
 
 def w2_moment(myPars: Pars)-> float:
-    wage_sims = model.gen_weighted_wages(myPars)
+    myShocks = Shocks(myPars)
+    wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
     # or could just generate wages independently but this is more general
     # wage_sims = model.gen_wages(myPars)
     mean_wage = np.sum(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
@@ -375,33 +391,37 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
     
 
 if __name__ == "__main__":
-        start_time = time.perf_counter()
+    start_time = time.perf_counter()
 
-        main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-        my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
-        lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
-        quad_wage_coeffs = [-0.000, -0.030, -0.030, -0.030] 
-        cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
+    # my_lab_FE_grid = np.array([10.0, 15.0, 20.0, 25.0])
+    my_lab_FE_grid = np.array([5.0, 10.0, 15.0, 20.0])
+    # my_lab_FE_grid = np.array([5.0, 10.0, 15.0])
+    my_lab_FE_grid = np.log(my_lab_FE_grid)
+    lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
+    quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
+    cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
 
-        num_FE_types = len(my_lab_FE_grid)
-        w_coeff_grid = np.zeros([num_FE_types, 4])
-        
-        w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
-        w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
-        w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-        #w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
+    num_FE_types = len(my_lab_FE_grid)
+    w_coeff_grid = np.zeros([num_FE_types, 4])
 
-        print("intial wage coeff grid")
-        print(w_coeff_grid)
 
-        myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
-                    H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
-                    wage_coeff_grid = w_coeff_grid,
-                    print_screen=0)
-        trans_mat = myPars.H_trans[0, 0, :, :]
-        print(trans_mat)
-        my_file_name = "H_trans_TEST"
-        io.print_H_trans_to_tex(myPars, trans_mat, new_file_name = my_file_name)
+    w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
+    w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
+    w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
+    w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
-        tb.print_exec_time("Calibration main ran in", start_time)   
+    print("intial wage coeff grid")
+    print(w_coeff_grid)
+
+    my_lab_FE_weights = tb.gen_even_weights(w_coeff_grid)
+
+    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), H_weights=np.array([0.5, 0.5]),
+                nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 10, sigma_util = 0.9999,
+                print_screen=0)
+
+    calib_w0(myPars, main_path, 12.664071, 3.1353517) 
+
+    tb.print_exec_time("Calibration main ran in", start_time)   

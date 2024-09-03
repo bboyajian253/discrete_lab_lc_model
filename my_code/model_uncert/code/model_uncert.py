@@ -10,7 +10,7 @@ Date: 2024-05-29 20:16:01
 # Import packages
 import time
 import numpy as np
-from pars_shocks import Pars
+from pars_shocks import Pars, Shocks
 import my_toolbox as tb
 from numba import njit, guvectorize, prange 
 from interpolation import interp
@@ -271,18 +271,44 @@ def gen_wages(myPars: Pars) -> np.ndarray:
                 wage_grid[lab_fe_ind, h_ind, j] = wage(myPars, j, lab_fe_ind, h_ind)
     return wage_grid
 @njit
-def gen_weighted_wages(myPars: Pars) -> np.ndarray:
+def gen_weighted_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
     # Pre-allocate the weights array
-    my_sim_weights = np.empty((myPars.lab_FE_grid_size, myPars.H_grid_size))
+    # my_sim_weights = np.empty((myPars.lab_FE_grid_size, myPars.H_type_perm_grid_size))
+    sim_weight = 1/myPars.sim_draws
+    H_hist = myShocks.H_hist
+    wage_hist = np.empty(H_hist.shape)
     # Fill the weights array
-    for r in range(myPars.lab_FE_grid_size):
-        for c in range(myPars.H_grid_size):
-            my_sim_weights[r, c] = myPars.lab_FE_weights[r] * myPars.H_weights[c]
+    for lab_fe_ind in range(myPars.lab_FE_grid_size):
+        for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+            # my_sim_weights[lab_fe_ind, H_type_perm_ind] = myPars.lab_FE_weights[lab_fe_ind] * myPars.H_type_perm_weights[H_type_perm_ind]
+            type_pop_weight = myPars.lab_FE_weights[lab_fe_ind] * myPars.H_type_perm_weights[H_type_perm_ind]
+            for sim_ind in range(myPars.sim_draws):
+                for j in range(myPars.J):
+                    my_H = H_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j]
+                    wage_unweighted = wage(myPars, j, lab_fe_ind, my_H)
+                    wage_weighted = wage_unweighted * type_pop_weight*sim_weight
+                    wage_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = wage_weighted
+    return wage_hist
     # Reshape weights for broadcasting
-    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1)
-    wage_sims = gen_wages(myPars)
-    weighted_wage_sims = wage_sims * my_sim_weights_reshaped
-    return weighted_wage_sims
+    # my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_type_perm_grid_size, 1, 1)
+    # weighted_wage_sims = wage_sims * my_sim_weights_reshaped
+    # return weighted_wage_sims
+
+@njit
+def gen_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
+    """
+    generate the wage history
+    """
+    #initialize the wage history
+    wage_hist = np.empty((myPars.lab_FE_grid_size, myPars.H_type_perm_grid_size, myPars.sim_draws, myPars.J))
+    #loop through the wage history
+    for lab_fe_ind in range(myPars.lab_FE_grid_size):
+        for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+            for sim_ind in range(myPars.sim_draws):
+                for j in range(myPars.J):
+                    my_H = myShocks.H_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j]
+                    wage_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = wage(myPars, j, lab_fe_ind, my_H)
+    return wage_hist
 
 @njit
 def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
@@ -320,5 +346,5 @@ if __name__ == "__main__":
     lab_fe_ind = 1
     health_ind = 1
     nu_ind = 1
-    print(gen_weighted_wages(myPars))
+    print(gen_weighted_wage_hist(myPars))
                     
