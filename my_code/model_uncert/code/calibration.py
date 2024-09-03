@@ -62,15 +62,14 @@ def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->T
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
 
-    # labor_sims = sim_lc['lab'][:,:,:,:,:myPars.J]
-    # mean_lab = np.mean(labor_sims)
     mean_lab = alpha_moment_giv_sims(myPars, sim_lc) 
     return mean_lab, state_sols, sim_lc
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     labor_sims = sims['lab'][:, :, :, :myPars.J]
-    weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims)
-    mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
+    weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims) 
+    mean_lab_by_age_sim = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-2)))
+    mean_lab_by_age = np.sum(mean_lab_by_age_sim * (1.0 / myPars.sim_draws), axis = tuple(range(mean_lab_by_age_sim.ndim-1)))
     mean_lab = np.mean(mean_lab_by_age)
     return mean_lab
 
