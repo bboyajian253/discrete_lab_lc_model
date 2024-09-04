@@ -51,23 +51,21 @@ def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax) -> Tup
     plt.show()
     return fig, ax
 
-# Define a function to save a plot given a figure and a save path
 def save_plot(figure: MPL_Fig, path: str) -> None:
     """
     Save a plot to a specified path.
     """
-    # Ensure the directory exists
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    
-    # Save the plot to the specified path
     figure.savefig(path)
     plt.close(figure)
 
-# Define a function to manually multiply elements in the tuple
 @njit
-def tuple_product(shape_tuple):
+def tuple_product(shape_tuple: Tuple[float]) -> float:
+    """
+    manually multiply elements in a tuple in numba
+    """
     product = 1
     for dim in shape_tuple:
         product *= dim
@@ -84,102 +82,64 @@ def compute_weighted_std(values: np.ndarray, weights: float, weighted_mean: floa
 
 @njit
 def mean_and_sd_objective(weights: np.ndarray, values: np.ndarray, target_mean: float, target_std: float)-> float:
-    # Compute weighted mean
+    """
+    returns the squared difference between the weighted mean and weighted standard deviation and the target mean and standard deviation
+    given weights, values, target mean, and target standard deviation
+    """
     weighted_mean = compute_weighted_mean(values, weights)
-    
-    # Compute weighted standard deviation
     weighted_std = compute_weighted_std(values, weights, weighted_mean)
-    
-    # Calculate the penalty for deviation from target mean and std
     mean_penalty = (weighted_mean - target_mean) ** 2
     std_penalty = (weighted_std - target_std) ** 2
-    
-    # Prioritize mean matching more than std
     return mean_penalty + std_penalty
 
-# def weights_to_match_mean_sd(values: np.ndarray, target_mean: float, target_std: float) -> np.ndarray:
-#     n = len(values)
-    
-#     # Initial guess for weights (equal weights)
-#     initial_weights = np.ones(n) / n
-    
-#     # Constraints: weights must sum to 1
-#     constraints = {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
-    
-#     # Bounds for weights: they should be between 0 and 1
-#     bounds = [(0, 1) for _ in range(n)]
-    
-#     # Objective function for optimization
-#     def wrapped_objective(weights):
-#         return mean_and_sd_objective(weights, values, target_mean, target_std)
-    
-#     # Perform the optimization
-#     result = minimize(wrapped_objective, initial_weights, bounds=bounds, constraints=constraints)
-    
-#     # Return the optimized weights
-#     return result.x
-
-def weighted_stats(fe_weights, values, wage_hist, sim_draws, H_type_weights):
+@njit
+def weighted_stats(fe_weights: np.ndarray, values: np.ndarray, wage_hist: np.ndarray, sim_draws: int, H_type_weights: np.ndarray) -> Tuple[float, float]:
     """
-    Calculate the weighted mean and weighted standard deviation.
+    Calculate the weighted mean and weighted standard deviation. 
+    The weighting accounts for sim_draw_weights, H_type_weights, and fe_weights
     """
-    weights = np.array(fe_weights)
-    values = np.array(values)
-    
+    weights = fe_weights
     weighted_mean = np.sum(weights * values)
     
-    # Variance calculation adjusted to account for weights summing to 1
-    # weighted_variance = np.sum(weights * (values - weighted_mean) ** 2)
-    # weighted_std = np.sqrt(weighted_variance)
-
-    # Calculate the deviations from the weighted mean
     deviations =  wage_hist - weighted_mean
-    # Square the deviations
     squared_deviations = deviations ** 2
-    # Apply the simulation weight (scalar)
     weighted_squared_deviations = squared_deviations * (1.0 / sim_draws)
-    # Apply the H_type_weights along the second dimension
     weighted_squared_deviations = weighted_squared_deviations * H_type_weights[np.newaxis, :, np.newaxis]
-    # Apply the lab_FE_weights along the first dimension
     weighted_squared_variance = np.sum(weighted_squared_deviations * fe_weights[:, np.newaxis, np.newaxis])
-    # Calculate the weighted standard deviation
     weighted_sd = np.sqrt(weighted_squared_variance)   # Calculate the weighted standard deviation
 
     return weighted_mean, weighted_sd
 
-def objective(fe_weights, values, target_mean, target_std, wage_hist, sim_draws, H_type_weights):
+@njit
+def objective(fe_weights: np.ndarray, values: np.ndarray, target_mean: float, target_std: float,
+               wage_hist: np.ndarray, sim_draws: int, H_type_weights: np.ndarray) -> float:
     """
     Objective function to minimize: squared difference from target mean and std.
     """
     weighted_mean, weighted_std = weighted_stats(fe_weights, values, wage_hist, sim_draws, H_type_weights)
-    
-    # Calculate squared differences
     mean_diff = (weighted_mean - target_mean) ** 2
     std_diff = (weighted_std - target_std) ** 2
-    
-    # Combine differences
     total_diff = mean_diff + std_diff
-    
     return total_diff
 
-def optimize_weights(values, target_mean, target_std, wage_hist, sim_draws, H_type_weights):
+def optimize_weights(values: np.ndarray, target_mean: float, target_std: float,
+                      wage_hist: np.ndarray, sim_draws: int, H_type_weights: np.ndarray) -> np.ndarray:
     """
-    Optimize the weights to match the target mean and std as closely as possible.
+    Optimize the  weights to match the target mean and std as closely as possible.
+    takes the following arguments:
+    values: the values to be weighted
+    target_mean: the target mean
+    target_std: the target standard deviation
+    wage_hist: the wage history
+    sim_draws: the number of simulation draws
+    H_type_weights: the H type weights
+    returns the optimized weights
     """
     np.random.seed(42)  # Set a fixed seed for consistency
     n = len(values)
-    
-    # Initial guess: equal weights
-    # initial_weights = np.ones(n) / n
-    #start with half the weight on each end
-    initial_weights = np.zeros(n)
-    initial_weights[0] = 0.5
-    initial_weights[-1] = 0.5
-
-    
+    initial_weights = np.ones(n) / n
     # Constraints: weights must sum to 1
     constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
-    
     # Bounds: weights between 0 and 1
     bounds = [(0, 1) for _ in range(n)]
     
@@ -200,22 +160,24 @@ def optimize_weights(values, target_mean, target_std, wage_hist, sim_draws, H_ty
     return result.x
 
 def list_to_tex(path: str, new_tex_file_name: str, list_of_tex_lines: List[str])->None:
-    # Raise an error if the directory does not exist
+    """
+    generates a tex file from a list of tex lines at the specified path wit the specified name
+    name must include the .tex extension
+    """
     if not os.path.exists(path):
         raise FileNotFoundError(f"The specified path does not exist: {path}")
-
     fullpath = os.path.join(path, new_tex_file_name)
-    
-    # Write the LaTeX content to a file
     with open(fullpath, 'w', newline='\n') as pen:
         for row in list_of_tex_lines:
             pen.write(row)
     
 def tex_to_pdf(path: str, tex_file_name: str) -> None:
-    # Raise an error if the directory does not exist
+    """
+    compiles a tex file to a pdf from the specified path with the specified name for the tex file
+    pdf name is the same as the tex file name but with a pdf extension
+    """
     if not os.path.exists(path):
         raise FileNotFoundError(f"The specified path does not exist: {path}")
-
     fullpath = os.path.join(path, tex_file_name)
     
     # Ensure pdflatex is in the system path
@@ -239,10 +201,13 @@ def tex_to_pdf(path: str, tex_file_name: str) -> None:
     
 
 def read_specific_column_from_csv(file_path: str, column_index: int, skip_header: bool = True)-> np.ndarray:
+    """
+    read a specific column from a csv file skipping the header row by default
+    column index is zero based 
+    """
     column_values = []
     with open(file_path, mode='r', newline='') as file:
         csv_reader = csv.reader(file)
-        # Skip the header row
         if skip_header:
             next(csv_reader)
         for row in csv_reader:
@@ -251,6 +216,10 @@ def read_specific_column_from_csv(file_path: str, column_index: int, skip_header
     return np.array(column_values)
 
 def read_specific_row_from_csv(file_path: str, row_index: int, skip_header: bool = True)-> np.ndarray:
+    """
+    read a specific row from a csv file skipping the header row by default
+    
+    """
     with open(file_path, mode='r', newline='') as file:
         csv_reader = csv.reader(file)
         # Skip the header row
@@ -262,6 +231,10 @@ def read_specific_row_from_csv(file_path: str, row_index: int, skip_header: bool
     raise ValueError(f"Row index {row_index} is out of bounds for the file {file_path}")
 
 def read_matrix_from_csv(file_path: str, column_index: int = 1, skip_header: bool = True) -> np.ndarray:
+    """
+    read a matrix from a csv file skipping the header row by default and starting at the specified column index = 1 by default
+    recall that column index is zero based
+    """
      # Load the entire file first to determine the number of columns
     sample_data = np.genfromtxt(file_path, delimiter=',', max_rows=1, skip_header=1 if skip_header else 0)
     num_columns = sample_data.shape[0]
@@ -283,8 +256,11 @@ def gen_even_weights(matrix: np.ndarray) -> np.ndarray:
     return np.ones(matrix.shape[0]) / matrix.shape[0]
 
 #function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
-# this is a simple bisection method but this take advantage of the monotoniciy of the function to speed up the search?
+# this is a simple bisection method but does this take advantage of the monotoniciy of the function to speed up the search?
 def bisection_search(func: Callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
+    """
+    
+    """
     x0 = min_val
     x1 = max_val
     f0 = func(x0)
@@ -313,31 +289,23 @@ def bisection_search(func: Callable, min_val: float, max_val: float, tol: float,
     return x_mid
 
 @njit
-def create_increasing_array(shape):
-    # Calculate the total number of elements in the array
+def create_increasing_array(shape: Tuple[int], increase_by: int = 1) -> np.ndarray:
+    """
+    creates an array of increasing values from 1 to the total number of elements in the array
+    increasing by increase_by  each time increase_by is 1 by default
+    """
     tot_elem = 1
     for dim in shape:
         tot_elem *= dim
-    
-    # Create a 1D array with increasing values starting from 1
-    values = np.arange(1, tot_elem + 1)
-    
-    # Reshape the array to the desired shape
+    values = np.arange(1, tot_elem + increase_by)
     array = values.reshape(shape)
-    
     return array
 
-
-def write_nd_array(writer, array, depth=0):
-    if array.ndim == 1:
-        writer.writerow(['  ' * depth + str(element) for element in array])
-    else:
-        for sub_array in array:
-            write_nd_array(writer, sub_array, depth + 1)
-            writer.writerow([])  # Blank row for separation at each level
-
 @njit(parallel=True)
-def manual_kron(a, b):
+def manual_kron(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """
+    calculates the kronecker product of two matrices in numba
+    """
     m, n = a.shape
     p, q = b.shape
     result = np.zeros((m * p, n * q), dtype=a.dtype)
@@ -349,14 +317,21 @@ def manual_kron(a, b):
     return result
 
 @njit
-def gen_flat_joint_trans(trans1, trans2):
+def gen_flat_joint_trans(trans1: np.ndarray, trans2: np.ndarray) -> np.ndarray:
+    """
+    generates a flattened joint transition matrix from two transition matrices
+    by first calculating the kronecker product of the two matrices and then flattening the result
+    """
     joint_transition = manual_kron(trans1, trans2)
     return joint_transition.flatten()
 
-def print_exec_time ( mess : str , start_time) :    
+def print_exec_time (message: str , start_time: float)-> None:    
+    """
+    prints the execution time and a message of a function given the start time and a message
+    """
     end_time = time.perf_counter()
     execution_time = end_time - start_time
-    print(mess, execution_time, "seconds")
+    print(message, execution_time, "seconds")
 
 def rouwenhorst(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -368,10 +343,8 @@ def rouwenhorst(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[np.nda
     q = (rho + 1)/2
     nu = ((N-1.0)/(1.0-rho**2))**(1/2)*sigma
     s = np.linspace(mu/(1.0-rho)-nu, mu/(1.0-rho)+nu, N) # states
-
     # implement recursively transition matrix
     P = np.array([[q, 1-q], [1-q, q]])
-
     for i in range(2,N): # add one row/column one by one
         P = (
             q*np.r_[np.c_[P, np.zeros(i)] , [np.zeros(i+1)]] + (1-q)*np.r_[np.c_[np.zeros(i), P] , 
@@ -387,7 +360,6 @@ def rouwenhorst_numba(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[
     q = (rho + 1) / 2
     nu = np.sqrt((N - 1) / (1 - rho**2)) * sigma
     s = np.linspace(mu / (1 - rho) - nu, mu / (1 - rho) + nu, N)
-
     P = np.array([[q, 1 - q], [1 - q, q]])
 
     for i in range(2, N):
@@ -401,19 +373,16 @@ def rouwenhorst_numba(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[
 
     return s, P
 
-### generates a grid with curvature/grid growth
 @njit
-def gen_grid(size, min, max, grid_growth = 0.0) :
-        #### Define the asset grid:
+def gen_grid(size: int, min: float, max: float, grid_growth: float = 0.0) -> np.ndarray:
+    """
+    returns a grid of size size with min and max values and grid growth rate grid_growth
+    """
     if grid_growth == 0.0:
-        #if no grid curvature 
         gA = np.linspace(min, max, size)
     elif grid_growth > 0.0:
-        #if grid curvature
         gA = np.zeros(size)
-        #make empty asset grid
         for i in range(size):
-            #fill each cell with a point that accounts for the curvature the grid will be denser in certain places i.e where changes in mu are highest?
             gA[i]= min + (max - (min))*((1 + grid_growth)**i -1)/((1 + grid_growth)**(size-1.0) -1)
     return gA
 
@@ -436,7 +405,6 @@ def interpolate_y(x, xq, y, yq):
     """
     #get number of elements in xquery and x
     nxq, nx = xq.shape[0], x.shape[0]
-
     xi = 0 #index or ocunter maybe?
     x_low = x[0]
     x_high = x[1]
@@ -445,20 +413,14 @@ def interpolate_y(x, xq, y, yq):
     for xqi_cur in range(nxq):
         # grab the current query point 
         xq_cur = xq[xqi_cur] 
-        # while the index is less than the size of x -2 
         while xi < nx - 2: 
             #if the upper bound is greater than the current query point break and get new query point
             if x_high >= xq_cur: 
                 break
-            #else we have x_high < xq_curr
             xi += 1 #inc counter
-            #since the the upper end point is less than the query
-            x_low = x_high #set the lower endpoint to the ipper one
-            #raise the value of the upper end pint
-            x_high = x[xi + 1]
-        #get weights for the endpoints to use in the linear interpolation
-        xqpi_cur = (x_high - xq_cur) / (x_high - x_low) 
-        #weight the end points and do the interpolation store the result in yq at the curr query points location (index-i)
+            x_low = x_high #set the lower endpoint to the upper one
+            x_high = x[xi + 1] #set the upper endpoint to the next one in the array
+        xqpi_cur = (x_high - xq_cur) / (x_high - x_low) #weight the end points 
         yq[xqi_cur] = xqpi_cur * y[xi] + (1 - xqpi_cur) * y[xi + 1] 
 
 @guvectorize(['void(float64[:], float64[:], uint32[:], float64[:])'], '(n),(nq)->(nq),(nq)')
@@ -914,16 +876,8 @@ def cubic(j : int, params : np.ndarray) -> float:
 #run if main
 if __name__ == "__main__":
     print("running my_toolbox.py")
-    # Example usage
-    values = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    target_mean = 3.0
-    target_std = 1.0
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     input_path = main_path + "input/"
     file_path = input_path + "MH_trans.csv"
-    col_ind = 1
-    my_mat = read_matrix_from_csv(file_path, col_ind)
-    print("my_mat:", my_mat) 
 
-    # weights = weights_to_match_mean_sd(values, target_mean, target_std)
     print("done running my_toolbox.py")
