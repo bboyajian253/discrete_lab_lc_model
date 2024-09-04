@@ -1,5 +1,8 @@
 """
-pars_shocks_and_wages.py
+io_manager.py
+This file contains code used to read in data and cluster it based on a history of mental health data.
+It also contains code to print parameters and transition matrices to LaTeX tables.
+And to print the results of the calibration to a LaTeX table.
 
 Created on 2024-08-12 14:47:07 
 
@@ -15,24 +18,18 @@ from typing import Dict
 
 # my code
 import my_toolbox as tb
-import pars_shocks as ps
 from pars_shocks import Pars, Shocks
 
 def read_and_shape_H_trans_full(myPars: Pars, path: str = None) -> np.ndarray:
     """
-    Read in the transition matrix for the health state and reshape it to the correct dimensions
+    Read in the full by age by type transition matrix for the health state and reshape it to the correct dimensions
     """
     if path is None:
         path = myPars.path + "input/MH_trans_by_MH_clust_age.csv"
-    # Read in the data
     raw_mat = tb.read_matrix_from_csv(path)
     H_trans_mat_size_j = myPars.H_grid_size * myPars.H_grid_size   
     mat_sep_groups = raw_mat.reshape(myPars.J,  H_trans_mat_size_j, myPars.H_type_perm_grid_size) 
-    # print(f"mat_sep_groups: {mat_sep_groups}")
-    # Transpose the axes to match the desired structu
-    # # Now reorder the reshaped matrix to (2, 51, 2, 2) structure
     final_reshape = mat_sep_groups.reshape(myPars.J, myPars.H_type_perm_grid_size, myPars.H_grid_size, myPars.H_grid_size).transpose(1, 0, 2, 3)
-
     return final_reshape
 
 def read_and_shape_H_trans_uncond_age(myPars: Pars, path: str = None) -> np.ndarray:
@@ -41,7 +38,6 @@ def read_and_shape_H_trans_uncond_age(myPars: Pars, path: str = None) -> np.ndar
     """
     if path is None:
         path = myPars.path + "input/MH_trans_uncond_age.csv"
-    # Read in the data
     raw_mat = tb.read_matrix_from_csv(path)
     reshaped_mat = raw_mat.reshape(myPars.J, myPars.H_grid_size, myPars.H_grid_size) # Ensure mat is a 3D array
     repeated_mat = np.repeat(np.array(reshaped_mat)[np.newaxis, :, :, :], myPars.H_type_perm_grid_size, axis = 0)
@@ -49,14 +45,12 @@ def read_and_shape_H_trans_uncond_age(myPars: Pars, path: str = None) -> np.ndar
 
 def read_and_shape_H_trans_uncond(myPars: Pars, path: str = None) -> np.ndarray:
     """
-    Read in the unconditional on type transition matrix (UNCONDITIONAL ON AGE T00) for the health state and reshape it to the correct dimensions
+    Read in the unconditional on type and age transition matrix for the health state and reshape it to the correct dimensions
     """
     if path is None:
         path = myPars.path + "input/MH_trans_uncond.csv"
-    # Read in the data
     mat = tb.read_specific_row_from_csv(path, 0)
     mat = np.array(mat).reshape(myPars.H_grid_size, myPars.H_grid_size)  # Ensure mat is a 2D array
-    # Repeat the matrix
     repeated_matrix = np.tile(mat, (2, 1, 1))
     H_trans = np.repeat(np.array(repeated_matrix)[:, np.newaxis, :,:], myPars.J, axis=0).reshape(myPars.H_type_perm_grid_size, myPars.J,
                                                                                                  myPars.H_grid_size, myPars.H_grid_size)
@@ -68,17 +62,14 @@ def read_and_shape_H_trans_H_type(myPars: Pars, path: str = None) -> np.ndarray:
     """
     if path is None:
         path = myPars.path + "input/MH_trans_by_MH_clust.csv"
-    # Read in the data
     raw_mat = tb.read_specific_row_from_csv(path, 0)
     raw_mat = np.array(raw_mat).reshape(myPars.H_type_perm_grid_size, myPars.H_grid_size, myPars.H_grid_size)  # Ensure mat is a 3D array
-    # Repeat the matrix
     H_trans = np.repeat(np.array(raw_mat)[:, np.newaxis, :,:], myPars.J, axis=0).reshape(myPars.H_type_perm_grid_size,myPars.J,
                                                                                          myPars.H_grid_size, myPars.H_grid_size)
     return H_trans
 
 def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
     '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
-    
     alpha_targ_val = targ_moments['alpha']*100
     alpha_mod_val = model_moments['alpha']*100
     w1_targ_val = targ_moments['w1']*100
@@ -107,16 +98,12 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
     
     if path is None:
         path = myPars.path + 'output/'
-    
     file_name = 'parameters_endog.tex'
-    
     tb.list_to_tex(path, file_name, tab)
     tb.tex_to_pdf(path, file_name)
     
-
 def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
     '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
-
     w0_mean_targ_val = np.round(targ_moments['w0_mean'], 3)
     w0_mean_mod_val = np.round(model_moments['w0_mean'], 3)
     w0_sd_targ_val = np.round(targ_moments['w0_sd'], 3)
@@ -146,15 +133,14 @@ def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
 
     if path is None:
         path = myPars.path + 'output/'
-    
     tex_file_name =  'parameters_w0_calib.tex' 
-
     tb.list_to_tex(path, tex_file_name, tab)
     tb.tex_to_pdf(path, tex_file_name)
 
 def table_H_trans_by_type_alg(myPars: Pars, H_trans_alg_0: np.ndarray, H_trans_alg_1: np.ndarray, 
                               out_path: str  = None, tex_file_name: str = None, 
                               )-> None:
+    """prints transition matrices by typing method to a LaTeX table and compiles it to a PDF"""
     if out_path is None:
         out_path = myPars.path + 'output/'
     if tex_file_name is None:
@@ -193,6 +179,7 @@ def table_H_trans_by_type_alg(myPars: Pars, H_trans_alg_0: np.ndarray, H_trans_a
 def table_r2_by_type_alg(myPars: Pars, r2_arr: np.ndarray, 
                               out_path: str  = None, tex_file_name: str = None, 
                               )-> None:
+    """This function prints the R^2 values for the different typing methods to a LaTeX table and compiles it to a PDF."""
     if out_path is None:
         out_path = myPars.path + 'output/'
     if tex_file_name is None:
@@ -221,7 +208,6 @@ def table_r2_by_type_alg(myPars: Pars, r2_arr: np.ndarray,
         "\\end{tabular}\n",
         "\\end{document}\n"
     ]
-
     tb.list_to_tex(out_path, tex_file_name, tab)
     tb.tex_to_pdf(out_path, tex_file_name)
 
@@ -231,8 +217,6 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & $\\gamma_4$ & Description & Source \\\\ \n") 
     tab.append("\\hline \n")   
-    # for i in myPars.lab_FE_grid:
-    #     tab.append(f"$\\beta_{{{i}\\gamma}}$ & {myPars.wage_coeff_grid[0][i]} &  {myPars.wage_coeff_grid[1][i]} & {myPars.wage_coeff_grid[2][i]} & $j^{{{i}}}$ Coeff. & Moment Matched \\\\ \n") 
     tab.append(f"""$w_{{0\\gamma}}$ & {round(myPars.wage_coeff_grid[0][0], 3)} & {round(myPars.wage_coeff_grid[1][0], 3)} 
                & {round(myPars.wage_coeff_grid[2][0], 3)} 
                & Constant & Benchmark \\\\ \n""")
@@ -247,27 +231,22 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     
     if path is None:
         path = myPars.path + 'output/'
-    
     tex_file_name = 'wage_coeffs.tex'
     tb.list_to_tex(path, tex_file_name, tab)
     tb.tex_to_pdf(path, tex_file_name)
 
 def print_H_trans_to_tex_uncond(myPars: Pars, out_path: str = None, tex_file_name: str = None)-> None:
-    # \left[\begin{array}{cc}
-    # 0.7, & 0.3\\
-    # 0.3, & 0.7
-    # \end{array}\right]
-
+    """This function prints the unconditional transition matrix to a LaTeX table and compiles it to a PDF."""
     tab = [
         "\\documentclass[border=3mm,preview]{standalone}",
         "\\usepackage{amsmath}\n",  # Added this line for better array formatting
         "\\begin{document}\n",
-        "\\[ \\left[\\begin{array}{cc} \n"
+        "\\[ \\left[\\begin{array}{cc} \n",
+        f"{round(myPars.H_trans[0, 0, 0, 0], 2)}, & {round(myPars.H_trans[0, 0, 0, 1], 2)} \\\\ \n",
+        f"{round(myPars.H_trans[0, 0, 1, 0], 2)}, & {round(myPars.H_trans[0, 0, 1, 1], 2)} \n"
+        "\\end{array}\\right] \\] \n",
+        "\\end{document}"
     ]
-    tab.append(f"{round(myPars.H_trans[0, 0, 0, 0], 2)}, & {round(myPars.H_trans[0, 0, 0, 1], 2)} \\\\ \n")
-    tab.append(f"{round(myPars.H_trans[0, 0, 1, 0], 2)}, & {round(myPars.H_trans[0, 0, 1, 1], 2)} \n")
-    tab.append("\\end{array}\\right] \\] \n")  # Added \\] to properly close the matrix environment
-    tab.append("\\end{document}")
 
     if out_path is None:
         out_path = myPars.path + 'output/'
@@ -291,12 +270,12 @@ def print_H_trans_to_tex(myPars: Pars, trans_matrix: np.ndarray, out_path: str =
         "\\[\n",  # Added this line to start the LaTeX math environment 
         tex_lhs_of_equals,
         "= \n",
-        "\\left[\\begin{array}{cc} \n"
+        "\\left[\\begin{array}{cc} \n",
+        f"{round(trans_matrix[0, 0], 2)} & {round(trans_matrix[0, 1], 2)} \\\\ \n",
+        f"{round(trans_matrix[1, 0], 2)} & {round(trans_matrix[1, 1], 2)} \n",
+        "\\end{array}\\right] \\] \n",
+        "\\end{document}"
     ]
-    tab.append(f"{round(trans_matrix[0, 0], 2)} & {round(trans_matrix[0, 1], 2)} \\\\ \n")
-    tab.append(f"{round(trans_matrix[1, 0], 2)} & {round(trans_matrix[1, 1], 2)} \n")
-    tab.append("\\end{array}\\right] \\] \n")  # Added \\] to properly close the matrix environment
-    tab.append("\\end{document}")
 
     if out_path is None:
         out_path = myPars.path + 'output/'  # Assuming `myPars.path` is available globally
@@ -304,7 +283,6 @@ def print_H_trans_to_tex(myPars: Pars, trans_matrix: np.ndarray, out_path: str =
         new_file_name = 'H_trans_test.tex'
     else:
         new_file_name = new_file_name + '.tex'
-    
     tb.list_to_tex(out_path, new_file_name, tab)
     tb.tex_to_pdf(out_path, new_file_name)
 
@@ -314,20 +292,21 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     tab = ["\\documentclass[border=3mm,preview]{standalone}",
             "\\begin{document}\n",
             "\\small\n",
-            "\\begin{tabular}{l l l l} \n"]
-    tab.append("\\hline \n")
-    tab.append("Parameter & Description & Value & Source \\\\ \n") 
-    tab.append("\\hline \n")
-    tab.append(f"$R$ & Gross interest rate  & {np.round(1 + myPars.r, 4)} & Benchmark \\\\ \n")
-    tab.append(f"$\\beta$ & Patience & {np.round(myPars.beta, 4)} & $1/R$ \\\\ \n")
-    tab.append(f"$\\sigma$ & CRRA & {np.round(myPars.sigma_util, 4)} & Benchmark \\\\ \n")
-    tab.append(f"$\\phi_n$ & Labor time-cost & {np.round(myPars.phi_n, 4)} & Benchmark \\\\ \n")
-    tab.append(f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n") 
-    tab.append(f"$\\omega_{{H=0}}$ & Low type pop. weight & {np.round(myPars.H_type_perm_weights[0], 4)} & UKHLS \\\\ \n") 
-    tab.append(f"$\\omega_{{H=1}}$ & High type pop. weight & {np.round(myPars.H_type_perm_weights[1], 4)} & $1-\\omega_{{H=0}}$ \\\\ \n") 
-    tab.append("\\hline \n")
-    tab.append("\\end{tabular}")
-    tab.append("\\end{document}")
+            "\\begin{tabular}{l l l l} \n"
+            "\\hline \n",
+            "Parameter & Description & Value & Source \\\\ \n",
+            "\\hline \n",
+            f"$R$ & Gross interest rate  & {np.round(1 + myPars.r, 4)} & Benchmark \\\\ \n",
+            f"$\\beta$ & Patience & {np.round(myPars.beta, 4)} & $1/R$ \\\\ \n",
+            f"$\\sigma$ & CRRA & {np.round(myPars.sigma_util, 4)} & Benchmark \\\\ \n",
+            f"$\\phi_n$ & Labor time-cost & {np.round(myPars.phi_n, 4)} & Benchmark \\\\ \n",
+            f"$\\phi_H$ & Health time-cost & {np.round(myPars.phi_H, 4)} & Benchmark \\\\ \n",
+            f"$\\omega_{{H=0}}$ & Low type pop. weight & {np.round(myPars.H_type_perm_weights[0], 4)} & UKHLS \\\\ \n",
+            f"$\\omega_{{H=1}}$ & High type pop. weight & {np.round(myPars.H_type_perm_weights[1], 4)} & $1-\\omega_{{H=0}}$ \\\\ \n",
+            "\\hline \n",
+            "\\end{tabular}\n",
+            "\\end{document}\n"
+            ]
     if path is None:
         path = myPars.path + 'output/'
     tex_file_name = 'parameters_exog.tex'
@@ -336,8 +315,6 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
 
 
 def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parameters.csv")-> None:
-    # store params in a csv 
-    # print a table of the calibration results
     if path is None:
         path = myPars.path + 'output/calibration/'
     else:
@@ -413,10 +390,4 @@ if __name__ == "__main__":
 
     path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     myPars = Pars(path, J=51)
-
-    # H_trans_type0 = np.array([[[1.0, 0.0], [.1, 0.9]],[[0.8, 0.2], [0.7, 0.3]]])
-    # H_trans_type1 = np.array([[[1.0, 0.0], [.1, 0.9]],[[0.8, 0.2], [0.7, 0.3]]])
-    out_path = path + 'trans_output_test/'
-    r2_test_arr = [[1,2,3,4,5],[1,2,3,4,5,6]]
-    table_r2_by_type_alg(myPars, r2_test_arr, out_path)
 

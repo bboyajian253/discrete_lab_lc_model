@@ -1,7 +1,7 @@
 """
 cluster_data.py
 
-This file contains the calibration code for the model.
+This file contains code used to read in data and cluster it based on a history of mental health data. 
 
 Author: Ben
 Date: 2024-08-25 22:44:38
