@@ -58,6 +58,7 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('leis_min', float64), #min possible choice for leisure
                 ('leis_max', float64), #max possible choice for leisure 
                 ('sim_draws', int64),       # number of simulation draws
+                ('sim_draw_weights', float64[:]), #weights for the simulation draws
                 ('J', int64),                 # number of time periods -1 (period 0 is first
                 ('print_screen', int64),  #indicator for what type of printing to do... may drop
                 ('interp_c_prime_grid', float64[:]),
@@ -202,6 +203,7 @@ class Pars() :
         self.age_grid = np.arange(self.start_age, self.end_age, 1)
 
         self.sim_draws = sim_draws
+        self.sim_draw_weights = np.ones(sim_draws) / sim_draws
         self.print_screen = print_screen
 
         self.state_space_shape = (self.a_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.H_type_perm_grid_size, self.J) 
