@@ -17,11 +17,7 @@ from numba.experimental import jitclass
 import time
 
 #a big list of parameter values for the model
-pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the earnings shock nu
-                ('sigma_eps_2', float64), # variance of innovations
-                ('sigma_nu0_2', float64), # variance of initial distribution of the persistent component
-                ('sigma_gamma_2', float64), # variance of initial dist of fixed effect on labor prod
-                ('lab_fe_grid', float64[:]), # a list of values for that fixed effect
+pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed effect
                 ('lab_fe_grid_size', int64), # the size of the list of values for that fixed effect
                 ('lab_fe_weights', float64[:]), # the weights for the fixed effect
                 ('beta', float64), # discount factor 

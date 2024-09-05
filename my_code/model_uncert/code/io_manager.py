@@ -108,6 +108,7 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
     return {
         'lab_fe_grid': pars_instance.lab_fe_grid,
         'lab_fe_grid_size': pars_instance.lab_fe_grid_size,
+        'lab_fe_weights': pars_instance.lab_fe_weights,
         'beta': pars_instance.beta,
         'alpha': pars_instance.alpha,
         'sigma_util': pars_instance.sigma_util,
@@ -119,8 +120,13 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'a_grid_growth': pars_instance.a_grid_growth,
         'a_grid': pars_instance.a_grid,
         'a_grid_size': pars_instance.a_grid_size,
+        'H_type_perm_grid': pars_instance.H_type_perm_grid,
+        'H_type_perm_grid_size': pars_instance.H_type_perm_grid_size,
+        'H_type_perm_weights': pars_instance.H_type_perm_weights,
+        'H_beg_pop_weights_by_H_type': pars_instance.H_beg_pop_weights_by_H_type,
         'H_grid': pars_instance.H_grid,
         'H_grid_size': pars_instance.H_grid_size,
+        'H_trans': pars_instance.H_trans,
         'state_space_shape': pars_instance.state_space_shape,
         'state_space_shape_no_j': pars_instance.state_space_shape_no_j,
         'state_space_no_j_size': pars_instance.state_space_no_j_size,
@@ -131,6 +137,7 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'leis_min': pars_instance.leis_min,
         'leis_max': pars_instance.leis_max,
         'sim_draws': pars_instance.sim_draws,
+        'sim_draw_weights': pars_instance.sim_draw_weights,
         'J': pars_instance.J,
         'print_screen': pars_instance.print_screen,
         'interp_c_prime_grid': pars_instance.interp_c_prime_grid,
@@ -144,9 +151,8 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'wH_coeff': pars_instance.wH_coeff,
         'wage_min': pars_instance.wage_min,
         'max_iters': pars_instance.max_iters,
-        'max_calib_iters': pars_instance.max_calib_iters,
+        'max_calib_iters': pars_instance.max_calib_iters
     }
-
 
 
 # run if main function
