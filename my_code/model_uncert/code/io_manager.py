@@ -30,6 +30,14 @@ def get_H_type_pop_shares(myPars: Pars, input_csv_path: str)-> Tuple[np.ndarray,
     type_pop_share = tb.read_matrix_from_csv(pop_share_path, column_index = 0)[:myPars.H_type_perm_grid_size]
     return H_beg_pop_weights, type_pop_share
 
+def get_H_trans_matrix(myPars: Pars, input_csv_path: str)-> np.ndarray:
+    """
+    read in data for myPars.H_trans from input_csv_path
+    *we may not need this function or we can write one that accounts for all the possible different shapes of
+    *the health transition matrix using the functions already written in io_manager
+    """
+    pass
+
 def read_and_shape_H_trans_full(myPars: Pars, path: str = None) -> np.ndarray:
     """
     Read in the full by age by type transition matrix for the health state and reshape it to the correct dimensions
@@ -98,7 +106,6 @@ def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parame
 
 def pars_to_dict(pars_instance: Pars) -> Dict:
     return {
-        'sigma_gamma_2': pars_instance.sigma_gamma_2,
         'lab_fe_grid': pars_instance.lab_fe_grid,
         'lab_fe_grid_size': pars_instance.lab_fe_grid_size,
         'beta': pars_instance.beta,

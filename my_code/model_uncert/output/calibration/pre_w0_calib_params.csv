@@ -1,5 +1,4 @@
 Parameter,Value
-sigma_gamma_2,0.0
 lab_fe_grid,[2.30258509 2.7080502  2.99573227 3.21887582]
 lab_fe_grid_size,4
 beta,0.9803921568627451

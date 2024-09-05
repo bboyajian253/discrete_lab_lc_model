@@ -249,7 +249,7 @@ def read_matrix_from_csv(file_path: str, column_index: int = 1, skip_header: boo
     return matrix
 
 @njit
-def gen_even_weights(matrix: np.ndarray) -> np.ndarray:
+def gen_even_row_weights(matrix: np.ndarray) -> np.ndarray:
     """
     generates even weights for each row of a matrix
     """

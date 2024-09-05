@@ -34,7 +34,7 @@ def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = Non
     print("intial wage coeff grid", w_coeff_grid)
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
-                alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_weights(w_coeff_grid),
+                alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 15, sigma_util = 0.9999,
                 print_screen=0)
    # Get and set some parameters 
@@ -54,16 +54,7 @@ def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = Non
         out_path = myPars.path + out_folder_name + '/'
 
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
-                          get_moments = True, output_flag = True, tex = True, output_path = out_path)
-
-
-# we may not need this function or we can write one that accounts for all the possible different shapes of
-# the health transition matrix using the functions already written in io_manager
-def get_H_trans_matrix(myPars: Pars, input_csv_path: str)-> np.ndarray:
-    """
-    read in data for myPars.H_trans from input_csv_path
-    """
-    pass
+                          get_targets = True, output_flag = True, tex = True, output_path = out_path)
 
 #run stuff here
 start_time = time.perf_counter()
