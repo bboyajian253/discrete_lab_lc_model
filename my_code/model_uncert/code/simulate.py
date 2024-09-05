@@ -28,7 +28,7 @@ def sim_lc_numba(myPars : Pars, myShocks: Shocks, sim_vals_list: List[np.ndarray
     [c_lc, lab_lc, a_prime_lc] = state_sols_list
 
     for j in prange(myPars.J):
-        for lab_fe_ind in prange(myPars.lab_FE_grid_size):
+        for lab_fe_ind in prange(myPars.lab_fe_grid_size):
             for H_type_perm_ind in prange(myPars.H_type_perm_grid_size):
                 for sim_ind in prange(myPars.sim_draws):
                     a = sim_a[lab_fe_ind, H_type_perm_ind, sim_ind, j] # get the a from the previous period

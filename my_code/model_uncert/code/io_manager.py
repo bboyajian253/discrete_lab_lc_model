@@ -14,11 +14,21 @@ by @author Ben Boyajian
 import numpy as np
 import csv 
 import os
-from typing import Dict
+from typing import Dict, Tuple
 
 # my code
 import my_toolbox as tb
 from pars_shocks import Pars, Shocks
+
+def get_H_type_pop_shares(myPars: Pars, input_csv_path: str)-> Tuple[np.ndarray, np.ndarray]:
+    """
+    read in data for myPars.H_beg_pop_weights_by_H_type and myPars.H_type_perm_weights from input_csv_path
+    return H_beg_pop_weights, type_pop_share
+    """
+    pop_share_path = input_csv_path
+    H_beg_pop_weights = tb.read_specific_row_from_csv(pop_share_path, 0)[myPars.H_type_perm_grid_size:].reshape(myPars.H_type_perm_grid_size, myPars.H_grid_size)
+    type_pop_share = tb.read_matrix_from_csv(pop_share_path, column_index = 0)[:myPars.H_type_perm_grid_size]
+    return H_beg_pop_weights, type_pop_share
 
 def read_and_shape_H_trans_full(myPars: Pars, path: str = None) -> np.ndarray:
     """
@@ -117,10 +127,10 @@ def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
         "\\hline \n",
         "Constant wage coeff. & Ability Level & Value & Weight \\\\ \n",
         "\\hline \n",
-        f"$w_{{0\\gamma_{{1}}}}$ & Low & {round(np.exp(myPars.wage_coeff_grid[0, 0]))} & {round(myPars.lab_FE_weights[0],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{2}}}}$ & Medium & {round(np.exp(myPars.wage_coeff_grid[1, 0]))} & {round(myPars.lab_FE_weights[1],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{3}}}}$ & Medium High & {round(np.exp(myPars.wage_coeff_grid[2, 0]))} & {round(myPars.lab_FE_weights[2],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{4}}}}$ & High & {round(np.exp(myPars.wage_coeff_grid[3, 0]))} & {round(myPars.lab_FE_weights[3],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{1}}}}$ & Low & {round(np.exp(myPars.wage_coeff_grid[0, 0]))} & {round(myPars.lab_fe_weights[0],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{2}}}}$ & Medium & {round(np.exp(myPars.wage_coeff_grid[1, 0]))} & {round(myPars.lab_fe_weights[1],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{3}}}}$ & Medium High & {round(np.exp(myPars.wage_coeff_grid[2, 0]))} & {round(myPars.lab_fe_weights[2],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{4}}}}$ & High & {round(np.exp(myPars.wage_coeff_grid[3, 0]))} & {round(myPars.lab_fe_weights[3],2)} \\\\ \n",
         "\\hline \n",
         "Target Moment & Target Value & Model Value & \\\\ \n",
         "\\hline \n",
@@ -315,6 +325,10 @@ def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
 
 
 def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parameters.csv")-> None:
+    """
+    prints the parametes from myPars to a csv file
+    takes in the path and file name with a .csv extension
+    """
     if path is None:
         path = myPars.path + 'output/calibration/'
     else:
@@ -331,8 +345,8 @@ def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parame
 def pars_to_dict(pars_instance: Pars) -> Dict:
     return {
         'sigma_gamma_2': pars_instance.sigma_gamma_2,
-        'lab_FE_grid': pars_instance.lab_FE_grid,
-        'lab_FE_grid_size': pars_instance.lab_FE_grid_size,
+        'lab_fe_grid': pars_instance.lab_fe_grid,
+        'lab_fe_grid_size': pars_instance.lab_fe_grid_size,
         'beta': pars_instance.beta,
         'alpha': pars_instance.alpha,
         'sigma_util': pars_instance.sigma_util,
@@ -346,7 +360,6 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'a_grid_size': pars_instance.a_grid_size,
         'H_grid': pars_instance.H_grid,
         'H_grid_size': pars_instance.H_grid_size,
-        'H_weights': pars_instance.H_weights,
         'state_space_shape': pars_instance.state_space_shape,
         'state_space_shape_no_j': pars_instance.state_space_shape_no_j,
         'state_space_no_j_size': pars_instance.state_space_no_j_size,

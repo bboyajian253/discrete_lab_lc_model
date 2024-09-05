@@ -41,7 +41,7 @@ def simulate_test(start_time):
     my_toolbox.print_exec_time("Beginning to initilize pars", start_time)
 
     new_start_time = time()
-    myPars = pars_shocks_and_wages.Pars(print_screen=0, a_grid_size=300, lab_FE_grid=np.array([0.5, 1.0, 1.5, 2.0]))
+    myPars = pars_shocks_and_wages.Pars(print_screen=0, a_grid_size=300, lab_fe_grid=np.array([0.5, 1.0, 1.5, 2.0]))
     my_toolbox.print_exec_time("Pars 1 compiled and initialized in", new_start_time)
 
     new_start_time = time()

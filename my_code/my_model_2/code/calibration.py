@@ -80,10 +80,10 @@ def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
         "\\hline \n",
         "Constant wage coeff. & Ability Level & Value & Weight \\\\ \n",
         "\\hline \n",
-        f"$w_{{0\\gamma_{{1}}}}$ & Low & {round(np.exp(myPars.wage_coeff_grid[0, 0]))} & {round(myPars.lab_FE_weights[0],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{2}}}}$ & Medium & {round(np.exp(myPars.wage_coeff_grid[1, 0]))} & {round(myPars.lab_FE_weights[1],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{3}}}}$ & Medium High & {round(np.exp(myPars.wage_coeff_grid[2, 0]))} & {round(myPars.lab_FE_weights[2],2)} \\\\ \n",
-        f"$w_{{0\\gamma_{{4}}}}$ & High & {round(np.exp(myPars.wage_coeff_grid[3, 0]))} & {round(myPars.lab_FE_weights[3],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{1}}}}$ & Low & {round(np.exp(myPars.wage_coeff_grid[0, 0]))} & {round(myPars.lab_fe_weights[0],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{2}}}}$ & Medium & {round(np.exp(myPars.wage_coeff_grid[1, 0]))} & {round(myPars.lab_fe_weights[1],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{3}}}}$ & Medium High & {round(np.exp(myPars.wage_coeff_grid[2, 0]))} & {round(myPars.lab_fe_weights[2],2)} \\\\ \n",
+        f"$w_{{0\\gamma_{{4}}}}$ & High & {round(np.exp(myPars.wage_coeff_grid[3, 0]))} & {round(myPars.lab_fe_weights[3],2)} \\\\ \n",
         "\\hline \n",
         "Target Moment & Target Value & Model Value & \\\\ \n",
         "\\hline \n",
@@ -108,7 +108,7 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     tab.append("\\hline \n")
     tab.append(" Parameter & $\\gamma_1$ &  $\\gamma_2$ & $\\gamma_3$ & $\\gamma_4$ & Description & Source \\\\ \n") 
     tab.append("\\hline \n")   
-    # for i in myPars.lab_FE_grid:
+    # for i in myPars.lab_fe_grid:
     #     tab.append(f"$\\beta_{{{i}\\gamma}}$ & {myPars.wage_coeff_grid[0][i]} &  {myPars.wage_coeff_grid[1][i]} & {myPars.wage_coeff_grid[2][i]} & $j^{{{i}}}$ Coeff. & Moment Matched \\\\ \n") 
     tab.append(f"""$w_{{0\\gamma}}$ & {round(myPars.wage_coeff_grid[0][0], 3)} & {round(myPars.wage_coeff_grid[1][0], 3)} 
                & {round(myPars.wage_coeff_grid[2][0], 3)} 
@@ -177,8 +177,8 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'nu_grid_size': pars_instance.nu_grid_size,
         'nu_trans': pars_instance.nu_trans,
         'sigma_gamma_2': pars_instance.sigma_gamma_2,
-        'lab_FE_grid': pars_instance.lab_FE_grid,
-        'lab_FE_grid_size': pars_instance.lab_FE_grid_size,
+        'lab_fe_grid': pars_instance.lab_fe_grid,
+        'lab_fe_grid_size': pars_instance.lab_fe_grid_size,
         'beta': pars_instance.beta,
         'alpha': pars_instance.alpha,
         'sigma_util': pars_instance.sigma_util,
@@ -293,7 +293,7 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
     my_weights = tb.weights_to_match_mean_sd(first_per_wages_H_weighted, mean_target, sd_target)
 
-    myPars.lab_FE_weights = my_weights
+    myPars.lab_fe_weights = my_weights
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
@@ -312,7 +312,7 @@ def w0_moments(myPars: Pars)-> Tuple[float, float]:
     first_per_wages_H_weighted = np.dot(first_per_wages, myPars.H_weights)
     # print(f"first_per_wages_H_weighted = {first_per_wages_H_weighted}")
 
-    mean_first_per_wage = np.dot(myPars.lab_FE_weights, first_per_wages_H_weighted)
+    mean_first_per_wage = np.dot(myPars.lab_fe_weights, first_per_wages_H_weighted)
     # print(f"mean_first_per_wage = {mean_first_per_wage}")
 
     # Calculate the deviations from the weighted mean
@@ -320,7 +320,7 @@ def w0_moments(myPars: Pars)-> Tuple[float, float]:
     # print(f"deviations = {deviations}")
 
     # Calculate the weighted variance
-    weighted_variance = np.dot(myPars.lab_FE_weights, deviations**2)
+    weighted_variance = np.dot(myPars.lab_fe_weights, deviations**2)
     # print(f"weighted_variance = {weighted_variance}")
 
     # Calculate the weighted standard deviation
@@ -352,7 +352,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
     get_w1_diff = lambda new_coeff: w1_moment_giv_w1(myPars, main_path, new_coeff) - target
     calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, myPars.max_iters, myPars.print_screen)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
-    for i in range (1, myPars.lab_FE_grid_size):
+    for i in range (1, myPars.lab_fe_grid_size):
         myPars.wage_coeff_grid[i, 1] = calibrated_w1
 
     # solve, simulate and plot model for the calibrated w1
@@ -368,7 +368,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
     return calibrated_w1, w1_moment, state_sols, sim_lc
 
 def w1_moment_giv_w1(myPars: Pars, main_path: str, new_coeff: float)-> float:
-    for i in range (1, myPars.lab_FE_grid_size): #skip the first so the comparison group has no wage growth  
+    for i in range (1, myPars.lab_fe_grid_size): #skip the first so the comparison group has no wage growth  
         myPars.wage_coeff_grid[i, 1] = new_coeff
     return w1_moment(myPars)
 
@@ -398,7 +398,7 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
     # search for the w2 that is the zero of the lambda function
     calibrated_w2 = tb.bisection_search(get_w2_diff, w2_min, w2_max, tol, myPars.max_iters, myPars.print_screen)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
-    for i in range (1, myPars.lab_FE_grid_size):
+    for i in range (1, myPars.lab_fe_grid_size):
         myPars.wage_coeff_grid[i, 2] = calibrated_w2
     
     # solve, simulate and plot model for the calibrated w2
@@ -414,7 +414,7 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
     return calibrated_w2, w2_moment, state_sols, sim_lc
 
 def w2_moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
-    for i in range (1, myPars.lab_FE_grid_size):
+    for i in range (1, myPars.lab_fe_grid_size):
         myPars.wage_coeff_grid[i, 2] = new_coeff
     return w2_moment(myPars)
 
@@ -464,12 +464,12 @@ def wH_moment(myPars: Pars)-> float:
 
     # get the mean of the wage sims when the agent is healthy
     healthy_wages = wage_sims[:,1,:,:][:,0,:]
-    mean_healthy_wage_by_age = np.dot(myPars.lab_FE_weights, healthy_wages)
+    mean_healthy_wage_by_age = np.dot(myPars.lab_fe_weights, healthy_wages)
     mean_healthy_wage = np.mean(mean_healthy_wage_by_age)
 
     # get the mean of the wage sims when the agent is unhealthy
     unhealthy_wages = wage_sims[:,0,:,:][:,0,:]
-    mean_unhealthy_wage_by_age = np.dot(myPars.lab_FE_weights, unhealthy_wages)
+    mean_unhealthy_wage_by_age = np.dot(myPars.lab_fe_weights, unhealthy_wages)
     mean_unhealthy_wage = np.mean(mean_unhealthy_wage_by_age)
 
     wage_diff = log(mean_healthy_wage) - log(mean_unhealthy_wage)
@@ -538,7 +538,7 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
                                 w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ},
                                 wH = {myPars.wH_coeff}, wH moment = {my_wH_moment}, wH mom targ = {wH_mom_targ},""")
                             print( f"alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ}")
-                            return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
+                            return myPars.alpha, myPars.lab_fe_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
 
     # calibration does not converge
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
@@ -547,31 +547,31 @@ def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_tar
         w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_moment}, w2 mom targ = {w2_mom_targ},
         wH = {myPars.wH_coeff}, wH moment = {my_wH_moment}, wH mom targ = {wH_mom_targ},""")
     print( f"alpha = {myPars.alpha}, alpha moment = {my_alpha_moment}, alpha mom targ = {alpha_mom_targ}")
-    return myPars.alpha, myPars.lab_FE_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
+    return myPars.alpha, myPars.lab_fe_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
     
 
 if __name__ == "__main__":
         start_time = time.perf_counter()
         main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/my_model_2/"
         
-        # my_lab_FE_grid = np.array([10.0, 20.0, 30.0, 40.0])
-        my_lab_FE_grid = np.array([10.0, 20.0, 30.0])
+        # my_lab_fe_grid = np.array([10.0, 20.0, 30.0, 40.0])
+        my_lab_fe_grid = np.array([10.0, 20.0, 30.0])
         lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
         quad_wage_coeffs = [-0.000, -0.030, -0.030, -0.030] 
         cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
 
-        num_FE_types = len(my_lab_FE_grid)
+        num_FE_types = len(my_lab_fe_grid)
         w_coeff_grid = np.zeros([num_FE_types, 4])
         
-        w_coeff_grid[0, :] = [my_lab_FE_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
-        w_coeff_grid[1, :] = [my_lab_FE_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
-        w_coeff_grid[2, :] = [my_lab_FE_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-        #w_coeff_grid[3, :] = [my_lab_FE_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
+        w_coeff_grid[0, :] = [my_lab_fe_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
+        w_coeff_grid[1, :] = [my_lab_fe_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
+        w_coeff_grid[2, :] = [my_lab_fe_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
+        #w_coeff_grid[3, :] = [my_lab_fe_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
 
         print("intial wage coeff grid")
         print(w_coeff_grid)
 
-        myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, lab_FE_grid = my_lab_FE_grid,
+        myPars = Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, lab_fe_grid = my_lab_fe_grid,
                     H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000,
                     wage_coeff_grid = w_coeff_grid,
                     print_screen=0)

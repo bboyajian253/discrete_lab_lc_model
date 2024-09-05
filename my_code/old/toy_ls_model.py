@@ -30,7 +30,7 @@ model_dat = [   ('w_determ_cons', float64), # constant
                 ('sigma_eps_2', float64), # variance of innovations
                 ('sigma_nu0_2', float64), # variance of initial distribution of the persistent component 
                 ('sigma_gamma_2', float64), # variance of initial dist of fixed effect on labor prod
-                ('lab_FE_list', float64[:]),
+                ('lab_fe_list', float64[:]),
                 ('beta', float64), # discount factor 
                 ('alpha', float64), # cobb douglass returns to consumption
                 ('sigma_util', float64), # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
@@ -82,7 +82,7 @@ class toy_ls_model() :
             # gamma fixed productiviy drawn at birth
             sigma_gamma_2 = 0.051, # variance of initial dist of fixed effect on labor prod
             #a discrete list of productivities to use for testing
-            lab_FE_list = np.array([0.0,0.051]),
+            lab_fe_list = np.array([0.0,0.051]),
             
             # utility parameters
             beta = 0.95, # discount factor 
@@ -125,7 +125,7 @@ class toy_ls_model() :
            
         # gamma fixed productiviy drawn at birth
         self.sigma_gamma_2 = sigma_gamma_2
-        self.lab_FE_list = lab_FE_list
+        self.lab_fe_list = lab_fe_list
         
         #iniatlize utlity parameters
         self.beta,self.alpha,self.sigma_util = beta,alpha,sigma_util
@@ -223,7 +223,7 @@ class toy_ls_model() :
             return self.a_choice_specific_util(0, a_t, age, health, fixed_effect, persistent_shock)
         else : # if time from 0 to nt-1 
             a_tp1_loc = np.where(self.a_grid == a_tp1)[0][0] #get the location of this asset choice in the grid
-            fe_loc = np.where(self.lab_FE_list == fixed_effect)[0][0]
+            fe_loc = np.where(self.lab_fe_list == fixed_effect)[0][0]
             
             cont_val = self._VF[age+1,a_tp1_loc,health,fe_loc]
             curr_util = self.a_choice_specific_util(a_tp1, a_t, age, health, fixed_effect, persistent_shock)
@@ -316,8 +316,8 @@ class toy_ls_model() :
                 #  a_tp1_loc = np.where(self.a_grid == a_tp1)[0][0] #get the location of this asset choice in the grid
                 #at_loc = np.where(self.a_grid == a_t)[0][0]
                 #for gamma in fixed effects maybe keep it to just 2 for now
-                for fixed_effect in self.lab_FE_list:
-                    fe_loc = np.where(self.lab_FE_list == fixed_effect)[0][0]
+                for fixed_effect in self.lab_fe_list:
+                    fe_loc = np.where(self.lab_fe_list == fixed_effect)[0][0]
                     #for health in health_statuss just two rn this is the previous health state deal with transition probs in the expectation
                     for curr_health in prange(2):                                                 
                         if t<self.nt: #its not the last period

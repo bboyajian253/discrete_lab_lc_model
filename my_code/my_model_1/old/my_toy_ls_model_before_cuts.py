@@ -195,7 +195,7 @@ if __name__ == "__main__":
     for age in prange(myPars.J+1):
         for pers_shock in myPars.nu_grid: 
             for health in reversed(prange(2)):
-                for fe in myPars.lab_FE_grid:
+                for fe in myPars.lab_fe_grid:
                     my_inc = lab_inc(myPars, age, health, pers_shock, fe)
                     print('For age ', age, ' persistent shock ', pers_shock, ' health ', health, ' and fixed effect ', fe)
                     print('The labor income is: ', my_inc)

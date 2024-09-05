@@ -68,12 +68,12 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
             
             if myPars.print_screen >= 2:
                 for state in range(np.prod(myPars.state_space_shape_no_j)):
-                    a_ind, lab_FE_ind, H_ind, nu_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
-                    ind_tuple = (a_ind, lab_FE_ind, H_ind, nu_ind, j) # also incorporate j in the tuple
+                    a_ind, lab_fe_ind, H_ind, nu_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
+                    ind_tuple = (a_ind, lab_fe_ind, H_ind, nu_ind, j) # also incorporate j in the tuple
                     # Create row elements without using f-strings
                     state_row = ['state:', state, 
                                 'a:', myPars.a_grid[a_ind], 
-                                'lab_FE:', myPars.lab_FE_grid[lab_FE_ind], 
+                                'lab_fe:', myPars.lab_fe_grid[lab_fe_ind], 
                                 'H:', myPars.H_grid[H_ind], 
                                 'nu:', myPars.nu_grid[nu_ind], 
                                 'j:', j]
@@ -121,12 +121,12 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
     for state in prange(myPars.state_space_no_j_size): #can be parellized with prange messes up order of any printings in the loop
         
         # Get state indices and values
-        a_prime_ind, lab_FE_ind, H_ind, nu_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
-        a_prime, lab_FE, H, nu = myPars.a_grid[a_prime_ind], myPars.lab_FE_grid[lab_FE_ind], myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]
-        ind_tuple = (a_prime_ind, lab_FE_ind, H_ind, nu_ind)
+        a_prime_ind, lab_fe_ind, H_ind, nu_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
+        a_prime, lab_fe, H, nu = myPars.a_grid[a_prime_ind], myPars.lab_fe_grid[lab_fe_ind], myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]
+        ind_tuple = (a_prime_ind, lab_fe_ind, H_ind, nu_ind)
 
         # Get current wage ***AND FUTURE WAGE IF WAGE VARIES?***
-        curr_wage = model.wage(myPars, j, lab_FE_ind, H_ind, nu_ind)
+        curr_wage = model.wage(myPars, j, lab_fe_ind, H_ind, nu_ind)
         
 
         # Get  period solutions
@@ -138,7 +138,7 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
             c =  max(myPars.c_min, c)
         else:
             c_prime = mat_c_prime[ind_tuple]
-            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE_ind, H_ind, nu_ind, c_prime)
+            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_fe_ind, H_ind, nu_ind, c_prime)
         
         # Store state specific solutions
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a
@@ -167,17 +167,17 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, la
 
     evals = np.copy(myPars.a_grid)
     evals = evals.reshape(myPars.a_grid_size, 1)
-    state_size_no_aj =  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size 
+    state_size_no_aj =  myPars.lab_fe_grid_size * myPars.H_grid_size * myPars.nu_grid_size 
     
     for state in range(state_size_no_aj) :
-        lab_fe_ind, H_ind, nu_ind = tb.D3toD1(state, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
+        lab_fe_ind, H_ind, nu_ind = tb.D3toD1(state, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
         #convert soltuions from functions of a_prime to functions of a
         points = (mat_a_ap[:, lab_fe_ind, H_ind, nu_ind],)
         
         # Debugging statements
         # print(f"state: {state} lab_fe_ind: {lab_fe_ind} H_ind: {H_ind} nu_ind: {nu_ind}")
         # print(f"points: {points}")
-        # print(f"mat_c_ap[:, lab_FE_ind, H_ind, nu_ind]: {mat_c_ap[:, lab_fe_ind, H_ind, nu_ind]}")
+        # print(f"mat_c_ap[:, lab_fe_ind, H_ind, nu_ind]: {mat_c_ap[:, lab_fe_ind, H_ind, nu_ind]}")
         # print(f"evals: {evals}")
 
         mat_c_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, mat_c_ap[:, lab_fe_ind, H_ind, nu_ind], evals)
@@ -193,5 +193,5 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, la
 
 if __name__ == "__main__":
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/Main_Git_Clone/Model/My Code/my_model_2/output"
-    myPars = Pars(main_path, J=25, a_grid_size=5, a_min= -5.0, a_max = 5.0, lab_FE_grid=np.array([0.0, 0.5, 1.0]), H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.5, )
+    myPars = Pars(main_path, J=25, a_grid_size=5, a_min= -5.0, a_max = 5.0, lab_fe_grid=np.array([0.0, 0.5, 1.0]), H_grid=np.array([0.0]), nu_grid_size=1, alpha = 0.5, )
     solve_lc(myPars)

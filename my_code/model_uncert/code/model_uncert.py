@@ -216,10 +216,10 @@ def gen_wages(myPars: Pars) -> np.ndarray:
     """
     generate the wage grid
     """
-    wage_grid = np.zeros((myPars.lab_FE_grid_size, myPars.H_grid_size,  myPars.J))
+    wage_grid = np.zeros((myPars.lab_fe_grid_size, myPars.H_grid_size,  myPars.J))
     for j in range(myPars.J):
         for h_ind in range(myPars.H_grid_size):
-            for lab_fe_ind in range(myPars.lab_FE_grid_size):
+            for lab_fe_ind in range(myPars.lab_fe_grid_size):
                 wage_grid[lab_fe_ind, h_ind, j] = wage(myPars, j, lab_fe_ind, h_ind)
     return wage_grid
 
@@ -227,15 +227,15 @@ def gen_wages(myPars: Pars) -> np.ndarray:
 def gen_weighted_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
     """
     generate the fully weighted wage history this function weights 
-    by simulation draws, H_type_perm_weights, and lab_FE_weights
+    by simulation draws, H_type_perm_weights, and lab_fe_weights
     myPars.H_beg_pop_weights_by_H_type weights accounted for in myPars.H_hist 
     """
     sim_weight = 1/myPars.sim_draws
     H_hist = myShocks.H_hist
     wage_hist = np.empty(H_hist.shape)
-    for lab_fe_ind in range(myPars.lab_FE_grid_size):
+    for lab_fe_ind in range(myPars.lab_fe_grid_size):
         for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
-            type_pop_weight = myPars.lab_FE_weights[lab_fe_ind] * myPars.H_type_perm_weights[H_type_perm_ind]
+            type_pop_weight = myPars.lab_fe_weights[lab_fe_ind] * myPars.H_type_perm_weights[H_type_perm_ind]
             for sim_ind in range(myPars.sim_draws):
                 for j in range(myPars.J):
                     my_H = H_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j]
@@ -250,8 +250,8 @@ def gen_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
     generate the wage history unweighted
     though H_hist is weighted by H_beg_pop_weights_by_H_type
     """
-    wage_hist = np.empty((myPars.lab_FE_grid_size, myPars.H_type_perm_grid_size, myPars.sim_draws, myPars.J))
-    for lab_fe_ind in range(myPars.lab_FE_grid_size):
+    wage_hist = np.empty((myPars.lab_fe_grid_size, myPars.H_type_perm_grid_size, myPars.sim_draws, myPars.J))
+    for lab_fe_ind in range(myPars.lab_fe_grid_size):
         for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
             for sim_ind in range(myPars.sim_draws):
                 for j in range(myPars.J):
@@ -263,9 +263,9 @@ def gen_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
 def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     """
     generate the weighted simulation
-    weigthed by simulation draws, H_type_perm_weights, and lab_FE_weights
+    weigthed by simulation draws, H_type_perm_weights, and lab_fe_weights
     """
-    weighted_sim = lc_moment_sim * myPars.lab_FE_weights[:, np.newaxis, np.newaxis, np.newaxis]
+    weighted_sim = lc_moment_sim * myPars.lab_fe_weights[:, np.newaxis, np.newaxis, np.newaxis]
     weighted_sim = weighted_sim * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis, np.newaxis]
     sim_draws_weight = myPars.sim_draw_weights[np.newaxis, np.newaxis, :, np.newaxis]
     weighted_sim = weighted_sim * sim_draws_weight

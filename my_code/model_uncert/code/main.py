@@ -8,6 +8,8 @@ Date: 2024-05-31 11:38:38
 # General
 import time
 import numpy as np
+from numba import njit
+from typing import Tuple
 # My code
 import pars_shocks as ps
 from pars_shocks import Pars, Shocks
@@ -20,69 +22,72 @@ import run
 import io_manager as io
 
     
-def main_io( H_trans_ind: int = 0, out_folder_name: str = None, H_trans_path: str = None):
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None) -> None:
     if out_folder_name is not None:
         print(f"*****Running main_io with out_folder_name = {out_folder_name}*****")
     else:
         print(f"*****Running main_io with default out_folder_name*****")
 
     # Set wage coefficients
-    my_lab_FE_grid = np.array([10.0, 15.0, 20.0, 25.0])
-    my_lab_FE_grid = np.log(my_lab_FE_grid)
-    w_coeff_grid = gen_def_wage_coeffs(my_lab_FE_grid, num_wage_terms = 4)
-
+    my_lab_fe_grid = np.array([10.0, 15.0, 20.0, 25.0])
+    my_lab_fe_grid = np.log(my_lab_fe_grid)
+    w_coeff_grid = gen_default_wage_coeffs(my_lab_fe_grid)
     print("intial wage coeff grid", w_coeff_grid)
+    init_lab_fe_weights = tb.gen_even_weights(w_coeff_grid)
 
-    # Generate weights for wage coefficients
-    my_lab_FE_weights = tb.gen_even_weights(w_coeff_grid)
-
-    # Set parameters
-    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), H_weights=np.array([0.5, 0.5]),
-                alpha = 0.45, sim_draws=1000, lab_FE_grid = my_lab_FE_grid, lab_FE_weights = my_lab_FE_weights,
+    # Initialize parameters
+    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
+                alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights = init_lab_fe_weights,
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 15, sigma_util = 0.9999,
                 print_screen=0)
-    
-    # Get population shares
-    k_means_path = main_path + "input/k-means/"
-    pop_share_path = k_means_path + "MH_clust_k2_pop_shares.csv"
-    H_beg_pop_weights = tb.read_specific_row_from_csv(pop_share_path, 0)[myPars.H_type_perm_grid_size:].reshape(myPars.H_type_perm_grid_size, myPars.H_grid_size)
-    type_pop_share = tb.read_matrix_from_csv(pop_share_path, column_index = 0)[:myPars.H_type_perm_grid_size]
-    myPars.H_beg_pop_weights_by_H_type = H_beg_pop_weights
-    myPars.H_type_perm_weights = type_pop_share
-
-    # Get health transition matrix
-    out_path = None
-    if out_folder_name is not None:
-        out_path = myPars.path + out_folder_name + '/'
+   # Get and set some parameters 
+    if H_type_pop_share_path is None:
+        H_type_pop_share_path = main_path + "input/k-means/" + "MH_clust_k2_pop_shares.csv"
+    myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights = io.get_H_type_pop_shares(myPars, H_type_pop_share_path)
     if H_trans_path is not None:
         myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
     else:
         print("Using default health transition matrix")
+    myShocks = Shocks(myPars)
     
     print(f"Age {myPars.age_grid[0]} health transitions:")
     print(myPars.H_trans[:,0,:,:])
-    myShocks = Shocks(myPars)
+    out_path = None
+    if out_folder_name is not None:
+        out_path = myPars.path + out_folder_name + '/'
 
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
                           get_moments = True, output_flag = True, tex = True, output_path = out_path)
 
-def gen_def_wage_coeffs(lab_FE_grid: np.ndarray, num_wage_terms = 4)-> np.ndarray:
-    w_coeff_grid = np.zeros([len(lab_FE_grid), num_wage_terms]) 
-    w_coeff_grid[0, :] = [lab_FE_grid[0], 0.0, 0.0, 0.0]
-    for lab_fe_index in range(1,len(lab_FE_grid)):
-        w_coeff_grid[lab_fe_index, :] = [lab_FE_grid[lab_fe_index], 1.0, -0.02, 0.0] 
+@njit
+def gen_default_wage_coeffs(lab_fe_grid: np.ndarray, num_wage_terms = 4)-> np.ndarray:
+    """
+    Generate default wage coefficients
+    the constant wage term comes from lab_fe_grid the rest are set to dummies
+    w_coeff_grid[0, :] = [lab_fe_grid[0], 0.0, 0.0, 0.0] so that the first lab_fe type has no wage growth
+    """
+    num_lab_fe = lab_fe_grid.shape[0] # ensures numba compatibility to use shape instead of len 
+    w_coeff_grid = np.zeros((num_lab_fe, num_wage_terms)) 
+    w_coeff_grid[0, :] = [lab_fe_grid[0], 0.0, 0.0, 0.0]
+    for lab_fe_index in range(1,len(lab_fe_grid)):
+        w_coeff_grid[lab_fe_index, :] = [lab_fe_grid[lab_fe_index], 1.0, -0.02, 0.0] 
     return w_coeff_grid
+
+# we may not need this function or we can write one that accounts for all the possible different shapes of
+# the health transition matrix using the functions already written in io_manager
+def get_H_trans_matrix(myPars: Pars, input_csv_path: str)-> np.ndarray:
+    """
+    read in data for myPars.H_trans from input_csv_path
+    """
+    pass
 
 #run stuff here
 start_time = time.perf_counter()
 print("Running main")
-main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-# trans_path = main_path + "input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
+main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 trans_path = main_path + "input/k-means/MH_trans_by_MH_clust_age.csv"
-# of_name = "output"
 of_name = None
-main_io(out_folder_name = of_name, H_trans_path = trans_path)
+main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
 
 tb.print_exec_time("Main.py executed in", start_time) 

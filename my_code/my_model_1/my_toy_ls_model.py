@@ -123,9 +123,9 @@ def mat_future_cps(myPars : Pars, mat_cp_flat_shocks) :
 
 # take the expecteation over the possible c_primes
 @njit
-def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu) :
+def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_fe, health, nu) :
     #state_probs = myPars.H_by_nu_flat_trans
-    lab_FE_ind = np.where(myPars.lab_FE_grid == lab_FE)[0][0]
+    lab_fe_ind = np.where(myPars.lab_fe_grid == lab_fe)[0][0]
     h_ind = np.where(myPars.H_grid == health)[0][0]
     nu_ind = np.where(myPars.nu_grid == nu)[0][0]
     
@@ -139,9 +139,9 @@ def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu
     for i in range(myPars.H_by_nu_size) :
         H_ind, nu_ind = my_toolbox.D2toD1(i, myPars.H_grid_size, myPars.nu_grid_size)
         next_age = j + 1
-        possible_wages[i] = wage(myPars, next_age, lab_FE, myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]) 
+        possible_wages[i] = wage(myPars, next_age, lab_fe, myPars.H_grid[H_ind], myPars.nu_grid[nu_ind]) 
 
-    #mat_wages_by_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
+    #mat_wages_by_shocks = myPars.wage_grid[j+1, lab_fe_ind, :, :]
     #possible_wages = mat_wages_by_shocks.flatten()
 
     possible_c_primes = mat_future_cps(myPars, mat_cp_flat_shocks)
@@ -151,10 +151,10 @@ def expect_util_c_prime(myPars : Pars, mat_cp_flat_shocks, j, lab_FE, health, nu
 
 
 @njit
-def infer_c(myPars : Pars,  curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu, c_prime_test) :
+def infer_c(myPars : Pars,  curr_wage, mat_cp_flat_shocks, j, lab_fe, health, nu, c_prime_test) :
     #expect = util_c(myPars, c_prime, wage) #need to change this to actually do expectation over shocks/states 
-    #expect = expect_util_c_prime(myPars, mat_cp_flat_shocks, j, lab_FE, health, nu)
-    expect = util_c(myPars, c_prime_test, wage(myPars, j+1, lab_FE, health, nu))
+    #expect = expect_util_c_prime(myPars, mat_cp_flat_shocks, j, lab_fe, health, nu)
+    expect = util_c(myPars, c_prime_test, wage(myPars, j+1, lab_fe, health, nu))
     rhs = myPars.beta * (1 + myPars.r) * expect
     return util_c_inv(myPars, rhs, curr_wage)
 

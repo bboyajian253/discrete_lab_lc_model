@@ -182,6 +182,6 @@ if __name__ == "__main__":
     for health in myPars.H_grid:
         for j in range(myPars.J):
             for nu in myPars.nu_grid:
-                for lab_fe in myPars.lab_FE_grid:
+                for lab_fe in myPars.lab_fe_grid:
                    myWage = wage(myPars, j, lab_fe, health, nu)
                    print(f'The wage for state health={health}, age={j}, lab_fe ={lab_fe}, nu = {nu} is \n {myWage}')

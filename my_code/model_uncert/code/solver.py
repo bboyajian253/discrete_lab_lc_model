@@ -58,12 +58,12 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
             
             if myPars.print_screen >= 2:
                 for state in range(np.prod(myPars.state_space_shape_no_j)):
-                    a_ind, lab_FE_ind, H_ind, H_type_perm_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.H_type_perm_grid_size)
-                    ind_tuple = (a_ind, lab_FE_ind, H_ind, H_type_perm_ind, j) # also incorporate j in the tuple
+                    a_ind, lab_fe_ind, H_ind, H_type_perm_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.H_type_perm_grid_size)
+                    ind_tuple = (a_ind, lab_fe_ind, H_ind, H_type_perm_ind, j) # also incorporate j in the tuple
                     # Create row elements without using f-strings
                     state_row = ['state:', state, 
                                 'a:', myPars.a_grid[a_ind], 
-                                'lab_FE:', myPars.lab_FE_grid[lab_FE_ind], 
+                                'lab_fe:', myPars.lab_fe_grid[lab_fe_ind], 
                                 'H:', myPars.H_grid[H_ind], 
                                 'H_type_perm:', myPars.H_type_perm_grid[H_type_perm_ind], 
                                 'j:', j]
@@ -99,10 +99,10 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
     
     for state in prange(myPars.state_space_no_j_size): #can be parellized with prange messes up order of any printings in the loop
         # Get state indices and values
-        a_prime_ind, lab_FE_ind, H_ind, H_type_perm_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.H_type_perm_grid_size)
-        a_prime, lab_FE, H, H_type_perm= myPars.a_grid[a_prime_ind], myPars.lab_FE_grid[lab_FE_ind], myPars.H_grid[H_ind], myPars.H_type_perm_grid[H_type_perm_ind]
-        ind_tuple = (a_prime_ind, lab_FE_ind, H_ind, H_type_perm_ind)
-        curr_wage = model.wage(myPars, j, lab_FE_ind, H_ind) # Get current wage ***AND FUTURE WAGE IF WAGE VARIES?***
+        a_prime_ind, lab_fe_ind, H_ind, H_type_perm_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.H_type_perm_grid_size)
+        a_prime, lab_fe, H, H_type_perm= myPars.a_grid[a_prime_ind], myPars.lab_fe_grid[lab_fe_ind], myPars.H_grid[H_ind], myPars.H_type_perm_grid[H_type_perm_ind]
+        ind_tuple = (a_prime_ind, lab_fe_ind, H_ind, H_type_perm_ind)
+        curr_wage = model.wage(myPars, j, lab_fe_ind, H_ind) # Get current wage ***AND FUTURE WAGE IF WAGE VARIES?***
         # Get state solutions
         if last_per: 
             lab = model.lab_star(myPars, 0, a_prime, H, curr_wage)
@@ -110,9 +110,9 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
             c = a * (1 + myPars.r) + lab * curr_wage
             c =  max(myPars.c_min, c)
         else:
-            c_prime0 = mat_c_prime[a_prime_ind, lab_FE_ind, 0, H_type_perm_ind]
-            c_prime1 = mat_c_prime[a_prime_ind, lab_FE_ind, 1, H_type_perm_ind]
-            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_FE_ind, H_ind, H_type_perm_ind, c_prime0, c_prime1)
+            c_prime0 = mat_c_prime[a_prime_ind, lab_fe_ind, 0, H_type_perm_ind]
+            c_prime1 = mat_c_prime[a_prime_ind, lab_fe_ind, 1, H_type_perm_ind]
+            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_fe_ind, H_ind, H_type_perm_ind, c_prime0, c_prime1)
         # Store the state specific solutions 
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a 
         
@@ -138,10 +138,10 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, la
     mat_ap_a, mat_c_a, mat_lab_a = np.copy(shell_a), np.copy(shell_a), np.copy(shell_a)
     evals = np.copy(myPars.a_grid)
     evals = evals.reshape(myPars.a_grid_size, 1)
-    state_size_no_aj =  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.H_type_perm_grid_size 
+    state_size_no_aj =  myPars.lab_fe_grid_size * myPars.H_grid_size * myPars.H_type_perm_grid_size 
     
     for state in range(state_size_no_aj) :
-        lab_fe_ind, H_ind, H_type_perm_ind = tb.D3toD1(state, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.H_type_perm_grid_size)
+        lab_fe_ind, H_ind, H_type_perm_ind = tb.D3toD1(state, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.H_type_perm_grid_size)
         points = (mat_a_ap[:, lab_fe_ind, H_ind, H_type_perm_ind],)
         mat_c_a[:, lab_fe_ind, H_ind, H_type_perm_ind] = eval_linear(points, mat_c_ap[:, lab_fe_ind, H_ind, H_type_perm_ind], evals)
         mat_lab_a[:, lab_fe_ind, H_ind, H_type_perm_ind] = eval_linear(points, mat_lab_ap[:, lab_fe_ind, H_ind, H_type_perm_ind], evals)

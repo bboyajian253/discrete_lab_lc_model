@@ -31,8 +31,8 @@ pars_spec = [  ('w_determ_cons', float64), # constant in the deterministic comp 
                 ('nu_grid_size', int64), #size oof the disccrete grid of shocks
                 ('nu_trans', float64[:,:]), # 2d grid to hold the transitions between states in the discretized ar1 process
                 ('sigma_gamma_2', float64), # variance of initial dist of fixed effect on labor prod
-                ('lab_FE_grid', float64[:]), # a list of values for that fixed effect
-                ('lab_FE_grid_size', int64), # the size of the list of values for that fixed effect
+                ('lab_fe_grid', float64[:]), # a list of values for that fixed effect
+                ('lab_fe_grid_size', int64), # the size of the list of values for that fixed effect
                 ('beta', float64), # discount factor 
                 ('alpha', float64), # cobb douglass returns to consumption
                 ('sigma_util', float64), # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
@@ -74,12 +74,12 @@ class Pars() :
     
     def gen_wages(self):
         #initialize the wage grid
-        wages = np.zeros((self.J, self.H_grid_size, self.nu_grid_size, self.lab_FE_grid_size))
+        wages = np.zeros((self.J, self.H_grid_size, self.nu_grid_size, self.lab_fe_grid_size))
         for j in prange(self.J):        
             for h_ind, health in enumerate(self.H_grid) :
                 for nu_ind, nu in enumerate(self.nu_grid):  
-                    for fe_ind, lab_FE in enumerate(self.lab_FE_grid):
-                        wages[j, h_ind, nu_ind, fe_ind] = model.wage(self, j, health, nu, lab_FE)
+                    for fe_ind, lab_fe in enumerate(self.lab_fe_grid):
+                        wages[j, h_ind, nu_ind, fe_ind] = model.wage(self, j, health, nu, lab_fe)
         return wages
          
     def __init__(self,     
@@ -109,7 +109,7 @@ class Pars() :
             # gamma fixed productiviy drawn at birth
             sigma_gamma_2 = 0.051, # variance of initial dist of fixed effect on labor prod
             #a discrete list of productivities to use for testing
-            lab_FE_grid = np.array([0.0,0.051]),
+            lab_fe_grid = np.array([0.0,0.051]),
                         # utility parameters
             beta = 0.95, # discount factor
             alpha = .5, # cobb douglass returns to consumption
@@ -165,8 +165,8 @@ class Pars() :
         #self.nu_trans = my_toolbox.rouwenhorst(nu_grid_size, rho_nu, sigma_eps)
         # gamma fixed productiviy drawn at birth
         self.sigma_gamma_2 = sigma_gamma_2
-        self.lab_FE_grid = lab_FE_grid
-        self.lab_FE_grid_size = len(self.lab_FE_grid)
+        self.lab_fe_grid = lab_fe_grid
+        self.lab_fe_grid_size = len(self.lab_fe_grid)
 
         ###iniatlize utlity parameters###
         self.beta,self.alpha,self.sigma_util = beta,alpha,sigma_util
@@ -205,8 +205,8 @@ class Pars() :
         self.dt,self.dtdraws,self.J = dt,dtdraws,J
         self.print_screen = print_screen
 
-        self.state_space_shape = np.array([self.a_grid_size, self.nu_grid_size, self.lab_FE_grid_size, self.H_grid_size, self.J])
-        self.state_space_shape_no_j= np.array([self.a_grid_size, self.nu_grid_size, self.lab_FE_grid_size, self.H_grid_size])
+        self.state_space_shape = np.array([self.a_grid_size, self.nu_grid_size, self.lab_fe_grid_size, self.H_grid_size, self.J])
+        self.state_space_shape_no_j= np.array([self.a_grid_size, self.nu_grid_size, self.lab_fe_grid_size, self.H_grid_size])
    
         self.wages = self.gen_wages()
          

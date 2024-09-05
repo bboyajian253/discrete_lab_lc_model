@@ -29,7 +29,7 @@ def sim_lc_numba(myPars : Pars, sim_vals_list: List[np.ndarray], state_sols_list
     # simulate-forward life-cycle outcomes
     # loop over all the dimensions of the simulation space 
     for j in prange(myPars.J):
-        for lab_fe_ind in prange(myPars.lab_FE_grid_size):
+        for lab_fe_ind in prange(myPars.lab_fe_grid_size):
             for h_ind in prange(myPars.H_grid_size):        
                 for nu_ind in prange(myPars.nu_grid_size):
                     for sim_ind in prange(myPars.sim_draws):

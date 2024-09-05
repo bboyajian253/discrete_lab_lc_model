@@ -252,24 +252,24 @@ def gen_wages(myPars: Pars) -> np.ndarray:
     generate the wage grid
     """
     #initialize the wage grid
-    wage_grid = np.zeros((myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size, myPars.J))
+    wage_grid = np.zeros((myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.nu_grid_size, myPars.J))
     #loop through the wage grid
     for j in range(myPars.J):
         for h_ind in range(myPars.H_grid_size):
             for nu_ind in range(myPars.nu_grid_size):
-                for lab_fe_ind in range(myPars.lab_FE_grid_size):
+                for lab_fe_ind in range(myPars.lab_fe_grid_size):
                     wage_grid[lab_fe_ind, h_ind, nu_ind, j] = wage(myPars, j, lab_fe_ind, h_ind, nu_ind)
     return wage_grid
 @njit
 def gen_weighted_wages(myPars: Pars) -> np.ndarray:
     # Pre-allocate the weights array
-    my_sim_weights = np.empty((myPars.lab_FE_grid_size, myPars.H_grid_size))
+    my_sim_weights = np.empty((myPars.lab_fe_grid_size, myPars.H_grid_size))
     # Fill the weights array
-    for r in range(myPars.lab_FE_grid_size):
+    for r in range(myPars.lab_fe_grid_size):
         for c in range(myPars.H_grid_size):
-            my_sim_weights[r, c] = myPars.lab_FE_weights[r] * myPars.H_weights[c]
+            my_sim_weights[r, c] = myPars.lab_fe_weights[r] * myPars.H_weights[c]
     # Reshape weights for broadcasting
-    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1)
+    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_fe_grid_size, myPars.H_grid_size, 1, 1)
     wage_sims = gen_wages(myPars)
     weighted_wage_sims = wage_sims * my_sim_weights_reshaped
     # weighted_wage_sims = myPars.H_weights * weighted_wage_sims 
@@ -281,12 +281,12 @@ def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     generate the weighted simulation
     """
     # Pre-allocate the weights array
-    my_sim_weights = np.empty((myPars.lab_FE_grid_size, myPars.H_grid_size))
+    my_sim_weights = np.empty((myPars.lab_fe_grid_size, myPars.H_grid_size))
     # Fill the weights array
     for i in range(myPars.H_grid_size):
-        my_sim_weights[:, i] = myPars.lab_FE_weights
+        my_sim_weights[:, i] = myPars.lab_fe_weights
     # Reshape weights for broadcasting
-    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_FE_grid_size, myPars.H_grid_size, 1, 1, 1)
+    my_sim_weights_reshaped = my_sim_weights.reshape(myPars.lab_fe_grid_size, myPars.H_grid_size, 1, 1, 1)
     # Weight the moment simulation
     weighted_sim = lc_moment_sim * my_sim_weights_reshaped
     # since the weights are calculated only with the labor_fe in mind, we need to divide by the number of health states

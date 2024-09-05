@@ -33,7 +33,7 @@ def simulate_test(start_time, main_path):
 
     #should alpha be 0.45 or 0.70? Seems like 0.45 is the correct value will calibrate
     myPars = ps.Pars(main_path, J=50, a_grid_size=100, a_min= -500.0, a_max = 500.0, sigma_util=0.999,
-                     lab_FE_grid=FE_grid, H_grid=np.array([1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, 
+                     lab_fe_grid=FE_grid, H_grid=np.array([1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1000, 
                      print_screen=3)
     
     tb.print_exec_time("Pars 1 compiled and initialized in", new_start_time)
@@ -65,7 +65,7 @@ def main_1(main_path):
     
     fe_grid = np.arange(6.0)
     myPars = ps.Pars(main_path, J=50, a_grid_size=300, a_min= -5.0, a_max = 5.0, 
-                     lab_FE_grid=fe_grid, H_grid=np.array([0.0,1.0]), nu_grid_size=1, alpha = 0.5, sim_draws=1000,)
+                     lab_fe_grid=fe_grid, H_grid=np.array([0.0,1.0]), nu_grid_size=1, alpha = 0.5, sim_draws=1000,)
 
     myShocks = ps.Shocks(myPars)
     print("Path:", myPars.path)

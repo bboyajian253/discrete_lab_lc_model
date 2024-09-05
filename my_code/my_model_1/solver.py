@@ -24,11 +24,11 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, la
     # print("mat_a_ap values", mat_a_ap )
     evals = np.copy(myPars.a_grid)
     evals = evals.reshape(myPars.a_grid_size, 1)
-    state_size_no_aj =  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size
+    state_size_no_aj =  myPars.lab_fe_grid_size * myPars.H_grid_size * myPars.nu_grid_size
     # print("state_size_no_aj", state_size_no_aj)  
     
     for state in range(state_size_no_aj) :
-        lab_fe_ind, H_ind, nu_ind = my_toolbox.D3toD1(state, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
+        lab_fe_ind, H_ind, nu_ind = my_toolbox.D3toD1(state, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
         #convert soltuions from functions of a_prime to functions of a
         points = (mat_a_ap[:, lab_fe_ind, H_ind, nu_ind],)
         mat_c_a[:, lab_fe_ind, H_ind, nu_ind] = eval_linear(points, mat_c_ap[:, lab_fe_ind, H_ind, nu_ind], evals)
@@ -42,7 +42,7 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_a_ap, mat_c_ap, mat_lab_ap, la
     return sol_a
 
 #@njit
-def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu, c_prime_test) :
+def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_fe, health, nu, c_prime_test) :
     """
     do some voodoo by back substituting and inverting the focs
     """
@@ -50,7 +50,7 @@ def solve_j_indiv(myPars : Pars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_
     # Compute implied c given cc
     #c_prime = model.expect_util_c_prime(myPars, mat_cp_flat_shocks, possible_wages, health, nu)
     #print(c_prime_test)
-    c = model.infer_c(myPars, curr_wage, j, lab_FE, health, nu, c_prime_test)
+    c = model.infer_c(myPars, curr_wage, j, lab_fe, health, nu, c_prime_test)
     #c = max(myPars.c_min, c) # this is a bad hack should be fixed
 
     lab, a = model.solve_lab_a(myPars, c, a_prime, curr_wage, health)
@@ -62,20 +62,20 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
     #initilaize solutions shells
     mat_a_sols, mat_c_sols, mat_lab_sols = np.copy(shell_a_prime), np.copy(shell_a_prime), np.copy(shell_a_prime)
 
-    for state in prange(myPars.a_grid_size *  myPars.lab_FE_grid_size * myPars.H_grid_size * myPars.nu_grid_size) :
+    for state in prange(myPars.a_grid_size *  myPars.lab_fe_grid_size * myPars.H_grid_size * myPars.nu_grid_size) :
         #get the state specific indices
-        a_ind, lab_FE_ind, H_ind, nu_ind = my_toolbox.D4toD1(state, myPars.a_grid_size, myPars.lab_FE_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
+        a_ind, lab_fe_ind, H_ind, nu_ind = my_toolbox.D4toD1(state, myPars.a_grid_size, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.nu_grid_size)
 
         #get the state specific values
         a_prime = myPars.a_grid[a_ind]
         health = myPars.H_grid[H_ind]
         nu = myPars.nu_grid[nu_ind]
-        lab_FE = myPars.lab_FE_grid[lab_FE_ind]
+        lab_fe = myPars.lab_fe_grid[lab_fe_ind]
          
         #get the wage for this state...
-        #curr_wage = myPars.wage_grid[j, lab_FE_ind, H_ind, nu_ind]
+        #curr_wage = myPars.wage_grid[j, lab_fe_ind, H_ind, nu_ind]
         age = j
-        curr_wage = model.wage(myPars, age, lab_FE, health, nu) 
+        curr_wage = model.wage(myPars, age, lab_fe, health, nu) 
         #print("Current wage", curr_wage)
         #If its the last period we know
         if last_per:
@@ -91,17 +91,17 @@ def solve_per_j_iter(myPars : Pars, shell_a_prime, j, mat_c_prime, last_per ) :
        
         else:  # but if its not the last period
             #this line here is likely to cause trouble I want the 2D matrix that remains after taking into account the current assets a and the lab fixed effect
-            mat_cp_flat_shocks = mat_c_prime[a_ind, lab_FE_ind, :,  :]
-            #mat_wages_flat_shocks = myPars.wage_grid[j+1, lab_FE_ind, :, :]
+            mat_cp_flat_shocks = mat_c_prime[a_ind, lab_fe_ind, :,  :]
+            #mat_wages_flat_shocks = myPars.wage_grid[j+1, lab_fe_ind, :, :]
             
-            c_prime_test = mat_c_prime[a_ind, lab_FE_ind, H_ind, nu_ind]
-            a, c, lab = solve_j_indiv(myPars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_FE, health, nu, c_prime_test)
+            c_prime_test = mat_c_prime[a_ind, lab_fe_ind, H_ind, nu_ind]
+            a, c, lab = solve_j_indiv(myPars, a_prime, curr_wage, mat_cp_flat_shocks, j, lab_fe, health, nu, c_prime_test)
 
 
         #store the state specific results
-        mat_a_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = a
-        mat_c_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = c
-        mat_lab_sols[a_ind, lab_FE_ind, H_ind, nu_ind] = lab
+        mat_a_sols[a_ind, lab_fe_ind, H_ind, nu_ind] = a
+        mat_c_sols[a_ind, lab_fe_ind, H_ind, nu_ind] = c
+        mat_lab_sols[a_ind, lab_fe_ind, H_ind, nu_ind] = lab
     return mat_a_sols, mat_c_sols, mat_lab_sols
 
 

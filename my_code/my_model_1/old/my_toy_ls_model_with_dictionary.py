@@ -30,7 +30,7 @@ class my_toy_ls_model() :
         self.nu_grid,self.nu_trans = my_toolbox.rouwenhorst(self.nu_grid_size, self.rho_nu, self.sigma_eps)
         # gamma fixed productiviy drawn at birth
         self.sigma_gamma_2 = pars.sigma_gamma_2
-        self.lab_FE_list = pars.lab_FE_list
+        self.lab_fe_list = pars.lab_fe_list
 
         ###iniatlize utlity parameters###
         self.beta,self.alpha,self.sigma_util = pars.beta,pars.alpha,pars.sigma_util
