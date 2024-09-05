@@ -11,7 +11,6 @@ plots life-cycle simulations of calibrated model
 # General
 import numpy as np
 import matplotlib.pyplot as plt
-import my_toolbox
 from typing import List, Dict
 import csv
 # My code
@@ -19,24 +18,13 @@ from pars_shocks import Pars
 
 
 def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
-    
-    #define path
     if path is None:
         path = myPars.path + 'output/'
-    #Generate variable labels lists
     var_lables = ['Consumption', 'Labor', 'Assets', 'Wage', 'Labor Income']
-    #Generate the short names for the variables i think this should be their keys in the sim_lc dictionary
-    var_names_short = ['c', 'lab', 'a', 'wage', 'lab_income']
-    #for each variable in the variable list zip the short names and label names together and loop through them
+    var_names_short = ['c', 'lab', 'a', 'wage', 'lab_income'] # these are the keys in the sim_lc dictionary
     for label, short_name in zip(var_lables, var_names_short):
-        #initialize the life-cycle shells
-        #this will change as i introduce retirement
-        # some lasts depend on or are equal to the retirment age 
-        j_last = myPars.J
-
+        j_last = myPars.J # will change once i introduce retirement/death
         age_grid = myPars.age_grid[:j_last]
-
-        #prep the sim variable for estimation
         if short_name == 'a':
             values = sim_lc[short_name][:, :, :, :j_last+1]
         else:
@@ -48,12 +36,10 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             if myPars.print_screen >= 2:
                 print(modifier, label)
             fig, ax = plt.subplots()
-
             if modifier == 'log':
                 lc = log_values
             else:
                 lc = values
-
             fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
             with open(fullpath, 'w', newline='') as file:
                 writer = csv.writer(file)
@@ -62,7 +48,6 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             #iterate through labor fixed effect groups (this is basically ability groups)
             for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
                 for lab_fe_ind in range(myPars.lab_FE_grid_size):    
-                    #get the mean of the values over the labor fixed effects and health types 
                     lc_mean = np.mean(lc[lab_fe_ind, H_type_perm_ind, :], axis=0)
                     myLab = f"FE:{round(np.exp(myPars.lab_FE_grid[lab_fe_ind]))} u_H:{round(myPars.H_type_perm_grid[H_type_perm_ind])}"
                     if short_name == 'a':
@@ -75,45 +60,17 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
                         writer = csv.writer(file)
                         writer.writerow([myLab] + list(lc_mean))
             
-            #specify axes and legend
             ax.set_xlabel('Age')
             ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2]) #set the x axis limits
             ax.set_ylabel(modifier + ' ' + label)
-            # if short_name == 'lab' and modifier != 'log':
-                # ax.set_ylim([0, 1])
-            # elif short_name == 'a' and modifier != 'log':
-            #     ax.set_ylim([myPars.a_min - 2, myPars.a_max + 2])
-
             ax.legend()
-
-            #save the figure
             fullpath = path + f'fig_lc_{short_name}_{modifier}.pdf'
             fig.savefig(fullpath, bbox_inches='tight')
             plt.close()
 
-            # #save the data
-            # fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
-            # with open(fullpath, 'w', newline='') as file:
-            #     writer = csv.writer(file)
-            #     writer.writerow(['age'] + list(age_grid))
-            #     for row in lc:
-            #         writer.writerows(['model'] + list(lc))
-
 # probably should plot policy functions as a function of states evetually
 def plot_c_by_a(myPars : Pars, sim_lc):
     pass
-    # fig, ax = plt.subplots()
-    # for lab_FE_ind in range(myPars.lab_FE_grid_size):
-    #     c_mean = np.average(sim_lc['c'][lab_FE_ind, 0, 0, :, :], axis=(0))
-    #     ax.plot(myPars.a_grid, label = f'Age: {age}')
-
-    
-    
-    
-    
-        
-  
-
 
 if __name__ == "__main__":
     pass
