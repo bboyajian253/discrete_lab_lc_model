@@ -176,6 +176,21 @@ class Pars() :
         self.max_iters = max_iters
         self.max_calib_iters = max_calib_iters
 
+
+@njit
+def gen_default_wage_coeffs(lab_fe_grid: np.ndarray, num_wage_terms = 4)-> np.ndarray:
+    """
+    Generate default wage coefficients
+    the constant wage term comes from lab_fe_grid the rest are set to dummies
+    w_coeff_grid[0, :] = [lab_fe_grid[0], 0.0, 0.0, 0.0] so that the first lab_fe type has no wage growth
+    """
+    num_lab_fe = lab_fe_grid.shape[0] # ensures numba compatibility to use shape instead of len 
+    w_coeff_grid = np.zeros((num_lab_fe, num_wage_terms)) 
+    w_coeff_grid[0, :] = [lab_fe_grid[0], 0.0, 0.0, 0.0]
+    for lab_fe_index in range(1,len(lab_fe_grid)):
+        w_coeff_grid[lab_fe_index, :] = [lab_fe_grid[lab_fe_index], 1.0, -0.02, 0.0] 
+    return w_coeff_grid
+
 shock_spec = [
         ('myPars', Pars.class_type.instance_type),
         ('H_shocks', float64[:, :, :, :]),

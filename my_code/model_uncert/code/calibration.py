@@ -27,72 +27,6 @@ import simulate
 import plot_lc as plot_lc
 import io_manager as io
 
-def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    """
-    calibrates the alpha parameter of the model to match the target mean labor worked.
-    takes the following arguments:
-    myPars: the parameters of the model
-    main_path: the path to the main directory
-    lab_tol: the tolerance for the calibration
-    mean_lab_targ: the target mean labor worked
-    returns a tuple with the calibrated alpha, the mean labor worked, the state solutions and the simulated labor choices
-    """
-    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_alpha_calib_params.csv")
-    mean_lab = -999.999
-    state_sols = {}
-    sim_lc = {}
-    alpha_min = 0.00001 #alpha of 0 is not economically meaningful
-    alpha_max = 1.0
-    
-    # define the lambda function to find the zero of     
-    get_mean_lab_diff = lambda new_alpha: alpha_moment_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
-    calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, myPars.max_iters, myPars.print_screen) 
-    myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
-    
-    # solve, simulate and plot model for the calibrated alpha
-    mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
-    io.print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
-    if myPars.print_screen >= 1:
-        print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
-    
-    return calib_alpha, mean_lab, state_sols, sim_lc
-    
-
-def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    '''
-        this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
-        and the model solutions and simulations
-    ''' 
-    myPars.alpha = new_alpha
-    shocks = Shocks(myPars)
-    state_sols = solver.solve_lc(myPars, main_path)
-    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    mean_lab = alpha_moment_giv_sims(myPars, sim_lc) 
-    return mean_lab, state_sols, sim_lc
-
-def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
-    """
-    calculates the mean labor worked given the simulations
-    takes the following arguments:
-    myPars: the parameters of the model
-    sims: the simulations of the model
-    returns the mean labor worked
-    """
-    labor_sims = sims['lab'][:, :, :, :myPars.J]
-    weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims) 
-    mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
-    mean_lab = np.mean(mean_lab_by_age)
-    return mean_lab
-
-def get_alpha_targ(myPars: Pars) -> float:
-    """
-    reads akpha target moment from myPars.path + '/input/labor_moments.csv'
-    """
-    data_moments_path = myPars.path + '/input/labor_moments.csv'
-    data_mom_col_ind = 1
-    mean_labor_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
-    return np.mean(mean_labor_by_age)
-
 def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float):
     """
     calibrates the wage fixed effect weights to match the target mean and standard deviation of wages
@@ -337,6 +271,73 @@ def get_wH_targ(myPars: Pars)-> float:
     data_mom_col_ind = 0
     mean_wage_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return mean_wage_diff[0]
+
+def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    """
+    calibrates the alpha parameter of the model to match the target mean labor worked.
+    takes the following arguments:
+    myPars: the parameters of the model
+    main_path: the path to the main directory
+    lab_tol: the tolerance for the calibration
+    mean_lab_targ: the target mean labor worked
+    returns a tuple with the calibrated alpha, the mean labor worked, the state solutions and the simulated labor choices
+    """
+    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_alpha_calib_params.csv")
+    mean_lab = -999.999
+    state_sols = {}
+    sim_lc = {}
+    alpha_min = 0.00001 #alpha of 0 is not economically meaningful
+    alpha_max = 1.0
+    
+    # define the lambda function to find the zero of     
+    get_mean_lab_diff = lambda new_alpha: alpha_moment_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
+    calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, myPars.max_iters, myPars.print_screen) 
+    myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
+    
+    # solve, simulate and plot model for the calibrated alpha
+    mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
+    io.print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
+    if myPars.print_screen >= 1:
+        print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
+    
+    return calib_alpha, mean_lab, state_sols, sim_lc
+    
+
+def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    '''
+        this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
+        and the model solutions and simulations
+    ''' 
+    myPars.alpha = new_alpha
+    shocks = Shocks(myPars)
+    state_sols = solver.solve_lc(myPars, main_path)
+    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
+    mean_lab = alpha_moment_giv_sims(myPars, sim_lc) 
+    return mean_lab, state_sols, sim_lc
+
+def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
+    """
+    calculates the mean labor worked given the simulations
+    takes the following arguments:
+    myPars: the parameters of the model
+    sims: the simulations of the model
+    returns the mean labor worked
+    """
+    labor_sims = sims['lab'][:, :, :, :myPars.J]
+    weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims) 
+    mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
+    mean_lab = np.mean(mean_lab_by_age)
+    return mean_lab
+
+def get_alpha_targ(myPars: Pars) -> float:
+    """
+    reads akpha target moment from myPars.path + '/input/labor_moments.csv'
+    """
+    data_moments_path = myPars.path + '/input/labor_moments.csv'
+    data_mom_col_ind = 1
+    mean_labor_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    return np.mean(mean_labor_by_age)
+
 
 def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_targ: float, w0_sd_targ: float, w1_mom_targ: float, w2_mom_targ: float, wH_mom_targ: float,
         w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, wH_tol: float = 0.001,

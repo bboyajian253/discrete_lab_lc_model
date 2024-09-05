@@ -16,6 +16,7 @@ from typing import List, Dict
 import os
 
 # My code
+import tables
 import my_toolbox as tb
 import solver
 import simulate as simulate
@@ -74,24 +75,23 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         else:
             alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ = 0.40, 20.0, 5.0, 0.2, 0.2, 0.2
 
-        print("alpha_lab_targ", alpha_lab_targ)
-        print("w0_mean_targ", w0_mean_targ)
-        print("w0_sd_targ", w0_sd_targ)
-        print("w1_targ", w1_targ)
-        print("w2_targ", w2_targ)
-        print("wH_targ", wH_targ)
+        print(f"Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mean_targ}, w0_sd_targ = {w0_sd_targ}, w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}")
 
         # calib_path = myPars.path + 'calibration/'
         calib_path = None
-        calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, calib_path,  
-                                                                                    alpha_lab_targ, w0_mean_targ, w0_sd_targ, 
-                                                                                    w1_targ, w2_targ, wH_targ)
-        calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ, 
-                                'w1': w1_targ, 'w2': w2_targ, 'wH': wH_targ}
+
+        calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, calib_path,  alpha_lab_targ, 
+                                                                                                          w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ)
+        calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 
+                                'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ, 
+                                'w1': w1_targ, 'w2': w2_targ, 
+                                'wH': wH_targ}
+
         calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
                                     'w0_mean': calibration.w0_moments(myPars)[0], 'w0_sd': calibration.w0_moments(myPars)[1],
                                     'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
                                     'wH': calibration.wH_moment(myPars)}
+
         for label in sim_lc.keys():
             np.save(output_path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
@@ -118,9 +118,9 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
     # Print parameters
     io.print_params_to_csv(myPars, path)
     if tex:
-        io.print_exog_params_to_tex(myPars, path)
-        io.print_endog_params_to_tex(myPars, targ_moments, model_moments, path)
-        io.print_w0_calib_to_tex(myPars, targ_moments, model_moments, path)
+        tables.print_exog_params_to_tex(myPars, path)
+        tables.print_endog_params_to_tex(myPars, targ_moments, model_moments, path)
+        tables.print_w0_calib_to_tex(myPars, targ_moments, model_moments, path)
         # calibration.print_H_trans_to_tex(myPars, path)
     if get_moments:
         plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc, path)
@@ -128,39 +128,6 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
         plot_moments.plot_wage_aggs_and_moms(myPars, path)
     plot_lc.plot_lc_profiles(myPars, sim_lc, path)
 
-#Make run if main function
+# run if main function
 if __name__ == "__main__":
-   
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-
-    my_lab_fe_grid = np.array([5.0, 10.0, 15.0, 20.0])
-    # my_lab_fe_grid = np.array([5.0, 10.0, 15.0])
-    my_lab_fe_grid = np.log(my_lab_fe_grid)
-    lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
-    quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
-    cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
-
-    num_FE_types = len(my_lab_fe_grid)
-    w_coeff_grid = np.zeros([num_FE_types, 4])
-    
-    w_coeff_grid[0, :] = [my_lab_fe_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
-    w_coeff_grid[1, :] = [my_lab_fe_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
-    w_coeff_grid[2, :] = [my_lab_fe_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-    w_coeff_grid[3, :] = [my_lab_fe_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
-
-    print("intial wage coeff grid")
-    print(w_coeff_grid)
-
-    my_lab_fe_weights = tb.gen_even_weights(w_coeff_grid)
-
-    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, H_grid=np.array([0.0, 1.0]),
-                nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights = my_lab_fe_weights,
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
-                print_screen=0)
-
-    myShocks = Shocks(myPars)
-    myPars.path = main_path
-    sols, sims =run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
-                          get_moments = True, output_flag = True, tex = True)
-    # sols, sims =run_model(myPars, myShocks, solve = True, calib = False, sim_no_calib = True, 
-    #                       get_moments = True, output_flag = True, tex = True)
+  pass 

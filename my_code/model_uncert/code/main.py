@@ -1,5 +1,5 @@
 """
-My Model 2 - main file
+model_uncert - main file
 
 Author: Ben Boyajian
 Date: 2024-05-31 11:38:38
@@ -11,7 +11,7 @@ import numpy as np
 from numba import njit
 from typing import Tuple
 # My code
-import pars_shocks as ps
+import pars_shocks 
 from pars_shocks import Pars, Shocks
 import model_uncert as model
 import my_toolbox as tb
@@ -29,15 +29,12 @@ def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = Non
         print(f"*****Running main_io with default out_folder_name*****")
 
     # Set wage coefficients
-    my_lab_fe_grid = np.array([10.0, 15.0, 20.0, 25.0])
-    my_lab_fe_grid = np.log(my_lab_fe_grid)
-    w_coeff_grid = gen_default_wage_coeffs(my_lab_fe_grid)
+    my_lab_fe_grid = np.log(np.array([10.0, 15.0, 20.0, 25.0]))
+    w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
     print("intial wage coeff grid", w_coeff_grid)
-    init_lab_fe_weights = tb.gen_even_weights(w_coeff_grid)
-
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
-                alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights = init_lab_fe_weights,
+                alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_weights(w_coeff_grid),
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 15, sigma_util = 0.9999,
                 print_screen=0)
    # Get and set some parameters 
@@ -59,19 +56,6 @@ def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = Non
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
                           get_moments = True, output_flag = True, tex = True, output_path = out_path)
 
-@njit
-def gen_default_wage_coeffs(lab_fe_grid: np.ndarray, num_wage_terms = 4)-> np.ndarray:
-    """
-    Generate default wage coefficients
-    the constant wage term comes from lab_fe_grid the rest are set to dummies
-    w_coeff_grid[0, :] = [lab_fe_grid[0], 0.0, 0.0, 0.0] so that the first lab_fe type has no wage growth
-    """
-    num_lab_fe = lab_fe_grid.shape[0] # ensures numba compatibility to use shape instead of len 
-    w_coeff_grid = np.zeros((num_lab_fe, num_wage_terms)) 
-    w_coeff_grid[0, :] = [lab_fe_grid[0], 0.0, 0.0, 0.0]
-    for lab_fe_index in range(1,len(lab_fe_grid)):
-        w_coeff_grid[lab_fe_index, :] = [lab_fe_grid[lab_fe_index], 1.0, -0.02, 0.0] 
-    return w_coeff_grid
 
 # we may not need this function or we can write one that accounts for all the possible different shapes of
 # the health transition matrix using the functions already written in io_manager
