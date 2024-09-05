@@ -154,7 +154,6 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'max_calib_iters': pars_instance.max_calib_iters
     }
 
-
 # run if main function
 if __name__ == "__main__":
 
