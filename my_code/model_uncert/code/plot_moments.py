@@ -83,7 +83,6 @@ def weighted_avg_lab_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.nd
     mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
     return mean_lab_by_age
 
-
 def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
     if path == None:
         path = myPars.path + 'output/'
