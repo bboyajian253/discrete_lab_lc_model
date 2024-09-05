@@ -1,12 +1,5 @@
 Parameter,Value
-rho_nu,0.9472
-sigma_eps_2,0.0198
-sigma_nu0_2,0.093
-nu_grid,[0.]
-nu_grid_size,1
-nu_trans,"[[0.9736 0.0264]
- [0.0264 0.9736]]"
-sigma_gamma_2,0.051
+sigma_gamma_2,0.0
 lab_FE_grid,[1.60943791 2.30258509 2.7080502  2.99573227]
 lab_FE_grid_size,4
 beta,0.9803921568627451
@@ -14,8 +7,6 @@ alpha,0.35547519531249994
 sigma_util,0.9999
 phi_n,1.125
 phi_H,0.1
-B2B,0.25
-G2G,0.65
 r,0.02
 a_min,-100.0
 a_max,100.0
@@ -87,9 +78,8 @@ leis_max,1.0
 sim_draws,1000
 J,51
 print_screen,0
-interp_c_prime_grid,[0. 0.]
+interp_c_prime_grid,[]
 interp_eval_points,[0.]
-H_by_nu_size,2
 sim_interp_grid_spec,"(-100.0, 100.0, 501)"
 start_age,25
 end_age,77

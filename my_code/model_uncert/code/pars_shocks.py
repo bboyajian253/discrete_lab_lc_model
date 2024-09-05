@@ -20,9 +20,6 @@ import time
 pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the earnings shock nu
                 ('sigma_eps_2', float64), # variance of innovations
                 ('sigma_nu0_2', float64), # variance of initial distribution of the persistent component
-                ('nu_grid', float64[:]), # grid to hold the discretized ar1 process for labor prod.
-                ('nu_grid_size', int64), #size oof the disccrete grid of shocks
-                ('nu_trans', float64[:,:]), # 2d grid to hold the transitions between states in the discretized ar1 process
                 ('sigma_gamma_2', float64), # variance of initial dist of fixed effect on labor prod
                 ('lab_FE_grid', float64[:]), # a list of values for that fixed effect
                 ('lab_FE_grid_size', int64), # the size of the list of values for that fixed effect
@@ -32,8 +29,6 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('sigma_util', float64), # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
                 ('phi_n', float64), # 40 hours + 5 commuting is the time cost to a discrete work/not work decision
                 ('phi_H', float64), # cost to being in bad health, for now pretend there are only two states
-                ('B2B', float64), #health transition probaility for bad to bad
-                ('G2G', float64), # health transition prob for good to good
                 ('r', float64) , # interest rate on assets
                 ('a_min', float64), # smallest possible asset value = the borrowing constraint
                 ('a_max', float64), # largest possible asset value
@@ -63,8 +58,6 @@ pars_spec = [   ('rho_nu', float64), # the autocorrelation coefficient for the e
                 ('print_screen', int64),  #indicator for what type of printing to do... may drop
                 ('interp_c_prime_grid', float64[:]),
                 ('interp_eval_points', float64[:]),
-                # ('H_by_nu_flat_trans', float64[:]),
-                ('H_by_nu_size', int64),
                 ('sim_interp_grid_spec', types.Tuple((float64, float64, int64))),
                 ('start_age', int64), #age to start the model at
                 ('end_age', int64), #age to end the model at
@@ -83,14 +76,6 @@ class Pars() :
             wage_coeff_grid = np.array([[10.0,0.0,0.0,0.0], [20.0,0.5,-0.01,0.0], [30.0,1.0,-0.02,0.0], [40.0,1.5,-0.03,0.0]]),
             wage_min = 0.0001, #minimum wage
 
-            # nu_t persistent AR(1) shock
-            rho_nu = 0.9472, # the autocorrelation coefficient for the earnings shock nu
-            sigma_eps_2 = 0.0198, # variance of innovations
-            sigma_nu0_2 = 0.093, # variance of initial distribution of the persistent component
-            nu_grid_size = 2, #sie of grid or discrete implementation of the ar1 shock process
-
-            # gamma fixed productiviy drawn at birth
-            sigma_gamma_2 = 0.051, # variance of initial dist of fixed effect on labor prod
             #a discrete list of productivities to use for testing
             lab_FE_grid = np.array([1.0, 2.0, 3.0]),
             lab_FE_weights = np.array([1.0/3.0, 1.0/3.0, 1.0/3.0]),
@@ -101,40 +86,32 @@ class Pars() :
 
             # time costs and health costs
             phi_n = 1.125, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision
-            phi_H = .10, # cost to being in bad health, for now pretend there are only two states
-            # phi_H will need to be estimated for each composite health type, normalizing phi_GG = 0
-
-            #health transition probabilities toy examples
-            B2B = 0.25,
-            G2G = 0.65,
+            phi_H = .10, # time cost to being in bad health, for now pretend there are only two states
 
             # interest rate and maybe taxes later
             r = 0.02, # interest rate on assets
 
-            # define asset grid
             a_min = -50, # can think of this as borrowing no more than a_min*1000 dollars
             a_max = 250, # max of the asset grid
             a_grid_growth = 0.0, #detrmines growth rate and thus curvature of asset grid at 0 just doe slinear space
             a_grid_size = 300, #set up for gride with curvature
+
             H_type_perm_grid = np.array([0.0,1.0]), #grid to hold the premanent health types
             H_type_perm_weights = np.array([0.5,0.5]), #weights for the permanent health type grid
             H_beg_pop_weights_by_H_type = np.array([[0.5, 0.5], [0.5, 0.5]]), #weights for the permanent health type grid
             H_grid = np.array([0.0,1.0]),
             H_weights = np.array([0.5,0.5]),
-         
             H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
+
             lab_min = 0.00,
             lab_max = 1.0,
             c_min = 0.0001,
             leis_min = 0.0,
             leis_max = 1.0,    
 
-            # number of draws and other procedural parameters
-            sim_draws = 1000,       # number of simulation draws
-            J = 50,                 # number of time periods -1 (period 0 is first)
-            start_age = 25, #age to start the model at
-
-            # printing level (defines how much to print)
+            J = 50,             # number of time periods -1 (period 0 is first)
+            start_age = 25,     #age to start the model at
+            sim_draws = 1000,   # number of simulation draws
             print_screen = 2,
             max_iters = 100,
             max_calib_iters = 10,
@@ -143,25 +120,15 @@ class Pars() :
         self.wage_coeff_grid = wage_coeff_grid
         self.wH_coeff = 0.25
         self.wage_min = wage_min  
-        # nu_t persistent AR(1) shock
-        self.rho_nu, self.sigma_eps_2, self.sigma_nu0_2 = rho_nu, sigma_eps_2, sigma_nu0_2
-        sigma_eps = sqrt(sigma_eps_2) #convert from variance to standard deviations
-        self.nu_grid_size= nu_grid_size
-        self.nu_grid,self.nu_trans = tb.rouwenhorst_numba(nu_grid_size, rho_nu, sigma_eps)
-        #self.nu_trans = tb.rouwenhorst(nu_grid_size, rho_nu, sigma_eps)
+
         # gamma fixed productiviy drawn at birth
-        self.sigma_gamma_2 = sigma_gamma_2
         self.lab_FE_grid = self.wage_coeff_grid[:,0]
         self.lab_FE_weights = lab_FE_weights
         self.lab_FE_grid_size = len(self.lab_FE_grid)
 
         ###iniatlize utlity parameters###
         self.alpha,self.sigma_util = alpha,sigma_util
-       
-        #iniatlize health and time cost parameters
         self.phi_n,self.phi_H = phi_n,phi_H
-        #health transition probabilities toy examples
-        self.B2B,self.G2G = B2B,G2G
 
         ###interest rate and maybe taxes later
         self.r = r
@@ -182,10 +149,6 @@ class Pars() :
         self.H_grid_size = len(H_grid)
         self.H_weights = H_weights 
 
-        # self.H_by_nu_flat_trans = tb.gen_flat_joint_trans(self.H_trans, self.nu_trans)
-        self.H_by_nu_size = self.H_grid_size * self.nu_grid_size
-
-        self.interp_c_prime_grid = np.zeros(self.H_by_nu_size)
         self.interp_eval_points = np.zeros(1)
 
         self.c_min = c_min
@@ -195,7 +158,6 @@ class Pars() :
         self.lab_min = lab_min
         self.lab_max = leis_max / self.phi_n
 
-        ###initialize time/age, number of draws and other procedural parameters
         self.J = J
 
         self.start_age = start_age
@@ -231,11 +193,8 @@ class Shocks:
         myPars : Pars
                 ):
         self.myPars = myPars
-
-        # draw health shocks
         np.random.seed(1111)
         draws = np.random.uniform(0,1, tb.tuple_product(myPars.state_space_shape_sims))
-        # reshape the draws to be the correct size
         reshaped_draws = draws.reshape(myPars.state_space_shape_sims)
         self.H_shocks = reshaped_draws
         self.H_hist = gen_H_hist(myPars, self.H_shocks)
@@ -249,19 +208,14 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
                         for sim_ind in range(myPars.sim_draws):
                                 for j in range(myPars.J):
                                         if j == 0:
-                                                # hist[lab_fe_ind, start_H_ind, H_type_perm_ind, sim_ind, j] = start_H_ind
                                                 if sim_ind / myPars.sim_draws < myPars.H_beg_pop_weights_by_H_type[H_type_perm_ind, 1]:
                                                         hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
                                         else:
-                                                # get previous health state
                                                 prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
-                                                # get health transition probability of going from previous health state to good health
-                                                fut_health_state_ind = 1
-                                                health_trans_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, fut_health_state_ind]
-                                                # get shock pulled in the last period
+                                                good_health_state_ind = 1
+                                                health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, good_health_state_ind]
                                                 shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
-                                                # calculate new health state and update zero array if necessary
-                                                if shock <= health_trans_prob:
+                                                if shock <= health_recovery_prob:
                                                         hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
         return hist
 
@@ -269,14 +223,11 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
 if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
         start_time = time.time()
-        path = "C:/Users/benja/Documents/My Code/my_model_2"
+        path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
         myPars = Pars(path, J = 51, sim_draws = 1000)
         print(myPars.H_trans)
         myShocks = Shocks(myPars)
         print(f" H_hist: {myShocks.H_hist}")
-        print(f" H_shocks.shape: {myShocks.H_shocks.shape}")
-        print(f"H_trans.shape: {myPars.H_trans.shape}")
-        print(f" H_hist.shape: {myShocks.H_hist.shape}")
 		
         end_time = time.time()
         execution_time = end_time - start_time

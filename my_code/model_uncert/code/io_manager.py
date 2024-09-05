@@ -330,12 +330,6 @@ def print_params_to_csv(myPars: Pars, path: str = None, file_name: str = "parame
 
 def pars_to_dict(pars_instance: Pars) -> Dict:
     return {
-        'rho_nu': pars_instance.rho_nu,
-        'sigma_eps_2': pars_instance.sigma_eps_2,
-        'sigma_nu0_2': pars_instance.sigma_nu0_2,
-        'nu_grid': pars_instance.nu_grid,
-        'nu_grid_size': pars_instance.nu_grid_size,
-        'nu_trans': pars_instance.nu_trans,
         'sigma_gamma_2': pars_instance.sigma_gamma_2,
         'lab_FE_grid': pars_instance.lab_FE_grid,
         'lab_FE_grid_size': pars_instance.lab_FE_grid_size,
@@ -344,8 +338,6 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'sigma_util': pars_instance.sigma_util,
         'phi_n': pars_instance.phi_n,
         'phi_H': pars_instance.phi_H,
-        'B2B': pars_instance.B2B,
-        'G2G': pars_instance.G2G,
         'r': pars_instance.r,
         'a_min': pars_instance.a_min,
         'a_max': pars_instance.a_max,
@@ -369,8 +361,6 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
         'print_screen': pars_instance.print_screen,
         'interp_c_prime_grid': pars_instance.interp_c_prime_grid,
         'interp_eval_points': pars_instance.interp_eval_points,
-        # 'H_by_nu_flat_trans': pars_instance.H_by_nu_flat_trans,
-        'H_by_nu_size': pars_instance.H_by_nu_size,
         'sim_interp_grid_spec': pars_instance.sim_interp_grid_spec,
         'start_age': pars_instance.start_age,
         'end_age': pars_instance.end_age,
