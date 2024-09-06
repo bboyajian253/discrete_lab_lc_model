@@ -22,6 +22,25 @@ import os
 import subprocess
 from scipy.optimize import minimize, differential_evolution
 
+@njit
+def mean_nonzero_numba(arr: np.ndarray) -> float:
+    """
+    takes a numpy array and returns the mean of the non-zero elements
+    """
+    total = 0.0
+    count = 0
+    # Flatten the array for easier iteration
+    flat_arr = arr.flatten()
+    
+    for i in range(flat_arr.size):
+        if flat_arr[i] != 0:
+            total += flat_arr[i]
+            count += 1
+    
+    # If no non-zero elements, return 0 to avoid division by zero
+    if count == 0:
+        return 0.0
+    return total / count
 
 def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax) -> Tuple[MPL_Fig, MPL_Ax]:
     """

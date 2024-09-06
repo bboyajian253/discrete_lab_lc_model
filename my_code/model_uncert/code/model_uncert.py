@@ -265,9 +265,11 @@ def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     generate the weighted simulation
     weigthed by simulation draws, H_type_perm_weights, and lab_fe_weights
     """
+    sim_draw_weights = np.ones(myPars.sim_draws)/myPars.sim_draws
     weighted_sim = lc_moment_sim * myPars.lab_fe_weights[:, np.newaxis, np.newaxis, np.newaxis]
     weighted_sim = weighted_sim * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis, np.newaxis]
-    sim_draws_weight = myPars.sim_draw_weights[np.newaxis, np.newaxis, :, np.newaxis]
+    sim_draws_weight = sim_draw_weights[np.newaxis, np.newaxis, :, np.newaxis]
+    # sim_draws_weight = myPars.sim_draw_weights[np.newaxis, np.newaxis, :, np.newaxis]
     weighted_sim = weighted_sim * sim_draws_weight
     return weighted_sim
 

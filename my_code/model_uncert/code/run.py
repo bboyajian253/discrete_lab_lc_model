@@ -66,9 +66,8 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         max_iters = myPars.max_iters
         if get_targets: 
             alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ = calibration.get_all_targets(myPars)
-            print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mean_targ}, w0_sd_targ = {w0_sd_targ}, 
-                                        w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}""")
-            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars,alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ)
+            print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mean_targ}, w0_sd_targ = {w0_sd_targ}, w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}""")
+            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ)
         else: # otherwise use default argument targets
             calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars)
 
@@ -79,7 +78,7 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
                                     'w0_mean': calibration.w0_moments(myPars)[0], 'w0_sd': calibration.w0_moments(myPars)[1],
                                     'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
-                                    'wH': calibration.wH_moment(myPars)}
+                                    'wH': calibration.wH_moment(myPars, myShocks)}
 
         for label in sim_lc.keys():
             np.save(output_path + f'sim{label}.npy', sim_lc[label])
