@@ -22,6 +22,66 @@ import os
 import subprocess
 from scipy.optimize import minimize, differential_evolution
 
+def collapse_to_last_dim_wperc(values_array: np.ndarray, weights: np.ndarray, percentile: float) -> np.ndarray:
+    """
+    Collapse the values_array to the last dimension by taking the weighted percentile 
+    across all other dimensions.
+    
+    Parameters:
+    -----------
+    values_array: np.ndarray
+        A multi-dimensional array where we want to collapse all dimensions except the last one.
+    weights: np.ndarray
+        A weights array with one less dimension than values_array, applied uniformly across the last dimension.
+    percentile: float
+        The desired percentile (0 to 100) to calculate, e.g., 50 for the median.
+        
+    Returns:
+    --------
+    np.ndarray
+        A 1D array containing the weighted percentiles collapsed across all dimensions except the last one.
+    """
+    
+    # Ensure the percentile is between 0 and 100
+    assert 0 <= percentile <= 100, "Percentile must be between 0 and 100"
+    values_array_shape_min1 = values_array.shape[:len(values_array.shape)-1]
+    if values_array_shape_min1 != weights.shape:
+        raise ValueError("values_array and weights must have the same shape except for the last dimension")
+    
+    # Shape of the output should be equal to the size of the last dimension
+    output_shape = (values_array.shape[-1],)
+    result = np.zeros(output_shape)
+    
+    # Iterate over each index in the last dimension
+    for idx in range(values_array.shape[-1]):
+        # Extract the slice of values and weights for the current index in the last dimension
+        sub_array = values_array[..., idx]
+        sub_weights = weights
+        
+        # Flatten both the sub_array and sub_weights
+        flattened_values = sub_array.flatten()
+        flattened_weights = sub_weights.flatten()
+        
+        # Sort the values and weights by the values
+        sorted_indices = np.argsort(flattened_values)
+        sorted_values = flattened_values[sorted_indices]
+        sorted_weights = flattened_weights[sorted_indices]
+
+        # Compute cumulative weights
+        cumulative_weights = np.cumsum(sorted_weights)
+        total_weight = cumulative_weights[-1]
+        
+        # Determine the percentile position
+        percentile_position = percentile / 100 * total_weight
+        
+        # Find the value at the specified percentile
+        idx_percentile = np.searchsorted(cumulative_weights, percentile_position)
+        
+        # Store the value corresponding to the calculated percentile
+        result[idx] = sorted_values[idx_percentile]
+    
+    return result
+
 @njit
 def mean_nonzero_numba(arr: np.ndarray) -> float:
     """
