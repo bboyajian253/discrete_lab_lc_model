@@ -188,8 +188,6 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: s
             writer.writerow(['model'] + list(sim_values))
             writer.writerow(['data'] + list(data_moments))
 
-from typing import Tuple
-import matplotlib.pyplot as plt
 
 def plot_H_trans_H_type_alg(myPars1: Pars, myPars2: Pars, path: str = None, 
                             low_type_out_file_name: str = None, high_type_out_file_name: str = None, 

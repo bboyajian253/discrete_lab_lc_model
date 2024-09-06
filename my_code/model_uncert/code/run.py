@@ -85,7 +85,7 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         tb.print_exec_time("Calibration ran in", start_time)
 
     #always load simulated life cycles
-    sim_labels = ['c', 'lab', 'a', 'wage', 'lab_income']
+    sim_labels = ['c', 'lab', 'a', 'wage', 'lab_earnings']
     sim_lc = {}
     for label in sim_labels:
         sim_lc[label] = np.load(output_path + f'sim{label}.npy')

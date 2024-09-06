@@ -20,8 +20,8 @@ from pars_shocks import Pars
 def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
     if path is None:
         path = myPars.path + 'output/'
-    var_lables = ['Consumption', 'Labor', 'Assets', 'Wage', 'Labor Income']
-    var_names_short = ['c', 'lab', 'a', 'wage', 'lab_income'] # these are the keys in the sim_lc dictionary
+    var_lables = ['Consumption', 'Labor', 'Assets', 'Wage', 'Labor Earnings']
+    var_names_short = ['c', 'lab', 'a', 'wage', 'lab_earnings'] # these are the keys in the sim_lc dictionary
     for label, short_name in zip(var_lables, var_names_short):
         j_last = myPars.J # will change once i introduce retirement/death
         age_grid = myPars.age_grid[:j_last]

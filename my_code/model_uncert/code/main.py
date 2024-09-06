@@ -9,7 +9,7 @@ Date: 2024-05-31 11:38:38
 import time
 import numpy as np
 from numba import njit
-from typing import Tuple
+from typing import Tuple, Dict
 # My code
 import pars_shocks 
 from pars_shocks import Pars, Shocks
@@ -22,7 +22,12 @@ import run
 import io_manager as io
 
     
-def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None) -> None:
+def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None
+            ) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+    """
+    run the model with the given parameters and return myPars, myShocks, sols, sims
+    """
+
     if out_folder_name is not None:
         print(f"*****Running main_io with out_folder_name = {out_folder_name}*****")
     else:
@@ -55,14 +60,16 @@ def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = Non
 
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
                           get_targets = True, output_flag = True, tex = True, output_path = out_path)
+    return myPars, myShocks, sols, sims
+# run if main condition
+if __name__ == "__main__":
+    #run stuff here
+    start_time = time.perf_counter()
+    print("Running main")
 
-#run stuff here
-start_time = time.perf_counter()
-print("Running main")
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    trans_path = main_path + "input/k-means/MH_trans_by_MH_clust_age.csv"
+    of_name = None
+    main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
 
-main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-trans_path = main_path + "input/k-means/MH_trans_by_MH_clust_age.csv"
-of_name = None
-main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
-
-tb.print_exec_time("Main.py executed in", start_time) 
+    tb.print_exec_time("Main.py executed in", start_time) 

@@ -72,7 +72,7 @@ def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax) -> Tup
 
 def save_plot(figure: MPL_Fig, path: str) -> None:
     """
-    Save a plot to a specified path.
+    Save a plot to a specified path and create the directory if it doesnt exist.
     """
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
