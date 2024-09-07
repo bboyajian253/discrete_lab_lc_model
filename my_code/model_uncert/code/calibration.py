@@ -48,10 +48,10 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0]
     first_per_wages = first_per_wages * (1/myPars.sim_draws)
     first_per_wages = first_per_wages * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis]
-    collapsed_weighted_wages = np.sum(first_per_wages, axis = tuple(range(1,first_per_wages.ndim)))
+    lab_fe_collapse_weight_wages = np.sum(first_per_wages, axis = tuple(range(1,first_per_wages.ndim)))
 
     first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0] 
-    my_weights = tb.optimize_weights(collapsed_weighted_wages, mean_target, sd_target, first_per_wages, myPars.sim_draws, myPars.H_type_perm_weights)
+    my_weights = tb.optimize_weights(lab_fe_collapse_weight_wages, mean_target, sd_target, first_per_wages, myPars.sim_draws, myPars.H_type_perm_weights)
 
     #update the labor fixed effect weights
     myPars.lab_fe_weights = my_weights
@@ -120,7 +120,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
     get_w1_diff = lambda new_coeff: w1_moment_giv_w1(myPars, new_coeff) - target
     calibrated_w1 = tb.bisection_search(get_w1_diff, w1_min, w1_max, tol, myPars.max_iters, myPars.print_screen)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
-    for i in range (1, myPars.lab_fe_grid_size):
+    for i in range(myPars.lab_fe_grid_size):
         myPars.wage_coeff_grid[i, 1] = calibrated_w1
 
     # solve, simulate model for the calibrated w1
@@ -137,7 +137,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
 # @njit
 def w1_moment_giv_w1(myPars: Pars, new_coeff: float)-> float:
     """ updates the wage_coeff_grid skipping the first row coefficient and returns the new wage growth """
-    for i in range (1, myPars.lab_fe_grid_size): #skip the first so the comparison group has no wage growth  
+    for i in range(myPars.lab_fe_grid_size): #skip the first so the comparison group has no wage growth  
         myPars.wage_coeff_grid[i, 1] = new_coeff
     return w1_moment(myPars)
 
@@ -180,7 +180,7 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
     get_w2_diff = lambda new_coeff: w2_moment_giv_w2(myPars, main_path, new_coeff) - target
     calibrated_w2 = tb.bisection_search(get_w2_diff, w2_min, w2_max, tol, myPars.max_iters, myPars.print_screen)
     # update the wage coeff grid butleave the first element as is i.e. with no wage growth
-    for i in range (1, myPars.lab_fe_grid_size):
+    for i in range(myPars.lab_fe_grid_size):
         myPars.wage_coeff_grid[i, 2] = calibrated_w2
     
     # solve, simulate model for the calibrated w2
@@ -197,7 +197,8 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
 # @njit
 def w2_moment_giv_w2(myPars: Pars, main_path, new_coeff: float)-> float:
     """ updates the wage_coeff_grid skipping the first row coefficient and returns the new wage decay """
-    for i in range (1, myPars.lab_fe_grid_size):
+    # for i in range(1, myPars.lab_fe_grid_size):
+    for i in range(myPars.lab_fe_grid_size):
         myPars.wage_coeff_grid[i, 2] = new_coeff
     return w2_moment(myPars)
 

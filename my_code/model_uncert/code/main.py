@@ -22,34 +22,36 @@ import run
 import io_manager as io
 
     
-def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None
+def main_io(main_path: str, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None, myPars: Pars = None
             ) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     run the model with the given parameters and return myPars, myShocks, sols, sims
     """
+    # myPars = givPars 
 
     if out_folder_name is not None:
         print(f"*****Running main_io with out_folder_name = {out_folder_name}*****")
     else:
         print(f"*****Running main_io with default out_folder_name*****")
+    if myPars is None:
+        # Set wage coefficients
+        my_lab_fe_grid = np.log(np.array([10.0, 15.0, 20.0, 25.0]))
+        w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
+        print("intial wage coeff grid", w_coeff_grid)
+        # Initialize parameters
+        myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
+                    alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
+                    wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 15, sigma_util = 0.9999,
+                    print_screen=0)
+    # Get and set some parameters 
+        if H_type_pop_share_path is None:
+            H_type_pop_share_path = main_path + "input/k-means/" + "MH_clust_k2_pop_shares.csv"
+        myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights = io.get_H_type_pop_shares(myPars, H_type_pop_share_path)
+        if H_trans_path is not None:
+            myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
+        else:
+            print("Using default health transition matrix")
 
-    # Set wage coefficients
-    my_lab_fe_grid = np.log(np.array([10.0, 15.0, 20.0, 25.0]))
-    w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
-    print("intial wage coeff grid", w_coeff_grid)
-    # Initialize parameters
-    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
-                alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 15, sigma_util = 0.9999,
-                print_screen=0)
-   # Get and set some parameters 
-    if H_type_pop_share_path is None:
-        H_type_pop_share_path = main_path + "input/k-means/" + "MH_clust_k2_pop_shares.csv"
-    myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights = io.get_H_type_pop_shares(myPars, H_type_pop_share_path)
-    if H_trans_path is not None:
-        myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
-    else:
-        print("Using default health transition matrix")
     myShocks = Shocks(myPars)
     
     print(f"Age {myPars.age_grid[0]} health transitions:")

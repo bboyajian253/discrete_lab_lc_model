@@ -102,7 +102,7 @@ def mean_nonzero_numba(arr: np.ndarray) -> float:
         return 0.0
     return total / count
 
-def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax) -> Tuple[MPL_Fig, MPL_Ax]:
+def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax, x_lim: List = None, y_lim: List = None) -> Tuple[MPL_Fig, MPL_Ax]:
     """
     Combines two plots into a single plot. The first plot is plotted as solid lines, and the second plot is plotted as dashed lines.
     """
@@ -123,8 +123,12 @@ def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax) -> Tup
     
     ax.set_xlabel(ax1.get_xlabel())
     ax.set_xlim(ax1.get_xlim())
+    if x_lim is not None:
+        ax.set_xlim(x_lim)
     ax.set_ylabel(ax1.get_ylabel())
     ax.set_ylim(ax1.get_ylim())
+    if y_lim is not None:
+        ax.set_ylim(y_lim)
     ax.legend()
 
     plt.show()
