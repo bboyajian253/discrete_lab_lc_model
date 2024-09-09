@@ -21,18 +21,18 @@ import plot_lc as plot_lc
 import run 
 import io_manager as io
 
-# move to pars_shocks or make a factory class?
+# move to factory class?
 def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path: str = None) -> Pars:
     """
     create and returh a pars object with default parameters
     """
     # Set wage coefficients
-    my_lab_fe_grid = np.log(np.array([10.0, 15.0, 20.0, 25.0]))
+    my_lab_fe_grid = np.log(np.array([5.0, 10.0, 15.0, 20.0]))
     w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
                 alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 15, sigma_util = 0.9999,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
                 print_screen=0)
     # Get and set some parameters 
     if H_type_pop_share_path is None:

@@ -49,6 +49,8 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     first_per_wages = first_per_wages * (1/myPars.sim_draws)
     first_per_wages = first_per_wages * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis]
     lab_fe_collapse_weight_wages = np.sum(first_per_wages, axis = tuple(range(1,first_per_wages.ndim)))
+    # print(f"lab_fe_collapse_weight_wages = {lab_fe_collapse_weight_wages}")
+    # print(f"myPars.wH_coeff = {myPars.wH_coeff}")
 
     first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0] 
     my_weights = tb.optimize_weights(lab_fe_collapse_weight_wages, mean_target, sd_target, first_per_wages, myPars.sim_draws, myPars.H_type_perm_weights)
@@ -383,13 +385,18 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, alpha_mo
     my_wH_moment = -999.999
 
     for i in range(myPars.max_calib_iters):
-        print(f"Calibration iteration {i}")
+        print(f"***** Calibration iteration {i} *****")
+        # print("Calibrating w0")
         w0_weights, my_w0_mean_mom, my_w0_sd_mom, state_sols, sims = calib_w0(myPars, calib_path, w0_mean_targ, w0_sd_targ)
+        # print(f"""Calibrated w0 weights = {w0_weights}, w0 mean = {my_w0_mean_mom}, w0 mean targ = {w0_mean_targ}, 
+        #                                                 w0_sd = {my_w0_sd_mom}, w0_sd targ = {w0_sd_targ}""")
         if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol):
+            # print("Calibrating w1")
             w1_calib, my_w1_moment, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
             my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
             if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                 and np.abs(my_w1_moment - w1_mom_targ) < w1_tol):
+                # print("Calibrating w2")
                 w2_calib, my_w2_moment, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
                 my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                 my_w1_moment = w1_moment(myPars)
@@ -397,6 +404,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, alpha_mo
                     and np.abs(my_w1_moment - w1_mom_targ) < w1_tol
                     and np.abs(my_w2_moment - w2_mom_targ) < w2_tol):
                     if do_wH_calib:
+                        # print("Calibrating wH")
                         wH_calib, my_wH_moment, state_sols, sims = calib_wH(myPars, myShocks, calib_path, wH_tol, wH_mom_targ, wH_min, wH_max)                        
                     my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                     my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
@@ -405,6 +413,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, alpha_mo
                     if (np.abs(my_w0_mean_mom - w0_mean_targ) + np.abs(my_w0_sd_mom - w0_sd_targ) < w0_mom_tol 
                         and np.abs(my_w1_moment - w1_mom_targ) < w1_tol and np.abs(my_w2_moment - w2_mom_targ) < w2_tol
                         and (not do_wH_calib or np.abs(my_wH_moment - wH_mom_targ) < wH_tol)):
+                        # print("Calibrating alpha")
                         alpha_calib, my_alpha_moment, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
                         my_w0_mean_mom, my_w0_sd_mom = w0_moments(myPars)
                         my_w1_moment = w1_moment(myPars)
