@@ -259,7 +259,7 @@ def gen_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
                     wage_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = wage(myPars, j, lab_fe_ind, my_H)
     return wage_hist
 
-@njit
+# @njit
 def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     """
     generate the weighted simulation

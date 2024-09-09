@@ -21,6 +21,7 @@ import plot_lc as plot_lc
 import run 
 import io_manager as io
 
+# move to pars_shocks or make a factory class?
 def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path: str = None) -> Pars:
     """
     create and returh a pars object with default parameters
@@ -28,7 +29,6 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
     # Set wage coefficients
     my_lab_fe_grid = np.log(np.array([10.0, 15.0, 20.0, 25.0]))
     w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
-    print("intial wage coeff grid", w_coeff_grid)
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
                 alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
@@ -57,30 +57,8 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
         print(f"*****Running main_io with default out_folder_name*****")
     if myPars is None:
         myPars = pars_factory(main_path = main_path, H_trans_path= H_trans_path, H_type_pop_share_path = H_type_pop_share_path)
-    #     # Set wage coefficients
-    #     my_lab_fe_grid = np.log(np.array([10.0, 15.0, 20.0, 25.0]))
-    #     w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
-    #     print("intial wage coeff grid", w_coeff_grid)
-    #     # Initialize parameters
-    #     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
-    #                 alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
-    #                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 15, sigma_util = 0.9999,
-    #                 print_screen=0)
-    # # Get and set some parameters 
-    #     if H_type_pop_share_path is None:
-    #         H_type_pop_share_path = main_path + "input/k-means/" + "MH_clust_k2_pop_shares.csv"
-    #     myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights = io.get_H_type_pop_shares(myPars, H_type_pop_share_path)
-    #     if H_trans_path is not None:
-    #         myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
-    #     else:
-    #         print("Using default health transition matrix")
-
     if myShocks is None:
         myShocks = Shocks(myPars)
-
-    
-    print(f"Age {myPars.age_grid[0]} health transitions:")
-    print(myPars.H_trans[:,0,:,:])
     out_path = None
     if out_folder_name is not None:
         out_path = myPars.path + out_folder_name + '/'
@@ -88,6 +66,7 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib, sim_no_calib = False, 
                           get_targets = True, output_flag = output_flag, tex = True, output_path = out_path)
     return myPars, myShocks, sols, sims
+
 # run if main condition
 if __name__ == "__main__":
     #run stuff here

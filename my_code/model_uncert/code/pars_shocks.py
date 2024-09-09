@@ -198,6 +198,7 @@ def gen_default_wage_coeffs(lab_fe_grid: np.ndarray, num_wage_terms = 4)-> np.nd
         w_coeff_grid[lab_fe_index, :] = [lab_fe_grid[lab_fe_index], 1.0, -0.02, 0.0] 
     return w_coeff_grid
 
+
 shock_spec = [
         ('myPars', Pars.class_type.instance_type),
         ('H_shocks', float64[:, :, :, :]),
