@@ -15,6 +15,7 @@ from numba import njit, guvectorize, float64, int64, prange, types
 from numba.core.types import unicode_type, UniTuple
 from numba.experimental import jitclass
 import time
+import copy
 
 #a big list of parameter values for the model
 pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed effect
@@ -168,6 +169,18 @@ class Pars() :
         self.path = path
         self.max_iters = max_iters
         self.max_calib_iters = max_calib_iters
+
+# def copy_pars_instance(myPars: Pars) -> Pars:
+#     # Create a new instance of the Pars class with the same path as myPars
+#     newPars = Pars(path=myPars.path)
+    
+#     # Iterate over all elements in pars_spec (i.e., the attributes of Pars)
+#     for attr_name, _ in pars_spec:
+#         # Use deepcopy to copy the attribute from myPars to newPars
+#         setattr(newPars, attr_name, copy.deepcopy(getattr(myPars, attr_name)))
+
+#     # Return the newly created instance
+#     return newPars
 
 
 @njit

@@ -1,6 +1,5 @@
 """
 Created on 2024-05-18 00:27:18
-
 @author: Ben Boyaian
 """
 
@@ -17,7 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure as MPL_Fig
 from matplotlib.axes import Axes as MPL_Ax
 import time
-from typing import List, Dict, Tuple, Callable
+from typing import List, Dict, Tuple, Callable, Optional
 import os
 import subprocess
 from scipy.optimize import minimize, differential_evolution
@@ -102,37 +101,66 @@ def mean_nonzero_numba(arr: np.ndarray) -> float:
         return 0.0
     return total / count
 
-def combine_plots(fig1: MPL_Fig, ax1: MPL_Ax, fig2: MPL_Fig, ax2: MPL_Ax, x_lim: List = None, y_lim: List = None) -> Tuple[MPL_Fig, MPL_Ax]:
+def combine_plots(
+    figures_axes: List[Tuple[MPL_Fig, MPL_Ax]], 
+    x_lim: Optional[List[float]] = None, 
+    y_lim: Optional[List[float]] = None, 
+    label_lists: Optional[List[List[str]]] = None, 
+    linestyles: Optional[List[str]] = None,
+    quietly: Optional[bool] = False
+) -> Tuple[MPL_Fig, MPL_Ax]:
     """
-    Combines two plots into a single plot. The first plot is plotted as solid lines, and the second plot is plotted as dashed lines.
+    Combines multiple plots into a single plot. Each plot is given a different linestyle.
+    
+    Parameters:
+    - figures_axes: A list of tuples (fig, ax), where each tuple contains a figure and its corresponding axis.
+    - x_lim: Optional list to specify x-axis limits.
+    - y_lim: Optional list to specify y-axis limits.
+    - label_lists: Optional list of lists of labels for the lines in each plot. If not provided, the original labels from the axes will be used.
+    - linestyles: Optional list of linestyles (e.g., ['-', '--', '-.', ':']) for each plot. If not provided, default linestyles will be used.
+    
+    Returns:
+    - A tuple (fig, ax) with the new combined figure and axis.
     """
-    # Get lines from both plots
-    lines1 = ax1.get_lines()
-    lines2 = ax2.get_lines()
     
     # Create a new figure and axis
     fig, ax = plt.subplots()
     
-    # Add lines from the first plot as solid lines
-    for line in lines1:
-        ax.plot(line.get_xdata(), line.get_ydata(), label=line.get_label(), color=line.get_color(), linestyle='-')
+    if linestyles is None:
+        linestyles = ['-', '--', '-.', ':'] * len(figures_axes)  # Default linestyles
+
+    for idx, (fig, ax_old) in enumerate(figures_axes):
+        lines = ax_old.get_lines()
+        label_list = label_lists[idx] if label_lists is not None and idx < len(label_lists) else None
+        linestyle = linestyles[idx % len(linestyles)]
+
+        # Add lines from the current plot
+        for i, line in enumerate(lines):
+            label = label_list[i] if label_list is not None and i < len(label_list) else line.get_label()
+            ax.plot(line.get_xdata(), line.get_ydata(), label=label, color=line.get_color(), linestyle=linestyle)
     
-    # Add lines from the second plot as dashed lines
-    for line in lines2:
-        ax.plot(line.get_xdata(), line.get_ydata(), label=line.get_label(), color=line.get_color(), linestyle='--')
+    # Set axis labels from the first figure's axis
+    ax.set_xlabel(figures_axes[0][1].get_xlabel())
+    ax.set_ylabel(figures_axes[0][1].get_ylabel())
     
-    ax.set_xlabel(ax1.get_xlabel())
-    ax.set_xlim(ax1.get_xlim())
-    if x_lim is not None:
-        ax.set_xlim(x_lim)
-    ax.set_ylabel(ax1.get_ylabel())
-    ax.set_ylim(ax1.get_ylim())
-    if y_lim is not None:
-        ax.set_ylim(y_lim)
+    # Set axis limits based on the combined range
+    all_xlims = [ax_old.get_xlim() for _, ax_old in figures_axes]
+    all_ylims = [ax_old.get_ylim() for _, ax_old in figures_axes]
+    
+    x_lim = x_lim if x_lim is not None else [min(x[0] for x in all_xlims), max(x[1] for x in all_xlims)]
+    y_lim = y_lim if y_lim is not None else [min(y[0] for y in all_ylims), max(y[1] for y in all_ylims)]
+    
+    ax.set_xlim(x_lim)
+    ax.set_ylim(y_lim)
+
+    # Display legend
     ax.legend()
 
-    plt.show()
+    if not quietly:
+        plt.show()
     return fig, ax
+
+
 
 def save_plot(figure: MPL_Fig, path: str) -> None:
     """

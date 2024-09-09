@@ -27,7 +27,7 @@ import plot_moments
 import io_manager as io
 
 # Run the model
-def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, get_targets: bool = True, sim_no_calib  : bool = False, 
+def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, do_wH_calib: bool = True, get_targets: bool = True, sim_no_calib  : bool = False, 
               output_flag: bool = True, tex: bool = True, output_path: str = None)-> List[Dict[str, np.ndarray]]:
     """
     Given the model parameters, solve, calibrate, simulate, and, if desired, output the results.
@@ -67,9 +67,11 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         if get_targets: 
             alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ = calibration.get_all_targets(myPars)
             print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mean_targ}, w0_sd_targ = {w0_sd_targ}, w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}""")
-            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, alpha_lab_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ)
+            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib,
+                                                                                                              alpha_mom_targ = alpha_lab_targ, w0_mean_targ = w0_mean_targ, w0_sd_targ = w0_sd_targ, 
+                                                                                                              w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, wH_mom_targ = wH_targ)
         else: # otherwise use default argument targets
-            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars)
+            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib)
 
         calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 
                                 'w0_mean': w0_mean_targ, 'w0_sd': w0_sd_targ, 
