@@ -150,7 +150,7 @@ def combine_plots(
     fig, ax = plt.subplots()
     
     if linestyles is None:
-        linestyles = ['-', '--', '-.', ':'] * len(figures_axes)  # Default linestyles
+        linestyles = ['-', '--', '-.', ':', (0, (5, 2, 2, 2))] * len(figures_axes)  # Default linestyles
 
     for idx, (fig, ax_old) in enumerate(figures_axes):
         lines = ax_old.get_lines()
@@ -185,10 +185,11 @@ def combine_plots(
     
     # Save the figure if a path is provided
     if save_path is not None:
-        fig.savefig(save_path, bbox_inches='tight')  # Use bbox_inches='tight' to fit the plot
+        plt.savefig(save_path, bbox_inches='tight')
         # plt.close(fig)  # Close the figure to free up memor
     if not quietly:
         plt.show()
+
     return fig, ax
 
 
@@ -342,7 +343,7 @@ def tex_to_pdf(path: str, tex_file_name: str) -> None:
         print(f"PDF successfully created at {os.path.join(path, tex_file_name.replace('.tex', '.pdf'))}")
     
 
-def read_specific_column_from_csv(file_path: str, column_index: int, skip_header: bool = True)-> np.ndarray:
+def read_specific_column_from_csv(file_path: str, column_index: int, row_index: int = 1)-> np.ndarray:
     """
     read a specific column from a csv file skipping the header row by default
     column index is zero based 
@@ -350,7 +351,7 @@ def read_specific_column_from_csv(file_path: str, column_index: int, skip_header
     column_values = []
     with open(file_path, mode='r', newline='') as file:
         csv_reader = csv.reader(file)
-        if skip_header:
+        for i in range(row_index):
             next(csv_reader)
         for row in csv_reader:
             if len(row) > column_index:
