@@ -13,8 +13,8 @@ from scipy.stats import multivariate_normal as mvn
 from scipy.stats import norm
 import csv
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure as MPL_Fig
-from matplotlib.axes import Axes as MPL_Ax
+from matplotlib.figure import Figure 
+from matplotlib.axes import Axes 
 import time
 from typing import List, Dict, Tuple, Callable, Optional
 import os
@@ -101,14 +101,37 @@ def mean_nonzero_numba(arr: np.ndarray) -> float:
         return 0.0
     return total / count
 
+def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, out_path: str, mom_name: str, quietly: bool = False) -> Tuple[Figure, Axes]:
+    J = len(age_grid) - 1
+    values = lc_mom_by_age[:J]
+    age_grid = age_grid[:J]
+    # print("values.shape", lc_mom_by_age.shape)
+    # print("age_grid.shape", age_grid.shape)
+    y_label = mom_name
+    key_label = mom_name
+    x_label = "Age"
+
+    fig, ax = plt.subplots()
+    ax.plot(age_grid, values, label = key_label)
+    ax.set_xlabel(x_label)
+    ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
+    ax.set_ylabel(y_label)
+    ax.legend()
+    if not quietly:
+        plt.show()
+    plt.close()
+
+    return fig, ax
+
 def combine_plots(
-    figures_axes: List[Tuple[MPL_Fig, MPL_Ax]], 
+    figures_axes: List[Tuple[Figure, Axes]], 
+    save_path: Optional[str] = None,
     x_lim: Optional[List[float]] = None, 
     y_lim: Optional[List[float]] = None, 
     label_lists: Optional[List[List[str]]] = None, 
     linestyles: Optional[List[str]] = None,
     quietly: Optional[bool] = False
-) -> Tuple[MPL_Fig, MPL_Ax]:
+) -> Tuple[Figure, Axes]:
     """
     Combines multiple plots into a single plot. Each plot is given a different linestyle.
     
@@ -156,13 +179,21 @@ def combine_plots(
     # Display legend
     ax.legend()
 
+    # Force canvas to draw
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    
+    # Save the figure if a path is provided
+    if save_path is not None:
+        fig.savefig(save_path, bbox_inches='tight')  # Use bbox_inches='tight' to fit the plot
+        # plt.close(fig)  # Close the figure to free up memor
     if not quietly:
         plt.show()
     return fig, ax
 
 
 
-def save_plot(figure: MPL_Fig, path: str) -> None:
+def save_plot(figure: Figure, path: str) -> None:
     """
     Save a plot to a specified path and create the directory if it doesnt exist.
     """
