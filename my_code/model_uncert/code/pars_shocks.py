@@ -21,6 +21,8 @@ import copy
 pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed effect
                 ('lab_fe_grid_size', int64), # the size of the list of values for that fixed effect
                 ('lab_fe_weights', float64[:]), # the weights for the fixed effect
+                ('lab_fe_tauch_mu', float64), # the mean of the fixed effect distribution
+                ('lab_fe_tauch_sigma', float64), # the standard deviation of the fixed effect distribution
                 ('beta', float64), # discount factor 
                 ('alpha', float64), # cobb douglass returns to consumption
                 ('sigma_util', float64), # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
@@ -73,6 +75,8 @@ class Pars() :
             #a discrete list of productivities to use for testing
             lab_fe_grid = np.array([1.0, 2.0, 3.0]),
             lab_fe_weights = np.array([1.0/3.0, 1.0/3.0, 1.0/3.0]),
+            lab_fe_tauch_mu = 0.0,
+            lab_fe_tauch_sigma = 1.0,
             # utility parameters
             beta = 0.95, # discount factor
             alpha = 0.70, #.5, # cobb douglass returns to consumption
@@ -118,6 +122,8 @@ class Pars() :
         self.lab_fe_grid = self.wage_coeff_grid[:,0]
         self.lab_fe_weights = lab_fe_weights
         self.lab_fe_grid_size = len(self.lab_fe_grid)
+        self.lab_fe_tauch_mu = lab_fe_tauch_mu
+        self.lab_fe_tauch_sigma = lab_fe_tauch_sigma
 
         ###iniatlize utlity parameters###
         self.alpha,self.sigma_util = alpha,sigma_util

@@ -398,11 +398,11 @@ def gen_even_row_weights(matrix: np.ndarray) -> np.ndarray:
     """
     return np.ones(matrix.shape[0]) / matrix.shape[0]
 
-#function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
-# this is a simple bisection method but does this take advantage of the monotoniciy of the function to speed up the search?
+#
 def bisection_search(func: Callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
     """
-    
+    function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
+    this is a simple bisection method but does this take advantage of the monotoniciy of the function to speed up the search?
     """
     x0 = min_val
     x1 = max_val
@@ -430,6 +430,43 @@ def bisection_search(func: Callable, min_val: float, max_val: float, tol: float,
     
     print("Bisection method did not converge within the specified number of iterations.")
     return x_mid
+def my_bisection_search(func: callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
+    """
+    function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
+    this bisection search takes advantage of the monotoniciy of the function to speed up the search
+   """ 
+    low_end_point = min_val
+    high_end_point = max_val
+    low_end_val = func(low_end_point)
+    high_end_val = func(high_end_point)
+
+    if low_end_val * high_end_val >= 0:
+        raise ValueError("Function values at the endpoints have the same sign. Bisection method cannot be applied.")
+    
+    for i in range(max_iter):
+        mid_point = (low_end_point + high_end_point) / 2
+        mid_val = func(mid_point)
+        if print_screen >= 1:
+            print(f"iteration {i}: mid_point = {mid_point}, mid_val = {mid_val}")
+        
+        if abs(mid_val) < tol:
+            return mid_point
+        
+        if mid_val * low_end_val < 0:
+            high_end_point = mid_point
+            high_end_val = mid_val
+        else:
+            low_end_point = mid_point
+            low_end_val = mid_val
+
+    print("Bisection method did not converge within the specified number of iterations.")
+    return mid_point
+
+
+
+
+
+
 
 @njit
 def create_increasing_array(shape: Tuple[int], increase_by: int = 1) -> np.ndarray:
@@ -690,7 +727,7 @@ def avg_wgt_3d(v, w):
     return tot / max(1e-6, totw)
 
 
-def Taucheniid(std_dev: float, num_grid_points: int, Nsd: int=3, mean: float=0.0, state_grid: np.ndarray=np.zeros(1))->Tuple[np.ndarray, np.ndarray]:
+def Taucheniid(sigma: float, num_grid_points: int, Nsd: int=3, mean: float=0.0, state_grid: np.ndarray=np.zeros(1))->Tuple[np.ndarray, np.ndarray]:
     """
     This function uses the method of Tauchen (1986) to approximate a continuous iid Normal process.
 
@@ -705,19 +742,19 @@ def Taucheniid(std_dev: float, num_grid_points: int, Nsd: int=3, mean: float=0.0
     """
     # compute grid over state s and the half-distance between gridpoints, δ
     if len(state_grid) == 1:
-        state_grid = np.linspace(mean - Nsd * std_dev, mean + Nsd * std_dev, num_grid_points)
+        state_grid = np.linspace(mean - Nsd * sigma, mean + Nsd * sigma, num_grid_points)
     δ = (state_grid[-1] - state_grid[0]) / (num_grid_points - 1) / 2
 
     # compute cumulative probabilities of state_grid
     probscum = np.ones(num_grid_points)
     for s in range(num_grid_points - 1):
-        probscum[s] = norm.cdf(state_grid[s] + δ, loc=mean, scale=std_dev)
+        probscum[s] = norm.cdf(state_grid[s] + δ, loc=mean, scale=sigma)
 
     # compute probabilities of state_grid
     probs = probscum
     probs[1:] = probscum[1:] - probscum[:-1]
 
-    return state_grid, probs
+    return probs, state_grid
 
 
 def AR1_Tauchen(ρ, σ, n_s=False, n_sd=False, grid=False, max_iter=200, tol=1e-5):

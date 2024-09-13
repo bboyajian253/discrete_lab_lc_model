@@ -22,12 +22,14 @@ import run
 import io_manager as io
 
 # move to factory class?
-def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path: str = None) -> Pars:
+def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path: str = None, my_lab_fe_grid: np.ndarray = None
+                 ) -> Pars:
     """
     create and returh a pars object with default parameters
     """
     # Set wage coefficients
-    my_lab_fe_grid = np.log(np.array([5.0, 10.0, 15.0, 20.0]))
+    if my_lab_fe_grid is None:
+        my_lab_fe_grid = np.log(np.array([5.0, 10.0, 15.0, 20.0]))
     w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 

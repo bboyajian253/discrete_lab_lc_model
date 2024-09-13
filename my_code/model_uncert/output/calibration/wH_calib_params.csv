@@ -1,7 +1,7 @@
 Parameter,Value
 lab_fe_grid,[1.60943791 2.30258509 2.7080502  2.99573227]
 lab_fe_grid_size,4
-lab_fe_weights,[0.02286602 0.51479597 0.42191593 0.04042208]
+lab_fe_weights,[0.03347032 0.47237517 0.46280914 0.03134538]
 beta,0.9803921568627451
 alpha,0.45
 sigma_util,0.9999
@@ -65,7 +65,7 @@ a_grid,"[-100.   -99.6  -99.2  -98.8  -98.4  -98.   -97.6  -97.2  -96.8  -96.4
 a_grid_size,501
 H_type_perm_grid,[0. 1.]
 H_type_perm_grid_size,2
-H_type_perm_weights,[0. 1.]
+H_type_perm_weights,[0.29285249 0.70714754]
 H_beg_pop_weights_by_H_type,"[[0.83590466 0.16409537]
  [0.21603563 0.78396434]]"
 H_grid,[0. 1.]
