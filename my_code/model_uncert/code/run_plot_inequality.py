@@ -11,7 +11,7 @@ import my_toolbox as tb
 
 if __name__ == "__main__":
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-    trans_path = main_path + "input/k-means/MH_trans_by_MH_clust_age.csv"
+    trans_path = main_path + "input/k2_moms/MH_trans_by_MH_clust_age.csv"
     of_name = None
     myPars_bench, myShocks_bench, sols_bench, sims_bench = main.main_io(main_path, out_folder_name = of_name, 
                                                                         H_trans_path = trans_path, output_flag = False)

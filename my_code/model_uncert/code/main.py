@@ -38,9 +38,10 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
                 print_screen=0)
     # Get and set some parameters 
     if H_type_pop_share_path is None:
-        H_type_pop_share_path = main_path + "input/k-means/" + "MH_clust_k2_pop_shares.csv"
+        H_type_pop_share_path = main_path + "input/k2_moms/" + "MH_clust_k2_pop_shares.csv"
     myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights = io.get_H_type_pop_shares(myPars, H_type_pop_share_path)
     if H_trans_path is not None:
+        print(f"Using health transition matrix from: {H_trans_path}")
         myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
     else:
         print("Using default health transition matrix")
@@ -66,7 +67,8 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
         out_path = myPars.path + out_folder_name + '/'
 
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib, sim_no_calib = False, 
-                          get_targets = True, output_flag = output_flag, tex = True, output_path = out_path)
+                          get_targets = True, output_flag = output_flag, tex = True, output_path = out_path, 
+                          data_moms_folder_path= myPars.path + '/input/k2_moms/')
     return myPars, myShocks, sols, sims
 
 # run if main condition
@@ -76,7 +78,8 @@ if __name__ == "__main__":
     print("Running main")
 
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-    trans_path = main_path + "input/k-means/MH_trans_by_MH_clust_age.csv"
+    # ***** may want to change how trans is generated its redundant in do file.
+    trans_path = main_path + "input/k2_moms/MH_trans_by_MH_clust_age.csv"
     of_name = None
     main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
 

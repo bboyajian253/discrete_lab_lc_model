@@ -207,16 +207,18 @@ def w0_moments(myPars: Pars)-> Tuple[float, float]:
     
     return mean_first_per_wage, sd_first_per_wage
 
-def get_w0_mean_targ(myPars: Pars)-> float:
+def get_w0_mean_targ(myPars: Pars, target_folder_path: str)-> float:
     """ get the target mean wage for period 0 from myPars.path + '/input/wage_moments.csv' """
-    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    # data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_moments_path = target_folder_path + '/wage_moments.csv'
     data_mom_col_ind = 1
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return mean_wage_by_age[0]
 
-def get_w0_sd_targ(myPars: Pars)-> float:
+def get_w0_sd_targ(myPars: Pars, target_folder_path: str)-> float:
     """ get the target standard deviation of wages for period 0 from myPars.path + '/input/wage_moments.csv' """
-    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    # data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_moments_path = target_folder_path + '/wage_moments.csv'
     data_mom_col_ind = 2
     sd_wage_col= tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return sd_wage_col[0]
@@ -271,9 +273,10 @@ def w1_moment(myPars: Pars)-> float:
     wage_diff = log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[0])
     return wage_diff
 
-def get_w1_targ(myPars: Pars)-> float:
+def get_w1_targ(myPars: Pars, target_folder_path: str)-> float:
     """ gets the target wage growth until age '60' from myPars.path + '/input/wage_moments.csv' """
-    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    # data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_moments_path = target_folder_path + '/wage_moments.csv'
     data_mom_col_ind = 1
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     # want to get wages before age 60
@@ -332,9 +335,10 @@ def w2_moment(myPars: Pars)-> float:
     wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
     return wage_diff
 
-def get_w2_targ(myPars: Pars)-> float:
+def get_w2_targ(myPars: Pars, target_folder_path: str)-> float:
     """ gets the target wage decay starting at age 60 from myPars.path + '/input/wage_moments.csv' """
-    data_moments_path = myPars.path + '/input/wage_moments.csv'
+    # data_moments_path = myPars.path + '/input/wage_moments.csv'
+    data_moments_path =   target_folder_path + '/wage_moments.csv'
     data_mom_col_ind = 1
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     age_60_ind = 60 - myPars.start_age
@@ -395,9 +399,10 @@ def wH_moment(myPars: Pars, myShocks: Shocks)-> float:
     wage_prem = log(mean_healthy_wage) - log(mean_unhealthy_wage)
     return wage_prem
 
-def get_wH_targ(myPars: Pars)-> float:
+def get_wH_targ(myPars: Pars, target_folder_path: str)-> float:
     """ get the target wage premium from myPars.path + '/input/MH_wage_moments.csv' """
-    data_moments_path = myPars.path + '/input/MH_wage_moments.csv'
+    # data_moments_path = myPars.path + '/input/MH_wage_moments.csv'
+    data_moments_path = target_folder_path + '/MH_wage_moments.csv'
     data_mom_col_ind = 0
     mean_wage_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return mean_wage_diff[0]
@@ -459,32 +464,35 @@ def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     mean_lab = np.mean(mean_lab_by_age)
     return mean_lab
 
-def get_alpha_targ(myPars: Pars) -> float:
+def get_alpha_targ(myPars: Pars, target_folder_path: str) -> float:
     """
     reads akpha target moment from myPars.path + '/input/labor_moments.csv'
     """
-    data_moments_path = myPars.path + '/input/labor_moments.csv'
+    # data_moments_path = myPars.path + '/input/labor_moments.csv'
+    data_moments_path = target_folder_path + '/labor_moments.csv'
     data_mom_col_ind = 1
     mean_labor_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return np.mean(mean_labor_by_age)
 
 
-def get_all_targets(myPars: Pars)-> Tuple[float, float, float, float, float]:
+def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float, float, float, float, float]:
     """
-    gets all the targets from the input files
+    gets all the targets from the input folder, assumes the target .csv files are in the folder located at target_folder_path
     returns alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ
     """
-    alpha_targ = get_alpha_targ(myPars)
-    w0_mean_targ = get_w0_mean_targ(myPars)
-    w0_sd_targ = get_w0_sd_targ(myPars)
-    w1_targ = get_w1_targ(myPars)
-    w2_targ = get_w2_targ(myPars)
-    wH_targ = get_wH_targ(myPars)
+    if target_folder_path is None:
+        target_folder_path = myPars.path + '/input/'
+    alpha_targ = get_alpha_targ(myPars, target_folder_path)
+    w0_mean_targ = get_w0_mean_targ(myPars, target_folder_path)
+    w0_sd_targ = get_w0_sd_targ(myPars, target_folder_path)
+    w1_targ = get_w1_targ(myPars, target_folder_path)
+    w2_targ = get_w2_targ(myPars, target_folder_path)
+    wH_targ = get_wH_targ(myPars, target_folder_path)
     return alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ
 
 def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, 
         alpha_mom_targ: float = 0.40, w0_mu_mom_targ: float = 20.0, w0_sigma_mom_targ: float = 3.0, w1_mom_targ: float = 0.2, w2_mom_targ: float = 0.2, wH_mom_targ: float = 0.2,
-        w0_mu_min: float = 0.0, w0_mu_max:float = 50.0, w0_sigma_min: float = 0.01, w0_sigma_max = 10.0, 
+        w0_mu_min: float = 0.0, w0_mu_max:float = 100.0, w0_sigma_min: float = 0.001, w0_sigma_max = 50.0, 
         w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
         alpha_tol: float = 0.001, w0_mu_tol: float = 0.001, w0_sigma_tol: float = 0.001, w1_tol: float = 0.001, w2_tol: float = 0.001, wH_tol: float = 0.001, 
         calib_path: str = None)-> (

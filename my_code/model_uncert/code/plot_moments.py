@@ -26,9 +26,11 @@ import solver
 import simulate
 import io_manager as io
 
-def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
-    if path == None:
-        path = myPars.path + 'output/'
+def plot_wage_aggs_and_moms(myPars: Pars, data_moms_path: str = None, out_path: str = None)-> None:
+    if out_path == None:
+        out_path = myPars.path + 'output/'
+    if data_moms_path == None:
+        data_moms_path = myPars.path + '/input/wage_moments.csv'
     # calcualte weighted mean wages by age
     weighted_wages = model.gen_weighted_wage_hist(myPars, Shocks(myPars)) 
     mean_weighted_wages = np.sum(weighted_wages, axis=tuple(range(weighted_wages.ndim - 1)))
@@ -42,9 +44,8 @@ def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
-    data_moments_path = myPars.path + '/input/wage_moments.csv'
     data_moments_col_ind = 1
-    data_moments = tb.read_specific_column_from_csv(data_moments_path, data_moments_col_ind) # 1 means read the second column
+    data_moments = tb.read_specific_column_from_csv(data_moms_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
     for modifier in ['','log']:
         if myPars.print_screen >= 2:
@@ -67,12 +68,12 @@ def plot_wage_aggs_and_moms(myPars: Pars, path: str = None)-> None:
         short_name = 'wage'
 
         #save the figure
-        fullpath = path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fullpath = out_path + f'fig_fit_{short_name}_{modifier}.pdf'
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close()
 
         #save the data
-        fullpath =  path + f'fig_fit_{short_name}_{modifier}.csv'
+        fullpath =  out_path + f'fig_fit_{short_name}_{modifier}.csv'
         with open(fullpath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))
@@ -85,9 +86,11 @@ def weighted_avg_lab_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.nd
     mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
     return mean_lab_by_age
 
-def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
-    if path == None:
-        path = myPars.path + 'output/'
+def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, out_path: str = None)-> None:
+    if out_path == None:
+        out_path = myPars.path + 'output/'
+    if data_moms_path == None: 
+        data_moms_path = myPars.path + '/input/labor_moments.csv'
     avg_lab = weighted_avg_lab_by_age(myPars, sim_lc)
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
@@ -96,9 +99,8 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: st
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
-    data_moments_path = myPars.path + '/input/labor_moments.csv'
     data_moments_col_ind = 1
-    data_moments = tb.read_specific_column_from_csv(data_moments_path, data_moments_col_ind) # 1 means read the second column
+    data_moments = tb.read_specific_column_from_csv(data_moms_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
     for modifier in ['','log']:
         if myPars.print_screen >= 2:
@@ -122,12 +124,12 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], path: st
         short_name = 'lab'
 
         #save the figure
-        fullpath = path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fullpath = out_path + f'fig_fit_{short_name}_{modifier}.pdf'
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close()
 
         #save the data
-        fullpath =  path + f'fig_fit_{short_name}_{modifier}.csv'
+        fullpath =  out_path + f'fig_fit_{short_name}_{modifier}.csv'
         with open(fullpath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))
@@ -141,9 +143,11 @@ def weighted_emp_rate_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.n
     mean_emp_by_age = np.sum(weighted_emp_sims, axis = tuple(range(weighted_emp_sims.ndim-1)))
     return mean_emp_by_age     
 
-def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = None)-> None:
-    if path == None:
-        path = myPars.path + 'output/'
+def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, out_path: str = None)-> None:
+    if out_path == None:
+        out_path = myPars.path + 'output/'
+    if data_moms_path == None:
+        data_moms_path = myPars.path + '/input/emp_rate_moments.csv'
     avg_emp = weighted_emp_rate_by_age(myPars, sim_lc)
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
@@ -152,9 +156,8 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: s
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
-    data_moments_path = myPars.path + '/input/emp_rate_moments.csv'
     data_moments_col_ind = 1
-    data_moments = tb.read_specific_column_from_csv(data_moments_path, data_moments_col_ind) # 1 means read the second column
+    data_moments = tb.read_specific_column_from_csv(data_moms_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
     for modifier in ['','log']:
         if myPars.print_screen >= 2:
@@ -178,12 +181,12 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: s
         short_name = 'emp_rate'
 
         #save the figure
-        fullpath = path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fullpath = out_path + f'fig_fit_{short_name}_{modifier}.pdf'
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close()
 
         #save the data
-        fullpath =  path + f'fig_fit_{short_name}_{modifier}.csv'
+        fullpath =  out_path + f'fig_fit_{short_name}_{modifier}.csv'
         with open(fullpath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))

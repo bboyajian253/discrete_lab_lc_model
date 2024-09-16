@@ -28,7 +28,7 @@ import io_manager as io
 
 # Run the model
 def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, do_wH_calib: bool = True, get_targets: bool = True, sim_no_calib  : bool = False, 
-              output_flag: bool = True, tex: bool = True, output_path: str = None)-> List[Dict[str, np.ndarray]]:
+              output_flag: bool = True, tex: bool = True, output_path: str = None, data_moms_folder_path: str = None)-> List[Dict[str, np.ndarray]]:
     """
     Given the model parameters, solve, calibrate, simulate, and, if desired, output the results.
     (i) Solve the model
@@ -37,7 +37,9 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
     (iv) Output the results and model aggregates
     """
     if output_path is None:
-        output_path = myPars.path + 'output/'
+        output_path = myPars.path + '/output/'
+    if data_moms_folder_path is None:
+        data_moms_folder_path = myPars.path + '/input/'
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
@@ -65,7 +67,7 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         if get_targets: 
-            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ = calibration.get_all_targets(myPars)
+            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
             print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mu_targ}, w0_sd_targ = {w0_sigma_targ}, w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}""")
             calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib,
                                                                                                     alpha_mom_targ = alpha_lab_targ, w0_mu_mom_targ = w0_mu_targ, w0_sigma_mom_targ = w0_sigma_targ, 
@@ -94,27 +96,31 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
 
     #if output, output the results
     if output_flag:
-        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, tex, get_targets, output_path)
+        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, tex, get_targets, 
+               data_moms_folder_path = data_moms_folder_path, out_path = output_path)
     
     return [state_sols, sim_lc]
 
-def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], model_moments: Dict[str, np.ndarray], tex: bool, get_targets: bool,
-           path: str = None)-> None:
-    if path is None:
-        path = myPars.path + 'output/'
-    if not os.path.exists(path):
-        os.makedirs(path)
-    io.print_params_to_csv(myPars, path)
+def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], 
+           model_moments: Dict[str, np.ndarray], tex: bool, get_targets: bool, data_moms_folder_path: str, out_path: str = None)-> None:
+    if out_path is None:
+        out_path = myPars.path + 'output/'
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
+    io.print_params_to_csv(myPars, out_path)
     if tex:
-        tables.print_exog_params_to_tex(myPars, path)
-        tables.print_endog_params_to_tex(myPars, targ_moments, model_moments, path)
-        tables.print_w0_calib_to_tex(myPars, targ_moments, model_moments, path)
+        tables.print_exog_params_to_tex(myPars, out_path)
+        tables.print_endog_params_to_tex(myPars, targ_moments, model_moments, out_path)
+        tables.print_w0_calib_to_tex(myPars, targ_moments, model_moments, out_path)
         # calibration.print_H_trans_to_tex(myPars, path)
     if get_targets:
-        plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc, path)
-        plot_moments.plot_emp_aggs_and_moms(myPars, sim_lc, path)
-        plot_moments.plot_wage_aggs_and_moms(myPars, path)
-    plot_lc.plot_lc_profiles(myPars, sim_lc, path)
+        lab_mom_path = data_moms_folder_path + 'labor_moments.csv'
+        plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc, data_moms_path=lab_mom_path, out_path = out_path)
+        emp_mom_path = data_moms_folder_path + 'emp_rate_moments.csv'
+        plot_moments.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, out_path = out_path)
+        wage_mom_path = data_moms_folder_path + 'wage_moments.csv'
+        plot_moments.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, out_path = out_path)
+    plot_lc.plot_lc_profiles(myPars, sim_lc, out_path)
 
 # run if main function
 if __name__ == "__main__":
