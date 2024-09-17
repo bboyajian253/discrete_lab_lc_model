@@ -40,7 +40,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
                 lc = log_values
             else:
                 lc = values
-            fullpath =  path + f'fig_lc_{short_name}_{modifier}.csv'
+            fullpath =  path + '/lc_figs/' + f'fig_lc_{short_name}_{modifier}.csv'
             with open(fullpath, 'w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(['age'] + list(age_grid))
@@ -64,7 +64,7 @@ def plot_lc_profiles(myPars : Pars, sim_lc: Dict[str, np.ndarray], path: str = N
             ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2]) #set the x axis limits
             ax.set_ylabel(modifier + ' ' + label)
             ax.legend()
-            fullpath = path + f'fig_lc_{short_name}_{modifier}.pdf'
+            fullpath = path + '/lc_figs/' + f'fig_lc_{short_name}_{modifier}.pdf'
             fig.savefig(fullpath, bbox_inches='tight')
             plt.close()
 

@@ -104,7 +104,7 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
 def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], 
            model_moments: Dict[str, np.ndarray], tex: bool, get_targets: bool, data_moms_folder_path: str, out_path: str = None)-> None:
     if out_path is None:
-        out_path = myPars.path + 'output/'
+        out_path = myPars.path + 'output/tabs_fit_figs/'
     if not os.path.exists(out_path):
         os.makedirs(out_path)
     io.print_params_to_csv(myPars, out_path)
