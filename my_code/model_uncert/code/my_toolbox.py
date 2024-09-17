@@ -130,18 +130,21 @@ def combine_plots(
     y_lim: Optional[List[float]] = None, 
     label_lists: Optional[List[List[str]]] = None, 
     linestyles: Optional[List[str]] = None,
+    colors: Optional[List[str]] = None,  # New parameter for colors
     quietly: Optional[bool] = False
 ) -> Tuple[Figure, Axes]:
     """
-    Combines multiple plots into a single plot. Each plot is given a different linestyle.
+    Combines multiple plots into a single plot. Each plot is given a different linestyle or color.
     
     Parameters:
     - figures_axes: A list of tuples (fig, ax), where each tuple contains a figure and its corresponding axis.
     - x_lim: Optional list to specify x-axis limits.
     - y_lim: Optional list to specify y-axis limits.
     - label_lists: Optional list of lists of labels for the lines in each plot. If not provided, the original labels from the axes will be used.
-    - linestyles: Optional list of linestyles (e.g., ['-', '--', '-.', ':']) for each plot. If not provided, default linestyles will be used.
-    
+    - linestyles: Optional list of linestyles (e.g., ['-', '--', '-.', ':']) for each plot. Ignored if `colors` is provided.
+    - colors: Optional list of colors for each plot. If provided, linestyles are ignored.
+    - quietly: If True, suppresses the display of the plot.
+
     Returns:
     - A tuple (fig, ax) with the new combined figure and axis.
     """
@@ -149,18 +152,28 @@ def combine_plots(
     # Create a new figure and axis
     fig, ax = plt.subplots()
     
-    if linestyles is None:
+    # If linestyles are not provided and colors aren't provided either, set default linestyles
+    if linestyles is None and colors is None:
         linestyles = ['-', '--', '-.', ':', (0, (5, 2, 2, 2))] * len(figures_axes)  # Default linestyles
 
-    for idx, (fig, ax_old) in enumerate(figures_axes):
+    for idx, (fig_old, ax_old) in enumerate(figures_axes):
         lines = ax_old.get_lines()
         label_list = label_lists[idx] if label_lists is not None and idx < len(label_lists) else None
-        linestyle = linestyles[idx % len(linestyles)]
+
+        # Use color if provided, otherwise fallback to linestyles
+        if colors is not None:
+            color = colors[idx % len(colors)]
+            linestyle = None  # Ignore linestyles if colors are provided
+        else:
+            color = None  # Use the original color if no new colors are provided
+            linestyle = linestyles[idx % len(linestyles)]
 
         # Add lines from the current plot
         for i, line in enumerate(lines):
             label = label_list[i] if label_list is not None and i < len(label_list) else line.get_label()
-            ax.plot(line.get_xdata(), line.get_ydata(), label=label, color=line.get_color(), linestyle=linestyle)
+            ax.plot(line.get_xdata(), line.get_ydata(), label=label, 
+                    color=color if color else line.get_color(), 
+                    linestyle=linestyle)
     
     # Set axis labels from the first figure's axis
     ax.set_xlabel(figures_axes[0][1].get_xlabel())
@@ -186,11 +199,12 @@ def combine_plots(
     # Save the figure if a path is provided
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')
-        # plt.close(fig)  # Close the figure to free up memor
+        # plt.close(fig)  # Close the figure to free up memory
     if not quietly:
         plt.show()
 
     return fig, ax
+
 
 
 

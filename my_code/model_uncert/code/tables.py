@@ -134,25 +134,28 @@ def table_r2_by_type_alg(myPars: Pars, r2_arr: np.ndarray,
         "\\documentclass[border=3mm,preview]{standalone}",
         "\\usepackage{booktabs}",  # Ensure booktabs package is loaded
         "\\begin{document}\n",
-        # "\\small\n",
-        # "\\caption{Transition Matrices by Typing Method} \n",
+        
+        # Add a title or descriptive text at the top to declare the outcome variable
+        "\\textit{Outcome Variable: Mental Health Index (SF-12)} \\\\ \n",
+        # "\\textit{This table presents regression results for the specified outcome variable.} \\\\ \n",
+        
+        # Start of the table
         "\\begin{tabular}{l l l l l l l} \n",
-        "\\hline \n",
-        "\\midrule \n",
+        "\\toprule \n",  # Use \toprule for the top line instead of \hline and \midrule
         "Lagged MH     & x &   &   & x & x & - \\\\ \n",
         "MH Type 50pth &   & x &   & x &   & - \\\\ \n",
-        "MH Type $k$-means$\\left(k=2\\right)$    &   &   & x &   & x & - \\\\ \n",
+        "MH Type k-means ($k=2$)    &   &   & x &   & x & - \\\\ \n",
         "\\midrule \n",
         f"""$R^{{2}}$               & {round(r2_arr[0][0], 3)}  & {round(r2_arr[0][1], 3)} & {round(r2_arr[0][2], 3)} 
                                     & {round(r2_arr[0][3], 3)}  & {round(r2_arr[0][4], 3)} & - \\\\ \n""",
         f"""$R^{{2}}$ with controls & {round(r2_arr[1][0], 3)}  & {round(r2_arr[1][1], 3)} & {round(r2_arr[1][2], 3)} 
                                     & {round(r2_arr[1][3], 3)}  & {round(r2_arr[1][4], 3)} & {round(r2_arr[1][5], 3)} \\\\ \n""",
-        "\\midrule \n",
-        "\\hline \n",
-        "Some text for a footnote? \n",
+        "\\bottomrule \n",  # Use \bottomrule for the bottom line instead of \hline
+        "Some text for a footnote. \n",
         "\\end{tabular}\n",
         "\\end{document}\n"
     ]
+
     tb.list_to_tex(out_path, tex_file_name, tab)
     tb.tex_to_pdf(out_path, tex_file_name)
 
