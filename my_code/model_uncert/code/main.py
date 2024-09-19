@@ -73,14 +73,38 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
 
 # run if main condition
 if __name__ == "__main__":
+    import plot_inequality as plot_ineq
     #run stuff here
     start_time = time.perf_counter()
     print("Running main")
 
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     # ***** may want to change how trans is generated its redundant in do file.
-    trans_path = main_path + "input/k2_moms/MH_trans_by_MH_clust_age.csv"
     of_name = None
-    main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    trans_path = main_path + "input/k2_moms/MH_trans_by_MH_clust_age.csv"
+    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
+
+    my_age_grid = myPars.age_grid[:31] # only want to plot up to age 55
+    out_path = main_path + "output/var_earn_test_fig.pdf"
+    y_axis_label_var = "Variance of log earnings"
+    input_path = main_path + "input/k2_moms/"
+    plot_save_path = main_path + "validation/" 
+    quietly = True
+
+    var_earns_data = tb.read_specific_column_from_csv(input_path + "var_earn_moments.csv", 1)
+    fig_var_benchmark, ax_var_benchmark = plot_ineq.plot_var_log_sim(myPars,sims["lab_earnings"], 
+                                                                     y_axis_label_var, out_path, quietly = False)
+    fig_var_earns_data, ax_var_earns_data =tb.plot_lc_mom_by_age(var_earns_data, my_age_grid, plot_save_path, 
+                                                    mom_name = "Variance of Log Labor Earnings" , quietly = quietly)
+    quietly = False
+    label_lists = [["Data"], ["Benchmark model"]]
+    percentile_y_lim = [1.0, 7.0]
+    line_colors = ["C1", "C0"] # these are the standard matplotlib colors
+    plot_save_path = main_path + "validation/" + "validating_earn" 
+
+    fig_valid_lab_earn, ax_valid_lab_earn = tb.combine_plots([(fig_var_earns_data, ax_var_earns_data), 
+                                                    (fig_var_benchmark, ax_var_benchmark)],
+                                                    save_path = plot_save_path + "_var" + ".pdf", y_lim = [0.0, 0.6],
+                                                    label_lists = label_lists, colors = line_colors, quietly = quietly)
 
     tb.print_exec_time("Main.py executed in", start_time) 

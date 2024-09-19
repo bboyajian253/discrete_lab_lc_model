@@ -82,6 +82,43 @@ def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
     tb.list_to_tex(path, tex_file_name, tab)
     tb.tex_to_pdf(path, tex_file_name)
 
+def print_cum_earn_moms(myPars: Pars, model_moms: Dict[str, float], data_moms: Dict[str, float], out_path: str = None, 
+                            tex_file_name: str = None) -> None:
+    '''This generates a LaTeX table of the cumulative earnings moments and compiles it to a PDF.'''
+    if out_path is None:
+        out_path = myPars.path + 'output/'
+    if tex_file_name is None:
+        tex_file_name = 'cum_earns_moms.tex'
+    
+    tab = [
+        "\\documentclass[border=3mm,preview]{standalone}",
+        "\\usepackage{booktabs}",  # Ensure booktabs package is loaded
+        "\\begin{document}\n",
+        "\\textit{Cumulative Earnings Moments} \\\\ \n",
+        "\\begin{tabular}{l l l l l l l} \n",
+        "\\toprule \n",
+        "Source & Group & Mean (logs) & SD (logs) & 90p/10p & 90p/50p & 50p/10p \\\\ \n",
+        "\\midrule \n",
+        # "Model & H = 1 &  &  &  &  &  \\\\ \n",
+        # "Model & H = 0 &  &  &  &  &  \\\\ \n",
+        f"""Model & Overall & {round(model_moms["mean"], 2)}  & {round(model_moms["sd"],2)} 
+                            & {round(model_moms["90_10"], 2)}  & {round(model_moms["90_50"],2)} 
+                            & {round(model_moms["50_10"], 2)}  \\\\ \n""",
+        "\\midrule \n",
+        # "Data & H = 1 &  &  &  &  &  \\\\ \n",
+        # "Data & H = 0 &  &  &  &  &  \\\\ \n",
+        # "Data & Overall &  &  &  &  &  \\\\ \n",
+        f"""Data & Overall & {round(data_moms["mean"], 2)}  & {round(data_moms["sd"],2)}
+                            & {round(data_moms["90_10"], 2)}  & {round(data_moms["90_50"],2)}
+                            & {round(data_moms["50_10"], 2)}  \\\\ \n""",
+        "\\bottomrule \n",
+        "\\end{tabular}\n",
+        "\\end{document}\n"
+    ]
+
+    tb.list_to_tex(out_path, tex_file_name, tab)
+    tb.tex_to_pdf(out_path, tex_file_name)
+
 def table_H_trans_by_type_alg(myPars: Pars, H_trans_alg_0: np.ndarray, H_trans_alg_1: np.ndarray, 
                               out_path: str  = None, tex_file_name: str = None, 
                               )-> None:
@@ -117,6 +154,7 @@ def table_H_trans_by_type_alg(myPars: Pars, H_trans_alg_0: np.ndarray, H_trans_a
         "\\end{tabular}\n",
         "\\end{document}\n"
     ]
+
 
     tb.list_to_tex(out_path, tex_file_name, tab)
     tb.tex_to_pdf(out_path, tex_file_name)

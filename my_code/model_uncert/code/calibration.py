@@ -186,7 +186,6 @@ def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float)
     return my_weights, mean_wage, sd_wage, state_sols, sim_lc 
 
 
-
 @njit
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
     " get the weighted mean and standard deviation of wages for period 0"
@@ -494,7 +493,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True,
         alpha_mom_targ: float = 0.40, w0_mu_mom_targ: float = 20.0, w0_sigma_mom_targ: float = 3.0, w1_mom_targ: float = 0.2, w2_mom_targ: float = 0.2, wH_mom_targ: float = 0.2,
         w0_mu_min: float = 0.0, w0_mu_max:float = 100.0, w0_sigma_min: float = 0.001, w0_sigma_max = 50.0, 
         w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
-        alpha_tol: float = 0.001, w0_mu_tol: float = 0.001, w0_sigma_tol: float = 0.001, w1_tol: float = 0.001, w2_tol: float = 0.001, wH_tol: float = 0.001, 
+        alpha_tol: float = 0.001, w0_mu_tol: float = 0.001, w0_sigma_tol: float = 0.0001, w1_tol: float = 0.001, w2_tol: float = 0.001, wH_tol: float = 0.001, 
         calib_path: str = None)-> (
         Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
     """
