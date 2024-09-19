@@ -10,6 +10,8 @@ local dir = "$datadir"
 cd  "`dir'"	
 use "`dir'/UKHLS_clean", clear
 
+// HERE IS A CHANGE
+
 **************************************
 // General sample selection
 **************************************
