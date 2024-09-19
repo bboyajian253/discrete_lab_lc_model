@@ -1,0 +1,47 @@
+***UKHLS data variables helper ***
+income, labor hours, employment status, wages
+
+*Income
+- fimngrs_dv: 	total monthly personal income gross
+- fimnlabgrs_dv: total monthly labour income gross
+- fimnlabgrs_tc: total monthly labour income gross (top coded)
+- fimnlabnet_dv: total monthly labour income net
+- fimnlabnet_tc: total monthly labour income net (top coded)
+
+- paynl: take home pay last payment
+- payn_dv: netpay per month in current job: last payment
+- paynu_dv: usual net pay per month: current job
+- paynwc: pay period: take home pay
+
+- paygl: gross pay last payment
+- payg_dv: gross pay per month in current job: last payment
+- paygu_dv: usual gross pay per month: current job
+- paygwc: how long of a period did that cover?
+
+- payu: usual pay
+- payug: usual pay: was that gross/net of deductions
+- payug_dv: usual pay per month if different from last
+- payuwc: period covered by usual pay
+
+
+*Labor hours
+-jbhrs: no. of hours normally worked per week
+
+*wages (rates of pay)
+- basrate: basic pay hourly rate
+- basrest: estimated amount - hourly basic pay rate
+
+*employment
+-employ: are you in paid employment?
+-jbstat: employment status (current labor force status)
+-
+
+*other flags
+-paytyp: salaried or by the hour
+
+*age
+-dvage
+-age_dv: i think these are the same
+
+*death 
+-is in a variable that is something like finloc in a differnt file than indresp

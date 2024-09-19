@@ -1,0 +1,20 @@
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\center\caption{Mental and Physical Health Index Effects and Labor Outcomes}
+\tiny\begin{tabular}{l*{3}{c}}
+                    &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
+\hline
+Mental Health       &     0.01763\sym{***}&     0.00205         &     0.00205         \\
+                    &     (0.000)         &     (0.001)         &     (0.001)         \\
+Physical Health     &     0.02018\sym{***}&     0.00307\sym{**} &     0.00307\sym{**} \\
+                    &     (0.000)         &     (0.001)         &     (0.001)         \\
+MH $\times$ PH      &    -0.00024\sym{***}&    -0.00002         &    -0.00002         \\
+                    &     (0.000)         &     (0.000)         &     (0.000)         \\
+female              &    -0.09278\sym{***}&    -0.30963\sym{***}&    -0.30963\sym{***}\\
+                    &     (0.002)         &     (0.003)         &     (0.003)         \\
+College             &     0.06124\sym{***}&     0.05750\sym{***}&     0.05750\sym{***}\\
+                    &     (0.002)         &     (0.003)         &     (0.003)         \\
+\hline
+Observations        &164984.00000         & 83592.00000         & 83592.00000         \\
+R-Square            &     0.37953         &     0.17798         &     0.17798         \\
+Adj. R-Square       &     0.37937         &     0.17757         &     0.17757         \\
+\tabnotes{4}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}
