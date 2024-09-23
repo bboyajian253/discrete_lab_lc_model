@@ -1,0 +1,43 @@
+Notes from my latest 3 advising meetings:
+
+*** Adam 09/17/24*** What is the most importatnt difference for the model vs the data?  - moments by health
+
+    Trim wages if work <10 hours instead of 5
+
+    Make simpler not by age moments first then make the lifecycle equivalent
+    
+    Persistance of labor earnings inequality
+    - picture shows auto correlation of earnings at various lags (Adam has one in a paper)
+    - how does the model compare to the data?
+
+    Mean earnings by health types/states
+    -states first? model and data.
+
+    Share of people in bad health state by age in the data and model
+    By earnings level (decile, quintile, etc) what is the percentage in bad health state.
+    - how does the model compare to the data?
+    
+    Analyze the counterfactuals: What did I show? What did I learn?
+    -Relable the counterfactuals
+    -Compare to the literature: here is what they did, here is how I am different/the same, here is why I am different/the same
+    -different question, different model, different data, different method, different results?
+    - why is the effect of the time cost earlier in life vs later in life different?
+    - why does the variance in labor earinings decerase in the model?
+    -Given that health effects people mechanically in the same way throughout the model why does inequality
+        in labor earnings decrease over the lifecycle in the model?
+
+*** Kathleen 09/12/24 ***
+    Identification of the health types
+    If MH is less transitory then PH then the model should reflect that so why persistant/permanent types?
+    Estimate the wages separately from the model. Estimate a wage profile and estimate the shocks from the residuals between
+        the estimated wage process/profile and the data. Ala Eric French (2005) and others.
+    Fixed cost of labor participation by age to match early life participation rates
+    In general try and follow the literature more closely when estimating things i.e. Eric French (2005)
+    Survival probabilities
+    Bequest motives? 
+    Simulate the variance(idk what this means).
+    Does MH impact survival probabilities? 
+
+    
+*** Andrea 09/13/24 ***
+        

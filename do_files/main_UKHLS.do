@@ -3,10 +3,10 @@ cls
 
 set maxvar 20000
 
-global curdir "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model"  /* main folder directory */ 
-global dodir  "$curdir/My Code/MH_Model/do_files" /*do file folder directory */
-// global outdir   "$curdir/Output" /*output file folder directory */
-global datadir  "$curdir/data" //"C:\Users\Ben\3YP_Data_Work\Data"
+global curdir "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model" 
+global dodir  "$curdir/My Code/MH_Model/do_files" 
+// global outdir   "$curdir/Output" 
+global datadir  "$curdir/data" 
 
 cd "$curdir"
 
