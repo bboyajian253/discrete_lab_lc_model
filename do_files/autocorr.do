@@ -10,45 +10,6 @@
 // save `corr_results', replace
 // restore
 
-
-// xtset indiv_id age	
-// local num_lags = 10
-// local corr_vars = "labor_income mental_health physical_health MH PH"
-// // make a mata matrix with as many rows as the number of variables 
-// local num_vars = word count "`corr_vars'"
-// mata: autocorr_matrix = J(`num_vars', `num_lags' + 1 , .)
-
-// foreach corr_var in `corr_vars'{
-
-//     forvalues i = 1/`num_lags' {
-        
-//         capture drop L`i'_`corr_var' 
-        
-//         gen L`i'_`corr_var' = L`i'.`corr_var'
-//     }
-
-//     correlate `corr_var' L1_`corr_var' L2_`corr_var' L3_`corr_var' L4_`corr_var' ///
-//     L5_`corr_var' L6_`corr_var' L7_`corr_var' L8_`corr_var' L9_`corr_var' L10_`corr_var'    
-
-//     matrix corr_matrix = r(C)
-//     // local corr = corr_matrix[1,]
-//     // get the first column of the correlation matrix
-//     // local corr = corr_matrix[1,2..]
-//     * Use Mata to extract the first column
-
-//     * Store the correlation matrix
-//     matrix corr_matrix = r(C)
-
-//     * Use Mata to extract the first column (Stata 14 compatible)
-//     mata: corr_matrix = st_matrix("corr_matrix")  // Load Stata matrix into Mata
-//     mata: first_col = corr_matrix[,1]             // Extract the first column
-//     mata: st_matrix("autocorr_`corr_var'", first_col)       // Store the first column back into a Stata matrix
-
-//     * Now you can access the first column in Stata as a matrix or loop over the values
-//     matrix list first_col
-
-// }
-
 xtset indiv_id age	
 local num_lags = 10
 local corr_vars = "labor_income mental_health physical_health MH PH"
@@ -89,8 +50,10 @@ mata: st_matrix("autocorr_matrix", autocorr_matrix)  // Store Mata matrix back i
 
 // Save the autocorr_matrix to CSV with the appropriate column names
 cd "$outdir"
+preserve
+clear
 matrix colnames autocorr_matrix = `col_names'
-mat2txt, matrix(autocorr_matrix) saving(autocorr_matrix.csv) replace
-
-// outsheet using autocorr_matrix.csv, names replace
-
+// Use svmat to convert the Stata matrix into variables
+svmat autocorr_matrix, names(col)
+export delimited using autocorr_matrix.csv, replace
+restore
