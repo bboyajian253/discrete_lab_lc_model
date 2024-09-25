@@ -19,11 +19,12 @@ do "$dodir/validate_H_types.do" //validate the health types generated in the mod
 global outdir "$master_outdir/k2_moms"
 do "$dodir/moments_k2.do" //generate the moments for the model with 2 health types
 
-global outdir "$master_outdir/k2_moms"
-// do "$dodir/gen_inequality_moments.do" //generate the inequality moments for the model with 2 health types
-do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments for the model with 2 health types
+do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
 
-global outdir "$master_outdir/k2_moms"
-do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings for the model with 2 health types
+do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
+
+do "$dodir/earnings_by_health.do" //generate the earnings by health moments
+
+// do "$dodir/health_by_earnings.do" //generate the health by earnings moments
 
 di "*****got to the end of main_model_moms.do*****"

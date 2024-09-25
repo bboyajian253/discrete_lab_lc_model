@@ -321,5 +321,15 @@ drop _merge
 export delimited using "`outfile'",replace
 restore
 
+// share of people in bad health state by age
+preserve
+collapse (mean) badMH, by(age)
+rename badMH mean_badMH
+tempfile mean_MH
+save `mean_MH', replace
+export delimited using "mean_bad_MH_by_age.csv", replace
+restore
+
+
 cd "`dir'"
 save UKHLS_sample_k2, replace
