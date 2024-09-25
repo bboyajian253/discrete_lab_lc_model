@@ -15,8 +15,8 @@ local end_age = 75
 
 // sort indiv_id year
 // gen L1_mental_health = L1.mental_health
-sort indiv_id year
-xtset indiv_id year
+sort indiv_id age
+xtset indiv_id age
 capture drop L1_mental_health
 gen L1_mental_health = L1.mental_health
 

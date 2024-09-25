@@ -4,13 +4,13 @@
 \toprule 
 Source & Group & Mean (logs) & SD (logs) & 90p/10p & 90p/50p & 50p/10p \\ 
 \midrule 
-Model & Overall & 9.34  & 0.43 
-                            & 3.14  & 1.54 
-                            & 2.03  \\ 
+Model & Overall & 9.39  & 0.37 
+                            & 2.88  & 1.43 
+                            & 2.01  \\ 
 \midrule 
 Data & Overall & 8.5  & 1.1
-                            & 15.47  & 3.02
-                            & 5.11  \\ 
+                            & 15.41  & 3.1
+                            & 4.98  \\ 
 \bottomrule 
 \end{tabular}
 \end{document}

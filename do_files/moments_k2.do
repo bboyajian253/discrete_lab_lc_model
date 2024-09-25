@@ -172,7 +172,7 @@ sum u_H
 
 gen adj_MH_ind = mental_health - u_H
 
-xtset indiv_id year
+xtset indiv_id age
 gen L1_adj_MH_ind = L.adj_MH_ind
 reg adj_MH_ind L1_adj_MH_ind
 reg adj_MH_ind L1_adj_MH_ind if `MH_clust' == 0

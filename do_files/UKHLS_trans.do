@@ -12,7 +12,7 @@
 	// pause on
 	// pause
 
-	xtset indiv_id year
+	xtset indiv_id age
 	
 	*define composite health state represenitng both PH and MH states
 	gen MP_BB = .
@@ -47,7 +47,7 @@
 	label define MP2lab 1 "Bad Bad" 2 "Bad Good" 3 "Good Bad" 4 "Good Good"
 	label values MP2 MP2lab
 	
-	sort indiv_id year
+	sort indiv_id age
 	
 	* 1-years MH transition	
 	gen MH_P2G = cond(MH==0 & F1.MH==1,1, cond(MH==0 & F1.MH==0,0,.))	

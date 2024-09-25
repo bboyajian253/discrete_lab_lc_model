@@ -43,7 +43,7 @@ forvalues i = 1/`n'{
 	use `letter'_indresp, clear
 	***this needs to change****
 	gen wave = "`letter'"
-	gen year = ``i''
+	// gen year = ``i''
 	***this needs to change****
 	capture renpfix `letter'_
 	// cd "C:\Users\Ben\3YP_Data_Work\Data"
@@ -93,21 +93,23 @@ save "`mergeName'", replace
 *Year
 rename istrtdaty date_year
 rename intdaty_dv date_year_dv
-
-*rename date_year_dv year
+rename date_year_dv year
 
 *Month
 rename istrtdatm date_month
 rename intdatm_dv date_month_dv
+drop month //drop the month variable that represnets the month of the initial sample date
+rename date_month_dv month
 
 *Day
 rename istrtdatd date_day
 rename intdatd_dv date_day_dv
+rename date_day_dv day
 
 *age
 rename dvage age
 *birth year
-gen birthyear = year - age
+gen birthyear = doby_dv
 
 *interest/dividends proxy for wealth
 rename fiyrdia interest //amount of interest and dividends
@@ -353,8 +355,10 @@ label values educ educLab
 *keep only the vars I rename + sex (i.e. keep only the vars I use)
 keep age age2 age3 job_hours* mental_health job_stat job_indus job_ft ///
 	indiv_id jbhas mar_stat race wave labor_income sex urban ///
-	mh_* emp self_emp log_* sf_* physical_* year long_weights ///
+	mh_* emp self_emp log_* sf_* physical_* long_weights ///
 	birthyear high_qual interest psu strata wage log_wage educ educHS educHigher educ_level ///	 
+	day month year
+	// date_year_dv
 
 // replace all negative numbers with missing values
 foreach var of varlist _all {
@@ -367,7 +371,9 @@ foreach var of varlist _all {
 
 *drop duplicates by indiv_id and year
 duplicates report indiv_id year //report duplicates there should be none
-duplicates drop indiv_id year, force //drp em just in case
+// pause on
+// pause
+// duplicates drop indiv_id year, force //drp em just in case
 
 *************************************************   
 //  construct survey weights

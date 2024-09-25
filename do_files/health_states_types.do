@@ -74,7 +74,7 @@ replace badPH = 1 if PH == 0
 
 * K Means cluster
 preserve
-xtset indiv_id year
+// xtset indiv_id year
 sort mental_health
 collapse (mean) mental_health, by(indiv_id)
 cluster kmeans mental_health, k(2)
@@ -104,7 +104,7 @@ else {
 
 *50th percentile
 preserve
-xtset indiv_id year
+// xtset indiv_id year
 sort mental_health
 collapse (mean) mental_health, by(indiv_id)
 xtile MH_perc = mental_health, nq(100)
