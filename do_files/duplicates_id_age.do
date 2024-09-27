@@ -2,7 +2,7 @@
 capture drop dups_id_age has_dups_id_age
 
 sort indiv_id age
-list indiv_id age wave year labor_income wage emp job_hours in 1/25
+list indiv_id age wave year labor_earnings wage emp job_hours in 1/25
 
 duplicates report indiv_id age
 duplicates tag indiv_id age, gen(dups_id_age)

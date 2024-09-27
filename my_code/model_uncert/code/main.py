@@ -93,6 +93,7 @@ if __name__ == "__main__":
     var_earns_data = tb.read_specific_column_from_csv(input_path + "var_earn_moments.csv", 1)
     fig_var_benchmark, ax_var_benchmark = plot_ineq.plot_var_log_sim(myPars,sims["lab_earnings"], 
                                                                      y_axis_label_var, out_path, quietly = False)
+
     fig_var_earns_data, ax_var_earns_data =tb.plot_lc_mom_by_age(var_earns_data, my_age_grid, plot_save_path, 
                                                     mom_name = "Variance of Log Labor Earnings" , quietly = False)
     label_lists = [["Data"], ["Benchmark model"]]

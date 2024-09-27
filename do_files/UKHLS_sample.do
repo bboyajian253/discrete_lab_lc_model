@@ -21,7 +21,7 @@ drop if wght ==. | wght<=0
 drop if age == .
 // drop if emp == 1 & (wage == . | wage <= 0) 
 
-sum age emp job_hours wage labor_income if emp == 1
+sum age emp job_hours wage labor_earnings if emp == 1
 // xtile wage_percentiles = wage if emp == 1 & wage !=. [pweight = wght], nq(1000)  // Generate 1000 quantiles only for emp == 1
 // xtile wage_percentiles = wage if emp == 1 & wage !=., nq(1000)  // Generate 1000 quantiles only for emp == 1
 
@@ -77,7 +77,7 @@ di "*****got to the end of UKHLS_sample.do*****"
 *************************************************************************************
 
 // gen byte  sampleselection1 =.
-// gen temp1 = 1 if labor_income !=. & labor_income>=0      /* observe labor income    << RR3 >>. */
+// gen temp1 = 1 if labor_earnings !=. & labor_earnings>=0      /* observe labor income    << RR3 >>. */
 // gen temp2 = 1 if emp == 0 | emp == 1                                  /* observe works status    << RR3 >>. */
 
 // bysort indiv_id : egen labincseries = total(temp1)

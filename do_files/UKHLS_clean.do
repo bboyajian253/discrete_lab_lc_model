@@ -123,9 +123,9 @@ rename fimnnet_dv inc_net_month
 rename fimngrs_dv inc_gross_month
 rename fimngrs_if inc_if
 
-rename fimnlabnet_dv labor_income
-//local labor_income_lab "monthly labor income"
-label variable labor_income "monthly labor income"
+rename fimnlabnet_dv labor_earnings
+//local labor_earnings_lab "monthly labor income"
+label variable labor_earnings "monthly labor income"
 
 *set a reference year
 
@@ -159,15 +159,15 @@ label variable labor_income "monthly labor income"
 	***BAD MAYBE: Keep missing labor income
 	
 	local cpiRatio = `cpi`refyear'' / `cpi`baseyear''
-	* Generate the variable only for non-missing values of labor_income
+	* Generate the variable only for non-missing values of labor_earnings
 	gen totlabincHcur`refyear' = .
-	replace totlabincHcur`refyear' = labor_income * `cpiRatio' if !missing(labor_income)
+	replace totlabincHcur`refyear' = labor_earnings * `cpiRatio' if !missing(labor_earnings)
 
 	* Summarize the new variable
 	summarize totlabincHcur`refyear' if year==`refyear', detail
 	drop totlabincHcur`refyear'
 	
-	summarize labor_income if inlist(year, 2014, 2015, 2016) & labor_income >= `minwage', detail
+	summarize labor_earnings if inlist(year, 2014, 2015, 2016) & labor_earnings >= `minwage', detail
 	
 	
 *education (highest qualification)
@@ -210,11 +210,11 @@ label variable mh_q5 "Excellent Mental Health: Quintile 5"
 tabstat mental_health, stat(n mean min max sd p50) by(mh_quintiles)
 
 *generate log of labor income
-// gen log_labor_inc = log(labor_income)
-gen log_labor_inc =.
-replace log_labor_inc = log(labor_income) if labor_income > 0 & labor_income != .
-local inc_label : variable label labor_income
-label variable log_labor_inc "log of `inc_label' "
+// gen log_labor_earnings = log(labor_earnings)
+gen log_labor_earnings =.
+replace log_labor_earnings = log(labor_earnings) if labor_earnings > 0 & labor_earnings != .
+local inc_label : variable label labor_earnings
+label variable log_labor_earnings "log of `inc_label' "
 
 *generate log of gross income
 gen log_gross_inc = log(inc_gross_month)
@@ -228,8 +228,8 @@ label variable log_hours "log of `inc_label' "
 
 *generate hourly wage
 gen wage = .
-replace wage = labor_income / (4*job_hours) if job_hours > 0 & job_hours != . & labor_income > 0 & labor_income != .
-label variable wage "estimated hourly wage from labor_income and job_hours"
+replace wage = labor_earnings / (4*job_hours) if job_hours > 0 & job_hours != . & labor_earnings > 0 & labor_earnings != .
+label variable wage "estimated hourly wage from labor_earnings and job_hours"
 
 *generate log of hourly wage
 gen log_wage = log(wage)
@@ -275,7 +275,7 @@ label values educ educLab
 	 
 *keep only the vars I rename + sex (i.e. keep only the vars I use)
 keep age age2 age3 job_hours* mental_health job_stat job_indus job_ft ///
-	indiv_id jbhas mar_stat race wave labor_income sex urban ///
+	indiv_id jbhas mar_stat race wave labor_earnings sex urban ///
 	mh_* emp self_emp log_* sf_* physical_* long_weights ///
 	birthyear high_qual interest psu strata wage log_wage educ educHS educHigher educ_level ///	 
 	day month year

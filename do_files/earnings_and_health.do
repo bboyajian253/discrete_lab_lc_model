@@ -2,30 +2,30 @@
 
 //by health state
 preserve
-collapse (mean) labor_income if emp == 1 & MH == 0
-rename labor_income mean_earnings_MH0
+collapse (mean) labor_earnings if emp == 1 & MH == 0
+rename labor_earnings mean_earnings_MH0
 tempfile mean_earnings_MH0
 save `mean_earnings_MH0', replace
 restore
 
 preserve
-collapse (mean) labor_income if emp == 1 & MH == 1
-rename labor_income mean_earnings_MH1
+collapse (mean) labor_earnings if emp == 1 & MH == 1
+rename labor_earnings mean_earnings_MH1
 tempfile mean_earnings_MH1
 save `mean_earnings_MH1', replace
 restore
 
 //by health state and age
 preserve
-collapse (mean) labor_income if emp == 1 & MH == 0, by(age)
-rename labor_income mean_earnings_MH0_age
+collapse (mean) labor_earnings if emp == 1 & MH == 0, by(age)
+rename labor_earnings mean_earnings_MH0_age
 tempfile mean_earnings_MH0_age
 save `mean_earnings_MH0_age', replace
 restore
 
 preserve
-collapse (mean) labor_income if emp == 1 & MH == 1, by(age)
-rename labor_income mean_earnings_MH1_age
+collapse (mean) labor_earnings if emp == 1 & MH == 1, by(age)
+rename labor_earnings mean_earnings_MH1_age
 tempfile mean_earnings_MH1_age
 save `mean_earnings_MH1_age', replace
 restore
@@ -46,30 +46,30 @@ restore
 
 // by type
 preserve
-collapse (mean) labor_income if emp == 1 & MH_clust_k2 == 0
-rename labor_income mean_earnings_MHT0
+collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 0
+rename labor_earnings mean_earnings_MHT0
 tempfile mean_earnings_MHT0
 save `mean_earnings_MHT0', replace
 restore
 
 preserve
-collapse (mean) labor_income if emp == 1 & MH_clust_k2 == 1
-rename labor_income mean_earnings_MHT1
+collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 1
+rename labor_earnings mean_earnings_MHT1
 tempfile mean_earnings_MHT1
 save `mean_earnings_MHT1', replace
 restore
 
 //by type and age
 preserve
-collapse (mean) labor_income if emp == 1 & MH_clust_k2 == 0, by(age)
-rename labor_income mean_earnings_MHT0_age
+collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 0, by(age)
+rename labor_earnings mean_earnings_MHT0_age
 tempfile mean_earnings_MHT0_age
 save `mean_earnings_MHT0_age', replace
 restore
 
 preserve
-collapse (mean) labor_income if emp == 1 & MH_clust_k2 == 1, by(age)
-rename labor_income mean_earnings_MHT1_age
+collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 1, by(age)
+rename labor_earnings mean_earnings_MHT1_age
 tempfile mean_earnings_MHT1_age
 save `mean_earnings_MHT1_age', replace
 restore
@@ -90,10 +90,10 @@ restore
 // By earnings level (decile, quintile, etc) what is the percentage in bad health state.
 
 // gen earninngs deciles
-gen labor_income_nonmissing = labor_income if labor_income != . & emp == 1
+gen labor_earnings_nonmissing = labor_earnings if labor_earnings != . & emp == 1
 capture drop earnings_Q10
-xtile earnings_Q10 = labor_income_nonmissing [pweight=wght], nq(10)
-drop labor_income_nonmissing  
+xtile earnings_Q10 = labor_earnings_nonmissing [pweight=wght], nq(10)
+drop labor_earnings_nonmissing  
 
 cd "$outdir"
 

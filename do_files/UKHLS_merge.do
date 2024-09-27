@@ -72,3 +72,10 @@ local mergeName "UKHLS_merged.dta"
 save "`mergeName'", replace
 
 di " ***** UKHLS_merged.dta saved *****"
+
+foreach letter in `letters' {
+	cd "$datadir"
+	erase with_`letter'_stata.dta
+}
+
+di " ***** end of UKHLS_merge.do *****"

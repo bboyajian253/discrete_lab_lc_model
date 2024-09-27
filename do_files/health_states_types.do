@@ -119,4 +119,3 @@ merge m:1 indiv_id using `clust_data'
 tab _merge
 drop _merge
 
-// save UKHLS_sample_health, replace

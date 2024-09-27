@@ -27,25 +27,25 @@
 // list
 // restore
 
-// sum emp job_hours wage labor_incom 
-// list job_hours wage labor_incom if wage !=. & job_hours == . & emp == 1
+// sum emp job_hours wage labor_earningsom 
+// list job_hours wage labor_earningsom if wage !=. & job_hours == . & emp == 1
 // local ages "70 71 72 73 74 75"
 // foreach a in `ages'{
 // 	sum MH_G2P MH_P2G if age == `a'
 // }
 
-// local if_cond = "emp == 1 & log_labor_inc != . & labor_income > 0"
+// local if_cond = "emp == 1 & log_labor_earnings != . & labor_earnings > 0"
 local if_cond = "emp == 1"
 
 preserve
-collapse (min) labor_inc if `if_cond', by(age) 
+collapse (min) labor_earnings if `if_cond', by(age) 
 list
 restore
 
 preserve
-drop log_labor_inc
-gen log_labor_inc = log(labor_income)
-collapse (min) log_labor_inc if `if_cond', by(age) 
+drop log_labor_earnings
+gen log_labor_earnings = log(labor_earnings)
+collapse (min) log_labor_earnings if `if_cond', by(age) 
 list
 restore
 

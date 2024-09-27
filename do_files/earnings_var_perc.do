@@ -17,17 +17,17 @@ local start_age = 25
 local end_age = 75
 
 preserve
-// collapse (sd) log_labor_inc if age >= `start_age' & age <= `end_age' & emp == 1, by(age)
-collapse (sd) log_labor_inc if emp == 1 & log_labor_inc != . & labor_income > 0, by(age)
-rename log_labor_inc var_log_lab_inc
+// collapse (sd) log_labor_earnings if age >= `start_age' & age <= `end_age' & emp == 1, by(age)
+collapse (sd) log_labor_earnings if emp == 1 & log_labor_earnings != . & labor_earnings > 0, by(age)
+rename log_labor_earnings var_log_lab_inc
 replace var_log_lab_inc = var_log_lab_inc * var_log_lab_inc
 tempfile var_log_lab_inc_data
 save `var_log_lab_inc_data', replace
 restore
 
 sort indiv_id year
-bysort indiv_id (year): gen cum_lab_inc = sum(labor_income)
-*list indiv_id year labor_income cum_lab_inc in 1/20
+bysort indiv_id (year): gen cum_lab_inc = sum(labor_earnings)
+*list indiv_id year labor_earnings cum_lab_inc in 1/20
 gen log_cum_lab_inc = log(cum_lab_inc)
 
 preserve
@@ -37,6 +37,8 @@ replace var_log_cum_lab_inc = var_log_cum_lab_inc * var_log_cum_lab_inc
 tempfile var_log_cum_lab_inc_data 
 save `var_log_cum_lab_inc_data', replace
 restore
+
+cd "$outdir"
 
 preserve
 *Merge and save
@@ -80,7 +82,7 @@ foreach a of local ages {
     
     * Check if there is data for this age
     if _N > 0 {
-        summarize labor_income if emp == 1, detail
+        summarize labor_earnings if emp == 1, detail
         
         * Get the percentile values
         local p5 = r(p5)
@@ -192,7 +194,7 @@ foreach a of local ages {
     
     * Check if there's data for the current age
     if _N > 0 {
-        correlate mental_health labor_income if emp == 1
+        correlate mental_health labor_earnings if emp == 1
         matrix corr_matrix = r(C)
         local corr = corr_matrix[1,2]
 
@@ -233,7 +235,7 @@ foreach a of local ages {
     
     * Check if there's data for the current age
     if _N > 0 {
-        correlate MH labor_income if emp == 1
+        correlate MH labor_earnings if emp == 1
         matrix corr_matrix = r(C)
         local corr = corr_matrix[1,2]
 
