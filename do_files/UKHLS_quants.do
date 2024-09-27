@@ -103,6 +103,7 @@ foreach q in `quants'{
 	//end while
 	
 	local specEd "i.mh_Q`qq' i.ph_Q`pq' i.mh_Q`qq'#i.ph_Q`pq' i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
+	// local specHighQualif same as above but use highest qualification instead of educ  
 	local specs "specEd"
 	
 	local FE1 "year"
@@ -220,7 +221,8 @@ foreach q in `quants'{
 			esttab Reg_emp_year Reg_log_hours_year Reg_log_hours_year Reg_emp_year_id Reg_log_hours_year_id Reg_log_hours_year_id using reg_results_Q`q'_`spec'.txt, replace cells(b(star fmt(3)) se(par fmt(3))) ///
 				label title("Regression Results with Year Fixed Effects") ///
 				keep(`myKeepMP`q'') /// Exclude all coeffecients excepet quintiles
-				mtitles("Employment" "ln(Wage)" "ln(Hours)") ///
+				mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 1 0 0)) ///
+				mtitles("Employment" "ln(Wage)" "ln(Hours)" "Employment" "ln(Wage)" "ln(Hours)") ///
 				varwidth(20)
 				*title("Regression Results with Interacations and Year Fixed Effects") 
 			esttab Reg_emp_year Reg_log_hours_year Reg_log_hours_year Reg_emp_year_id Reg_log_hours_year_id Reg_log_hours_year_id using reg_results_Q`q'_`spec'_both.tex, booktabs replace cells(b(star fmt(3)) se(par fmt(3))) ///
@@ -238,8 +240,7 @@ foreach q in `quants'{
 				*addnotes("All models also control for sex, a cubic in age, \\ race, marital status, urban location and year.") 
 				*`"\tiny"' 
 				*postfoot("\tabnotes{7}{All models also control for sex, a cubic in age, race, marital status, the MHxPH interaction, urban location and year, the 2nd group of models also includes individual fixed effects. The omitted group is poor MH and PH respectively.}") ///
-				*addnotes("All models also control for sex, a cubic in age, race, marital status, the MHxPH interaction, urban location and year, the 2nd group of models also includes individual fixed effects. The omitted group is poor MH and PH respectively.") ///
-				
+				*addnotes("All models also control for sex, a cubic in age, race, marital status, the MHxPH interaction, urban location and year, the 2nd group of models also includes individual fixed effects. The omitted group is poor MH and PH respectively.")
 	} 
 	***end of specs****
 }	
@@ -340,3 +341,4 @@ save UKHLS_sample_quants, replace
 		
 	*/
 	
+ di "*****got to the end of UKHLS_quants.do*****"

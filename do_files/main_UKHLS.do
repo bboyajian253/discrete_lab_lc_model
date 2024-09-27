@@ -13,18 +13,15 @@ cd "$curdir"
 timer clear 1
 timer on 1
 
-do "$dodir/UKHLS_data_clean.do"  /* clean the data and generate input file for estimation of various statistics */
+do "$dodir/UKHLS_merge.do" /* merge the data from all waves */
+
+do "$dodir/UKHLS_clean.do"  /* clean the data and generate input file for estimation of various statistics */
 
 do "$dodir/UKHLS_sample.do"  /* choose my sample, but leave women in, take them out in quants if you want */
 
 do "$dodir/UKHLS_trans.do" /*calculate some PH and MH transiton probabilities, do some persistance stuff*/
 
-// do "$dodir/test.do" 
-
-// do "$dodir/UKHLS_quants.do" /* investigate the quantiles of my continuous mh variable and run some regressions*/
-
-//do $dodir/UKHLS_labor_prod /*estimate labor productivity, and income and employment profiles by heatlh*/
-
+do "$dodir/UKHLS_quants.do" /* investigate the quantiles of my continuous mh variable and run some regressions*/
 
 timer off 1
 

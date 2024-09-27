@@ -85,6 +85,7 @@ export delimited using "mean_earnings_by_health_type.csv", replace
 use `mean_earnings_MHT0_age', clear
 merge 1:1 _n using `mean_earnings_MHT1_age'
 export delimited using "mean_earnings_by_health_type_age.csv", replace
+restore
 
 // By earnings level (decile, quintile, etc) what is the percentage in bad health state.
 

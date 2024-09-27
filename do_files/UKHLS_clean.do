@@ -4,100 +4,31 @@ clear mata
 set maxvar 30000
 
 pause on
-cd "C:\Users\Ben\3YP_Data_Work\Data\ukhls"
-*local withYearSaveLoc "C:\Users\Ben\My Drive\PhD\PhD Year 3\3rd Year Paper\Data"
-
-
-
-local myData2009 "a_indresp"
-local myData2010 "b_indresp"
-local myData2011 "c_indresp"
-local myData2012 "d_indresp"
-local myData2013 "e_indresp"
-local myData2014 "f_indresp"
-local myData2015 "g_indresp"
-local myData2016 "h_indresp"
-local myData2017 "i_indresp"
-local myData2018 "j_indresp"
-local myData2019 "k_indresp"
-local myData2020 "l_indresp"
-
-
-// Define the list of years and wave letters
-local years "2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020"
-local letters "a b c d e f g h i j k l"
-
-****create year variable****
-*delete prefixes
-
-local n : word count `years'
-tokenize "`years'" 
-
-forvalues i = 1/`n'{
-	local letter : word `i' of `letters'
-	cd "C:\Users\Ben\3YP_Data_Work\Data\ukhls"
-	use `letter'_indresp, clear
-	***this needs to change****
-	gen wave = "`letter'"
-	gen year = ``i''
-	***this needs to change****
-	capture renpfix `letter'_
-	cd "C:\Users\Ben\3YP_Data_Work\Data"
-	save with_`letter'_stata, replace
-
-}
-
-/*
-****create year variable****
-*delete prefixes
-foreach letter in `letters'{
-		cd "C:\Users\Ben\3YP_Data_Work\Data\ukhls"
-		use `letter'_indresp, clear
-		***this needs to change****
-		gen wave = "`letter'"
-		*gen year = `year'
-		***this needs to change****
-		capture renpfix `letter'_
-		cd "C:\Users\Ben\3YP_Data_Work\Data"
-		save with_`letter'_stata, replace
-}
-*/
-
-
-use with_a_stata, clear
-local myLetters "b c d e f g h i j k l"
-// Loop through the years
-foreach letter in `myLetters' {
-	di " ***** joining for wave: `letter' *****"
-    // Specify the current dataset
-    append using with_`letter'_stata
-}
-*
-sort pidp
-
-
-
+cd "$datadir"
+use UKHLS_merged, clear
 
 ***rename some specific vars
 *UKHLS given date of survey/interview
 *Year
 rename istrtdaty date_year
 rename intdaty_dv date_year_dv
-
-*rename date_year_dv year
+rename date_year_dv year
 
 *Month
 rename istrtdatm date_month
 rename intdatm_dv date_month_dv
+drop month //drop the month variable that represnets the month of the initial sample date
+rename date_month_dv month
 
 *Day
 rename istrtdatd date_day
 rename intdatd_dv date_day_dv
+rename date_day_dv day
 
 *age
 rename dvage age
 *birth year
-gen birthyear = year - age
+gen birthyear = doby_dv
 
 *interest/dividends proxy for wealth
 rename fiyrdia interest //amount of interest and dividends
@@ -191,7 +122,10 @@ rename pidp indiv_id
 rename fimnnet_dv inc_net_month
 rename fimngrs_dv inc_gross_month
 rename fimngrs_if inc_if
+
 rename fimnlabnet_dv labor_income
+//local labor_income_lab "monthly labor income"
+label variable labor_income "monthly labor income"
 
 *set a reference year
 
@@ -250,22 +184,12 @@ rename racel_dv race
 *government office region 
 rename gor_dv gor
 
-*country of residence (name is the same)
-*sum country
-
 *urban (==1) or not (==2)?
 rename urban_dv urban
 
-
 sort mental_health
-// Generate MH quintiles using xtile
-// Exclude missing values from 'interest' and create a new variable 'interest_nonmissing'
 gen mental_health_nonmissing = mental_health if mental_health != .
-
-// Create quintiles based on 'interest_nonmissing'
 xtile mh_quintiles = mental_health_nonmissing, nq(5)
-
-// Drop the temporary variable 'interest_nonmissing'
 drop mental_health_nonmissing
 
 // Generate dummy variables for quintiles
@@ -285,12 +209,12 @@ label variable mh_q5 "Excellent Mental Health: Quintile 5"
 // Display table of statistics for each quintile 
 tabstat mental_health, stat(n mean min max sd p50) by(mh_quintiles)
 
-
 *generate log of labor income
-gen log_labor_inc = log(labor_income)
+// gen log_labor_inc = log(labor_income)
+gen log_labor_inc =.
+replace log_labor_inc = log(labor_income) if labor_income > 0 & labor_income != .
 local inc_label : variable label labor_income
 label variable log_labor_inc "log of `inc_label' "
-
 
 *generate log of gross income
 gen log_gross_inc = log(inc_gross_month)
@@ -302,7 +226,21 @@ gen log_hours = log(job_hours)
 local inc_label : variable label job_hours
 label variable log_hours "log of `inc_label' "
 
+*generate hourly wage
+gen wage = .
+replace wage = labor_income / (4*job_hours) if job_hours > 0 & job_hours != . & labor_income > 0 & labor_income != .
+label variable wage "estimated hourly wage from labor_income and job_hours"
 
+*generate log of hourly wage
+gen log_wage = log(wage)
+local wage_label : variable label wage
+label variable log_wage "log of `wage_label' "
+
+*generate weekly job_hours decimal
+gen job_hours_decimal = .
+label variable job_hours_decimal "job_hours converted to be between 0-1"
+replace job_hours_decimal = 1.0 if job_hours >= 100 //& job_hours != .
+replace job_hours_decimal = job_hours / 100 if job_hours < 100
 
 *generate age squared and cubed
 gen age2 = age*age
@@ -314,41 +252,35 @@ label variable paid_emp "Dummy equal to 1 if an employee"
 *generate a self employed dummy
 gen self_emp = (job_stat == 1)
 label variable self_emp "Dummy equal to 1 if an self employed"
-*gen dummt if either self employed or an employee
+*gen dummy if either self employed or an employee
 gen emp = (paid_emp == 1 | self_emp == 1) 
 label variable emp "Dummy equal to 1 if a paid employee or self employed"
 
-***SAVE MERGED AND RENAMED (NO DROPS)****
-***save the merged and renamed data and time sstamp it
-* Get the current date
-local today "`c(current_date)'"
+gen educHS = .
+replace educHS = 1 if (high_qual == 3 | high_qual == 4 ) // if GCSE and A-Level educated
+label define educHSLab 1 "High School (A level/GCSE)" 
+label values educHS educHSLab
 
-* Format the date string to remove spaces and special characters
-local today : subinstr local today " " "", all
+gen educHigher = .
+replace educHigher = 1 if (high_qual == 1 | high_qual == 2) //if higher educated
+label define educHigherLab 1 "Higher Education" 
+label values educHigher educHigherLab
 
-* Construct the filename with a timestamp
-local mergeName "UKHLS_merged_`today'.dta"
-* Save the cleaned data with the timestamped filename
-*save "`mergeName'", replace
-*###UNCOMMENT THE ABOVE LINE TO SAVE "RAW" MERGED DATA###*
-
-***start to clean it up a bit
-/*
-*keep only the vars I rename + sex (i.e. keep only the vars I use)
-keep age* job_hours job2_hours job2_has mental_health* job_stat job_indus job_ft ///
-	 indiv_id jbhas educ_level* mar_stat race gor country date_* wave labor_income ///
-	 inc* sex urban mh* emp* paid* self* log_* sf_* physical_* year long_weights ///
-	 birthyear high_qual interest ///
-*/
-
-pause
+gen educ = .
+replace educ = 1 if educHigher == 1
+replace educ = 0 if (high_qual >0 & educHigher != 1) //non college
+label define educLab 0 "No College" 1 "College"
+label values educ educLab
+	 
 	 
 *keep only the vars I rename + sex (i.e. keep only the vars I use)
-keep age age2 age3 job_hours mental_health job_stat job_indus job_ft scghq* ///
-	 indiv_id jbhas educ_level mar_stat race wave labor_income ///
-	 sex urban mh_* emp self_emp log_* sf_* physical_* year long_weights ///
-	 birthyear high_qual interest psu strata ///	 
-	 
+keep age age2 age3 job_hours* mental_health job_stat job_indus job_ft ///
+	indiv_id jbhas mar_stat race wave labor_income sex urban ///
+	mh_* emp self_emp log_* sf_* physical_* long_weights ///
+	birthyear high_qual interest psu strata wage log_wage educ educHS educHigher educ_level ///	 
+	day month year
+	// date_year_dv
+
 // replace all negative numbers with missing values
 foreach var of varlist _all {
     local type : type `var'
@@ -358,79 +290,84 @@ foreach var of varlist _all {
     }
 }
 
-	 
 *drop duplicates by indiv_id and year
-duplicates report indiv_id year /*what do the duplicates look like*/
-duplicates drop indiv_id year, force /*drop 'em*/
+duplicates report indiv_id year //report duplicates there should be none
+// pause on
+// pause
+// duplicates drop indiv_id year, force //drp em just in case
 
-	 
+*************************************************   
+//  construct survey weights
+**************************************************
+gen wght = long_weight          /* use individual longitudinal weight (excl non-sample persons) */
+
+local lastWave = "l"               
+gen wght`lastWave' = -100
+replace wght`lastWave' = wght if wave == "`lastWave'"  
+sort indiv_id wght`lastWave'
+bysort indiv_id: replace  wght`lastWave' = wght`lastWave'[_N]   /**/
+recode wght`lastWave' (-100 = .)
+
+// set weights for cross-sectional and fixed effect calculations
+gen wght0    = wght          /*use for cross-sectional calculation */
+gen wghtFE   = wght`lastWave'    /*  only for fixed effect regression */
+
+**********************************************	
+// Construct variables to represent age groups 
+**********************************************
+gen int   ageint5_1 = 1  if age >= 20 & age <=24               
+replace   ageint5_1 = 2  if age >= 25 & age <=29 
+replace   ageint5_1 = 3  if age >= 30 & age <=34 
+replace   ageint5_1 = 4  if age >= 35 & age <=39 
+replace   ageint5_1 = 5  if age >= 40 & age <=44 
+replace   ageint5_1 = 6  if age >= 45 & age <=49 
+replace   ageint5_1 = 7  if age >= 50 & age <=54 
+replace   ageint5_1 = 8  if age >= 55 & age <=59 
+replace   ageint5_1 = 9  if age >= 60 & age <=64 
+replace   ageint5_1 = 10 if age >= 65 & age <=69 
+replace   ageint5_1 = 11 if age >= 70 & age <=74
+replace   ageint5_1 = 12 if age >= 75 & age <=79
+replace   ageint5_1 = 13 if age >= 80 & age <=84
+replace   ageint5_1 = 14 if age >= 85
+label variable ageint5_1 "age interval" 
+label define ageintlabel5_1 1  "20-24" 2  "25-29" 3 "30-34"  4 "35-39"  5  "40-44"  6  "45-49"   ///
+							7  "50-54" 8  "55-59" 9 "60-64" 10 "65-69" 11  "70-74"  12 "75-79"  13  "80-84"  14 "85+", replace                          
+label value ageint5_1 ageintlabel5_1 
+
+gen ageint10_1 = .
+replace ageint10_1 = 1 if age>=25 & age <=34
+replace ageint10_1 = 2 if age>=35 & age <=44
+replace ageint10_1 = 3 if age>=45 & age <=54
+replace ageint10_1 = 4 if age>=55 & age <=64   
+label define ageint10Lab_1 1 "25-34" 2 "35-44" 3 "45-54"  4 "55-64" 
+label value  ageint10_1  ageint10Lab_1
+
+* define age group
+gen ageint20 = .
+replace ageint20 = 1 if age>=30 & age <=54
+replace ageint20 = 2 if age>=55 & age <=69
+replace ageint20 = 3 if age>=70 
+label define ageint20Lab 1 "30-54" 2 "55-69" 3 "70+" 
+label value  ageint20  ageint20Lab	
+
+* define age group
+gen ageint20_1 = .
+replace ageint20_1 = 1 if age>=30 & age <=54
+replace ageint20_1 = 2 if age>=55 & age <=59
+replace ageint20_1 = 3 if age>=60 & age <=64
+replace ageint20_1 = 4 if age>=65 & age <=69
+replace ageint20_1 = 5 if age>=70 & age <=74
+replace ageint20_1 = 6 if age>=75
+label define ageint20Lab_1 1 "30-54" 2 "55-59" 3 "60-64" 4 "65-69" 5 "70-74" 6 "75+" 
+label value  ageint20_1  ageint20Lab_1 
+
+
 ***SAVE MERGED AND RENAMED (MY VARS ONLY)****	 
-* Construct the filename with a timestamp
-local myName "UKHLS_sample_clean.dta"
-* Save the cleaned data with the timestamped filename
+local myName "UKHLS_clean.dta"
 save "`myName'", replace
 
 * Erase helper files
 foreach letter in `letters'{
 	erase with_`letter'_stata.dta
 }
-
-
-/*
-***drop non-Men
-drop if sex != 1	 
-
-***drop coded value for "proxy, inapplicable, dont know, refusal etc."
-*non-self employed avg hrs per week
-*drop if working_hours <= -1
-*mental health measure
-drop if mental_health <= -1 
-*drop if job_indus <=-1
-drop if job_stat <=-1
-
-
-*** drop if not working age (roughly: we extend it a little bit to observe a longer trend over the lifecycle)
-drop if age > 70
-drop if age < 16
-
-***we want to drop the never employed
-
-// Sort the data by indiv_id and year
-sort indiv_id year
-
-// Create a variable to indicate if an individual is ever employed
-capture drop ever_employed
-egen ever_employed = max(emp == 1), by(indiv_id)
-
-*drop if they have never been employed
-drop if ever_employed == 0
-
-*drop indicator variable
-drop ever_employed
-
-***we want to stop following people after they become self employed
-sort indiv_id year
-*find the first year someone is self employed
-egen first_self_emp_year = min(year/ (self_emp ==1)), by(indiv_id)
-*generate a dummy for all periods after an individual has been self employed
-by indiv_id: gen has_been_self_emp = (year >= first_self_emp_year)
-*drop once an individual becomes self employed
-drop if has_been_self_emp == 1
-*drop indicator variables
-drop has_been_self* first_self*
-
-
-***SAVE MERGED AND RENAMED MY VARS ONLY, DROP BAD OBSERVATIONS***
-
-*save the cleaned data and time sstamp it
-* Get the current date
-local today "`c(current_date)'"
-* Format the date string to remove spaces and special characters
-local today : subinstr local today " " "", all
-* Construct the filename with a timestamp
-local cleanName "UKHLS_my_vars_cleaned_`today'.dta"
-* Save the cleaned data with the timestamped filename
-save "`cleanName'", replace
-
-
 
