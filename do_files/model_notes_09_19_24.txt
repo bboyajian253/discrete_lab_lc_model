@@ -2,7 +2,7 @@ Notes from my latest 3 advising meetings:
 
 *** Adam 09/17/24*** What is the most importatnt difference for the model vs the data?  - moments by health
 
-    Trim wages if work <10 hours instead of 5
+    // Trim wages if work <10 hours instead of 5
 
     Make simpler not by age moments first then make the lifecycle equivalent
     
@@ -17,6 +17,12 @@ Notes from my latest 3 advising meetings:
     Share of people in bad health state by age in the data and model
     By earnings level (decile, quintile, etc) what is the percentage in bad health state.
     - how does the model compare to the data?
+    
+    It feels like its the exact opposite of what it should be. i.e. its upside down.
+    It feels like I am calculating the model weigthed variance in labor earnings properly.
+    - juding by the labor earnigns lifecycle graph the variance should increase and then decrease.
+    - currently it just decreases
+    - what is wrong?
     
     Analyze the counterfactuals: What did I show? What did I learn?
     -Relable the counterfactuals

@@ -23,7 +23,7 @@ import simulate as simulate
 import calibration
 import plot_lc as plot_lc
 from pars_shocks import Pars, Shocks
-import plot_moments  
+import plot_aggregates as plot_aggregates  
 import io_manager as io
 
 # Run the model
@@ -115,11 +115,11 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
         # calibration.print_H_trans_to_tex(myPars, path)
     if get_targets:
         lab_mom_path = data_moms_folder_path + 'labor_moments.csv'
-        plot_moments.plot_lab_aggs_and_moms(myPars, sim_lc, data_moms_path=lab_mom_path, out_path = out_path)
+        plot_aggregates.plot_lab_aggs_and_moms(myPars, sim_lc, data_moms_path=lab_mom_path, out_path = out_path)
         emp_mom_path = data_moms_folder_path + 'emp_rate_moments.csv'
-        plot_moments.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, out_path = out_path)
+        plot_aggregates.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, out_path = out_path)
         wage_mom_path = data_moms_folder_path + 'wage_moments.csv'
-        plot_moments.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, out_path = out_path)
+        plot_aggregates.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, out_path = out_path)
     plot_lc.plot_lc_profiles(myPars, sim_lc, out_path)
 
 # run if main function

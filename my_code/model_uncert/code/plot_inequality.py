@@ -25,7 +25,9 @@ def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, out_path: s
     log_sim = np.log(sim, where = sim > 0)
     var_log_sim_by_age = weighted_var_sim_by_age(myPars, log_sim)
     my_age_grid = myPars.age_grid
-    my_age_grid = myPars.age_grid[:31] # only plot up to age 55
+    # my_age_grid = myPars.age_grid[:31] # only plot up to age 55
+    my_age_grid = myPars.age_grid[:41] # only plot up to age 65
+    # my_age_grid = myPars.age_grid
     fig, ax = tb.plot_lc_mom_by_age(var_log_sim_by_age, my_age_grid, out_path, y_axis_lab, quietly)
     return fig, ax
 
@@ -39,6 +41,8 @@ def weighted_var_sim_by_age(myPars: Pars, sim: np.ndarray) -> np.ndarray:
     squared_dev = dev_from_mean**2
     weighted_var_by_age = np.sum(model.gen_weighted_sim(myPars, squared_dev), axis = tuple(range(sim.ndim - 1)))
     return weighted_var_by_age
+    # var_by_age = np.var(sim, axis = tuple(range(sim.ndim - 1)))
+    # return var_by_age
 
 def wperc_sim_by_age(myPars: Pars, sim: np.ndarray, perc: float) -> np.ndarray:
     """

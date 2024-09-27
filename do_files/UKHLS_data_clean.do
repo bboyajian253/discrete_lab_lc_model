@@ -291,7 +291,9 @@ label variable mh_q5 "Excellent Mental Health: Quintile 5"
 tabstat mental_health, stat(n mean min max sd p50) by(mh_quintiles)
 
 *generate log of labor income
-gen log_labor_inc = log(labor_income)
+// gen log_labor_inc = log(labor_income)
+gen log_labor_inc =.
+replace log_labor_inc = log(labor_income) if labor_income > 0 & labor_income != .
 local inc_label : variable label labor_income
 label variable log_labor_inc "log of `inc_label' "
 

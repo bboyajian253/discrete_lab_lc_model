@@ -21,7 +21,7 @@ do "$dodir/UKHLS_trans.do" /*calculate some PH and MH transiton probabilities, d
 
 // do "$dodir/test.do" 
 
-do "$dodir/UKHLS_quants.do" /* investigate the quantiles of my continuous mh variable and run some regressions*/
+// do "$dodir/UKHLS_quants.do" /* investigate the quantiles of my continuous mh variable and run some regressions*/
 
 //do $dodir/UKHLS_labor_prod /*estimate labor productivity, and income and employment profiles by heatlh*/
 

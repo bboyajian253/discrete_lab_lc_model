@@ -1,5 +1,5 @@
 """
-plot_moments.py
+plot_aggregates.py
 
 Created on 2024-07-09 01:11:05
 Created by Ben Boyaian

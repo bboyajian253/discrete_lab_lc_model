@@ -17,8 +17,8 @@ local start_age = 25
 local end_age = 75
 
 preserve
-collapse (sd) log_labor_inc if age >= `start_age' & age <= `end_age' & emp == 1, by(age)
-
+// collapse (sd) log_labor_inc if age >= `start_age' & age <= `end_age' & emp == 1, by(age)
+collapse (sd) log_labor_inc if emp == 1 & log_labor_inc != . & labor_income > 0, by(age)
 rename log_labor_inc var_log_lab_inc
 replace var_log_lab_inc = var_log_lab_inc * var_log_lab_inc
 tempfile var_log_lab_inc_data

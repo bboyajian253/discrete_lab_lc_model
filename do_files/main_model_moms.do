@@ -23,8 +23,6 @@ do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments
 
 do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
 
-do "$dodir/earnings_by_health.do" //generate the earnings by health moments
-
-// do "$dodir/health_by_earnings.do" //generate the health by earnings moments
+do "$dodir/earnings_and_health.do" //generate the earnings by health moments
 
 di "*****got to the end of main_model_moms.do*****"

@@ -89,14 +89,12 @@ if __name__ == "__main__":
     y_axis_label_var = "Variance of log earnings"
     input_path = main_path + "input/k2_moms/"
     plot_save_path = main_path + "validation/" 
-    quietly = True
 
     var_earns_data = tb.read_specific_column_from_csv(input_path + "var_earn_moments.csv", 1)
     fig_var_benchmark, ax_var_benchmark = plot_ineq.plot_var_log_sim(myPars,sims["lab_earnings"], 
                                                                      y_axis_label_var, out_path, quietly = False)
     fig_var_earns_data, ax_var_earns_data =tb.plot_lc_mom_by_age(var_earns_data, my_age_grid, plot_save_path, 
-                                                    mom_name = "Variance of Log Labor Earnings" , quietly = quietly)
-    quietly = False
+                                                    mom_name = "Variance of Log Labor Earnings" , quietly = False)
     label_lists = [["Data"], ["Benchmark model"]]
     percentile_y_lim = [1.0, 7.0]
     line_colors = ["C1", "C0"] # these are the standard matplotlib colors
@@ -105,6 +103,6 @@ if __name__ == "__main__":
     fig_valid_lab_earn, ax_valid_lab_earn = tb.combine_plots([(fig_var_earns_data, ax_var_earns_data), 
                                                     (fig_var_benchmark, ax_var_benchmark)],
                                                     save_path = plot_save_path + "_var" + ".pdf", y_lim = [0.0, 0.6],
-                                                    label_lists = label_lists, colors = line_colors, quietly = quietly)
+                                                    label_lists = label_lists, colors = line_colors, quietly = False)
 
     tb.print_exec_time("Main.py executed in", start_time) 
