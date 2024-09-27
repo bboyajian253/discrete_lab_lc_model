@@ -12,7 +12,7 @@
 
 xtset indiv_id age	
 local num_lags = 10
-local corr_vars = "labor_earnings mental_health physical_health MH PH"
+local corr_vars = "wage log_wage job_hours log_hours labor_earnings log_labor_earnings mental_health physical_health MH PH"
 local num_vars : word count "`corr_vars'"
 
 // Initialize an empty Mata matrix to store results, with num_lags + 1 rows and no columns initially

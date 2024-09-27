@@ -7,7 +7,7 @@ Notes from my latest 3 advising meetings:
     Make simpler not by age moments first then make the lifecycle equivalent
     
     Persistance of labor earnings inequality
-    - picture shows auto correlation of earnings at various lags (Adam has one in a paper)
+    - picture shows auto-correlation of earnings at various lags (Adam has one in a paper)
     - same for mental health
     - how does the model compare to the data?
 
