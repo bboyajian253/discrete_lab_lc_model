@@ -101,7 +101,7 @@ def mean_nonzero_numba(arr: np.ndarray) -> float:
         return 0.0
     return total / count
 
-def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, out_path: str, mom_name: str, quietly: bool = False) -> Tuple[Figure, Axes]:
+def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, mom_name: str, save_path: str = None, quietly: bool = False) -> Tuple[Figure, Axes]:
     J = len(age_grid) - 1
     values = lc_mom_by_age[:J]
     age_grid = age_grid[:J]
@@ -117,6 +117,8 @@ def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, out_path
     ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
     ax.set_ylabel(y_label)
     ax.legend()
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches='tight')
     if not quietly:
         plt.show()
     plt.close()
@@ -126,8 +128,11 @@ def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, out_path
 def combine_plots(
     figures_axes: List[Tuple[Figure, Axes]], 
     save_path: Optional[str] = None,
+    comb_fig_title: Optional[str] = None,
     x_lim: Optional[List[float]] = None, 
     y_lim: Optional[List[float]] = None, 
+    x_label: Optional[str] = None,
+    y_label: Optional[str] = None,
     label_lists: Optional[List[List[str]]] = None, 
     linestyles: Optional[List[str]] = None,
     colors: Optional[List[str]] = None,  # New parameter for colors
@@ -138,11 +143,13 @@ def combine_plots(
     
     Parameters:
     - figures_axes: A list of tuples (fig, ax), where each tuple contains a figure and its corresponding axis.
+    - save_path: Optional path to save the combined plot as an image file.
+    - comb_fig_title: Optional title for the combined figure.
     - x_lim: Optional list to specify x-axis limits.
     - y_lim: Optional list to specify y-axis limits.
     - label_lists: Optional list of lists of labels for the lines in each plot. If not provided, the original labels from the axes will be used.
-    - linestyles: Optional list of linestyles (e.g., ['-', '--', '-.', ':']) for each plot. Ignored if `colors` is provided.
-    - colors: Optional list of colors for each plot. If provided, linestyles are ignored.
+    - linestyles: Optional list of linestyles (e.g., ['-', '--', '-.', ':']) for each plot. 
+    - colors: Optional list of colors for each plot.
     - quietly: If True, suppresses the display of the plot.
 
     Returns:
@@ -151,7 +158,6 @@ def combine_plots(
     
     # Create a new figure and axis
     fig, ax = plt.subplots()
-    
     # If linestyles are not provided and colors aren't provided either, set default linestyles
     if linestyles is None and colors is None:
         linestyles = ['-', '--', '-.', ':', (0, (5, 2, 2, 2))] * len(figures_axes)  # Default linestyles
@@ -159,15 +165,16 @@ def combine_plots(
     for idx, (fig_old, ax_old) in enumerate(figures_axes):
         lines = ax_old.get_lines()
         label_list = label_lists[idx] if label_lists is not None and idx < len(label_lists) else None
-
         # Use color if provided, otherwise fallback to linestyles
-        if colors is not None:
+        if colors is not None and linestyles is None:
             color = colors[idx % len(colors)]
             linestyle = None  # Ignore linestyles if colors are provided
-        else:
+        elif colors is None and linestyles is not None:
             color = None  # Use the original color if no new colors are provided
             linestyle = linestyles[idx % len(linestyles)]
-
+        else:
+            color = colors[idx % len(colors)]
+            linestyle = linestyles[idx % len(linestyles)]
         # Add lines from the current plot
         for i, line in enumerate(lines):
             label = label_list[i] if label_list is not None and i < len(label_list) else line.get_label()
@@ -185,27 +192,31 @@ def combine_plots(
     
     x_lim = x_lim if x_lim is not None else [min(x[0] for x in all_xlims), max(x[1] for x in all_xlims)]
     y_lim = y_lim if y_lim is not None else [min(y[0] for y in all_ylims), max(y[1] for y in all_ylims)]
-    
     ax.set_xlim(x_lim)
     ax.set_ylim(y_lim)
+
+    x_label = x_label if x_label is not None else figures_axes[0][1].get_xlabel()
+    y_label = y_label if y_label is not None else figures_axes[0][1].get_ylabel()
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
 
     # Display legend
     ax.legend()
 
-    # Force canvas to draw
-    fig.canvas.draw()
-    fig.canvas.flush_events()
-    
+    # Set the title if provided
+    if comb_fig_title is not None:
+        ax.set_title(comb_fig_title)
     # Save the figure if a path is provided
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')
-        # plt.close(fig)  # Close the figure to free up memory
+    
+    # Force canvas to draw
+    fig.canvas.draw()
+    fig.canvas.flush_events()   # plt.close(fig)  # Close the figure to free up memory
     if not quietly:
         plt.show()
 
     return fig, ax
-
-
 
 
 def save_plot(figure: Figure, path: str) -> None:

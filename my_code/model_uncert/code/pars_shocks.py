@@ -232,7 +232,7 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
                 # for start_H_ind in range(myPars.H_grid_size):
                 for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
                         for sim_ind in range(myPars.sim_draws):
-                                for j in range(myPars.J):
+                                for j in range(myPars.J+1):
                                         if j == 0:
                                                 if sim_ind / myPars.sim_draws < myPars.H_beg_pop_weights_by_H_type[H_type_perm_ind, 1]:
                                                         hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
@@ -252,6 +252,7 @@ if __name__ == "__main__":
         path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
         myPars = Pars(path, J = 51, sim_draws = 1000)
         print(myPars.H_trans)
+        trans_path = path + "/input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
         myShocks = Shocks(myPars)
         print(f" H_hist: {myShocks.H_hist}")
 		

@@ -40,7 +40,7 @@ def sim_lc_numba(myPars : Pars, myShocks: Shocks, sim_vals_list: List[np.ndarray
                     lab = interp(myPars.a_grid, lab_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
                     a_prime = interp(myPars.a_grid, a_prime_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
                     wage = model.wage(myPars, j, lab_fe_ind, curr_h_ind)
-                    lab_earnings = wage * lab * 100 # 100 is a scaling factor since labor is between 0 and 1 
+                    lab_earnings = wage * lab * 100 * 4 # 100 is a scaling factor since labor is between 0 and 1, 4 is the number of weeks in a month 
                     # will  need  adjustment for taxes, etc. eventually, may need a function in model.py like recover_wage
                     # store the values of c, labor, and a_prime in the simulation arrays
                     sim_c[lab_fe_ind, H_type_perm_ind, sim_ind, j] = c

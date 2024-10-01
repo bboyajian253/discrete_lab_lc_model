@@ -18,17 +18,17 @@ from pars_shocks import Pars
 import model_uncert as model
 import my_toolbox as tb
 
-def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, out_path: str, quietly = False) -> Tuple[Figure, Axes]:
+def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, out_path: str = None, full_age_grid: bool = False, quietly: bool = False) -> Tuple[Figure, Axes]:
     """
     plot the variance of the log of the simulated variable by age
     """
     log_sim = np.log(sim, where = sim > 0)
     var_log_sim_by_age = weighted_var_sim_by_age(myPars, log_sim)
-    my_age_grid = myPars.age_grid
     # my_age_grid = myPars.age_grid[:31] # only plot up to age 55
     my_age_grid = myPars.age_grid[:41] # only plot up to age 65
-    # my_age_grid = myPars.age_grid
-    fig, ax = tb.plot_lc_mom_by_age(var_log_sim_by_age, my_age_grid, out_path, y_axis_lab, quietly)
+    if full_age_grid:
+        my_age_grid = myPars.age_grid
+    fig, ax = tb.plot_lc_mom_by_age(var_log_sim_by_age, my_age_grid, y_axis_lab, quietly = quietly)
     return fig, ax
 
 def weighted_var_sim_by_age(myPars: Pars, sim: np.ndarray) -> np.ndarray:
@@ -88,15 +88,15 @@ def plot_many_sim_perc_ratio(myPars: Pars, sim: np.ndarray, y_axis_label_root: s
     my_age_grid = myPars.age_grid
     my_age_grid = myPars.age_grid[:31] # only plot up to age 55
 
-    fig_90, ax_90 = tb.plot_lc_mom_by_age(sim_age_90p, my_age_grid, out_path, "90th Percentile of " + y_axis_label_root, quietly)
-    fig_50, ax_50 = tb.plot_lc_mom_by_age(sim_age_50p, my_age_grid, out_path, "50th Percentile of " + y_axis_label_root, quietly)
-    fig_10, ax_10 = tb.plot_lc_mom_by_age(sim_age_10p, my_age_grid, out_path, "10th Percentile of " + y_axis_label_root, quietly)
-    fig_5, ax_5 = tb.plot_lc_mom_by_age(sim_age_5p, my_age_grid, out_path, "5th Percentile of " + y_axis_label_root, quietly)
-    fig_90_10, ax_90_10 = tb.plot_lc_mom_by_age(sim_age_90_10p, my_age_grid, out_path, "90th/10th Percentile Ratio of " + y_axis_label_root, quietly)
-    fig_90_50, ax_90_50 = tb.plot_lc_mom_by_age(sim_age_90_50p, my_age_grid, out_path, "90th/50th Percentile Ratio of " + y_axis_label_root, quietly)
-    fig_50_10, ax_50_10 = tb.plot_lc_mom_by_age(sim_age_50_10p, my_age_grid, out_path, "50th/10th Percentile Ratio of " + y_axis_label_root, quietly)
-    fig_90_5, ax_90_5 = tb.plot_lc_mom_by_age(sim_age_90_5p, my_age_grid, out_path, "90th/5th Percentile Ratio of " + y_axis_label_root, quietly)
-    fig_50_5, ax_50_5 = tb.plot_lc_mom_by_age(sim_age_50_5p, my_age_grid, out_path, "50th/5th Percentile Ratio of " + y_axis_label_root, quietly)
+    fig_90, ax_90 = tb.plot_lc_mom_by_age(sim_age_90p, my_age_grid,  "90th Percentile of " + y_axis_label_root, quietly)
+    fig_50, ax_50 = tb.plot_lc_mom_by_age(sim_age_50p, my_age_grid,  "50th Percentile of " + y_axis_label_root, quietly)
+    fig_10, ax_10 = tb.plot_lc_mom_by_age(sim_age_10p, my_age_grid,  "10th Percentile of " + y_axis_label_root, quietly)
+    fig_5, ax_5 = tb.plot_lc_mom_by_age(sim_age_5p, my_age_grid,  "5th Percentile of " + y_axis_label_root, quietly)
+    fig_90_10, ax_90_10 = tb.plot_lc_mom_by_age(sim_age_90_10p, my_age_grid,  "90th/10th Percentile Ratio of " + y_axis_label_root, quietly)
+    fig_90_50, ax_90_50 = tb.plot_lc_mom_by_age(sim_age_90_50p, my_age_grid,  "90th/50th Percentile Ratio of " + y_axis_label_root, quietly)
+    fig_50_10, ax_50_10 = tb.plot_lc_mom_by_age(sim_age_50_10p, my_age_grid,  "50th/10th Percentile Ratio of " + y_axis_label_root, quietly)
+    fig_90_5, ax_90_5 = tb.plot_lc_mom_by_age(sim_age_90_5p, my_age_grid, "90th/5th Percentile Ratio of " + y_axis_label_root, quietly)
+    fig_50_5, ax_50_5 = tb.plot_lc_mom_by_age(sim_age_50_5p, my_age_grid, "50th/5th Percentile Ratio of " + y_axis_label_root, quietly)
 
     return[(fig_90, ax_90), (fig_50, ax_50), (fig_10, ax_10), (fig_5, ax_5), 
            (fig_90_10, ax_90_10), (fig_90_50, ax_90_50), (fig_50_10, ax_50_10), 

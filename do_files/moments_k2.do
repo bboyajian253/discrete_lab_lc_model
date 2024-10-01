@@ -33,6 +33,29 @@ tempfile job_hours_data
 save `job_hours_data', replace
 restore
 
+* Collapse job_hours_decimal to sd by age for ages `start_age'-`end_age' and save the results
+preserve
+collapse (sd) job_hours_decimal if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+rename job_hours_decimal sd_job_hours_decimal
+tempfile job_hours_sd_data
+save `job_hours_sd_data', replace
+restore
+
+// Same for log hours
+preserve
+collapse (mean) log_hours if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+tempfile log_hours_data
+save `log_hours_data', replace
+restore
+
+preserve
+collapse (sd) log_hours if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+rename log_hours sd_log_hours
+tempfile log_hours_sd_data
+save `log_hours_sd_data', replace
+restore
+
+
 
 * Change to output directory
 cd "$outdir"
@@ -57,8 +80,6 @@ restore
 preserve
 collapse (mean) wage if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
 list
-// pause on
-// pause
 tempfile wages_data
 save `wages_data', replace
 restore
@@ -71,25 +92,76 @@ tempfile wages_sd_data
 save `wages_sd_data', replace
 restore
 
+// same for log wages
 preserve
-* Export the job_hours dataset to a CSV file
-use `job_hours_data', clear
-export delimited using "labor_moments.csv", replace
+collapse (mean) log_wage if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+tempfile log_wages_data
+save `log_wages_data', replace
+restore
 
+preserve
+collapse (sd) log_wage if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+rename log_wage sd_log_wage
+tempfile log_wages_sd_data
+save `log_wages_sd_data', replace
+restore
+
+* Mean and sd of labor earnings by age
+preserve
+collapse (mean) labor_earnings if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+tempfile earnings_data
+save `earnings_data', replace
+restore
+
+preserve
+collapse (sd) labor_earnings if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+rename labor_earnings sd_labor_earnings
+tempfile earnings_sd_data
+save `earnings_sd_data', replace
+restore
+
+// same for log labor earnings
+preserve
+collapse (mean) log_labor_earnings if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+tempfile log_earnings_data
+save `log_earnings_data', replace
+restore
+
+preserve
+collapse (sd) log_labor_earnings if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
+rename log_labor_earnings sd_log_labor_earnings
+tempfile log_earnings_sd_data
+save `log_earnings_sd_data', replace
+restore
+
+// merge and store earnings moments
+preserve
+use `earnings_data', clear
+merge 1:1 age using `earnings_sd_data', nogen
+merge 1:1 age using `log_earnings_data', nogen
+merge 1:1 age using `log_earnings_sd_data', nogen
+export delimited using "earnings_moments.csv", replace
+restore
+
+// merge and store wage and log wage moments
+preserve
+use `job_hours_data', clear
+merge 1:1 age using `job_hours_sd_data', nogen
+merge 1:1 age using `log_hours_data', nogen
+merge 1:1 age using `log_hours_sd_data', nogen
+export delimited using "labor_moments.csv", replace
+restore
+
+preserve
 * Step 4: Export the wages dataset to a CSV file
 use `wages_data', clear
+merge 1:1 age using `wages_sd_data', nogen
+merge 1:1 age using `log_wages_data', nogen
+merge 1:1 age using `log_wages_sd_data', nogen
 export delimited using "wage_moments.csv", replace
+restore
 
-* Read the wages dataset into memory
-import delimited "wage_moments.csv", clear
-
-* Add the standard deviation to the dataset as a new observation
-* gen sd_wage = `initial_sd_wage'
-merge 1:1 age using `wages_sd_data'
- 
-* Export the dataset to a CSV file
-export delimited using "wage_moments.csv", replace
-
+preserve
 * Export the wages dataset to a CSV file
 use `emp_rate_data', clear
 export delimited using "emp_rate_moments.csv", replace
@@ -99,7 +171,7 @@ import delimited "emp_rate_moments.csv", clear
 
 * Add the standard deviation to the dataset as a new observation
 * gen sd_wage = `initial_sd_wage'
-merge 1:1 age using `emp_rate_sd_data'
+merge 1:1 age using `emp_rate_sd_data', nogen
  
 * Export the dataset to a CSV file
 export delimited using "emp_rate_moments.csv", replace

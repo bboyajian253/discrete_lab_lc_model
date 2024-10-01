@@ -1,28 +1,24 @@
 Notes from my latest 3 advising meetings:
-
 *** Adam 09/17/24*** What is the most importatnt difference for the model vs the data?  - moments by health
-
     // Trim wages if work <10 hours instead of 5
-
-    Make simpler not by age moments first then make the lifecycle equivalent
+    // Make simpler not by age moments first then make the lifecycle equivalent
     
-    Persistance of labor earnings inequality
-    - picture shows auto-correlation of earnings at various lags (Adam has one in a paper)
-    - same for mental health
-    - how does the model compare to the data?
+    // Mean earnings fit
 
-    Mean earnings by health types/states
-    -states first? model and data.
+    // Persistance of labor earnings inequality
+    // - picture shows auto-correlation of earnings at various lags (Adam has one in a paper)
+    // - same for mental health
+    // - how does the model compare to the data?
 
-    Share of people in bad health state by age in the data and model
+    // Mean earnings by health types/states
+    // -states first? model and data.
+
+    // variance of log hours and log earnings by age in the data and model
+    variance of mental health by age in the data and model (focus on MH)
+
+    // Share of people in bad health state by age in the data and model
     By earnings level (decile, quintile, etc) what is the percentage in bad health state.
     - how does the model compare to the data?
-    
-    It feels like its the exact opposite of what it should be. i.e. its upside down.
-    It feels like I am calculating the model weigthed variance in labor earnings properly.
-    - juding by the labor earnigns lifecycle graph the variance should increase and then decrease.
-    - currently it just decreases
-    - what is wrong?
     
     Analyze the counterfactuals: What did I show? What did I learn?
     -Relable the counterfactuals
@@ -32,6 +28,9 @@ Notes from my latest 3 advising meetings:
     - why does the variance in labor earinings decerase in the model?
     -Given that health effects people mechanically in the same way throughout the model why does inequality
         in labor earnings decrease over the lifecycle in the model?
+    - is it from the wage, hours or health effects? which health effect: time or wage?
+
+    Add log_earnings to the quantile/continuous motivating health regressions
 
 *** Kathleen 09/12/24 ***
     Identification of the health types

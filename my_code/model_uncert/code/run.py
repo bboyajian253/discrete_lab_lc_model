@@ -120,6 +120,8 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
         plot_aggregates.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, out_path = out_path)
         wage_mom_path = data_moms_folder_path + 'wage_moments.csv'
         plot_aggregates.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, out_path = out_path)
+        earn_mom_path = data_moms_folder_path + 'earnings_moments.csv'
+        plot_aggregates.plot_earnings_aggs_and_moms(myPars, sim_lc, data_moms_path=earn_mom_path, out_path = out_path)
     plot_lc.plot_lc_profiles(myPars, sim_lc, out_path)
 
 # run if main function

@@ -94,7 +94,7 @@ if __name__ == "__main__":
     fig_var_benchmark, ax_var_benchmark = plot_ineq.plot_var_log_sim(myPars,sims["lab_earnings"], 
                                                                      y_axis_label_var, out_path, quietly = False)
 
-    fig_var_earns_data, ax_var_earns_data =tb.plot_lc_mom_by_age(var_earns_data, my_age_grid, plot_save_path, 
+    fig_var_earns_data, ax_var_earns_data =tb.plot_lc_mom_by_age(var_earns_data, my_age_grid, 
                                                     mom_name = "Variance of Log Labor Earnings" , quietly = False)
     label_lists = [["Data"], ["Benchmark model"]]
     percentile_y_lim = [1.0, 7.0]
