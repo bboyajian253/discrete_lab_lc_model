@@ -1,0 +1,67 @@
+// "code" from Adam's blackboard notes on 10/1/24
+// imagine a case with 2 parameters
+i2 = 0
+err2 = tol2 + 1
+p2_min = ...
+p2_max = ...
+while abs(err2) > tol2 and i2 < max_iter:
+    p2 = (p2_min + p2_max) / 2
+    
+    i1 = 0
+    err1 = tol1 + 1
+    p1_min = ...
+    p1_max = ...
+    while abs(err1) > tol1 and i1 < max_iter:
+        p1 = (p1_min + p1_max) / 2
+        
+        # do some calculations
+        err1 = ...
+        if err1 > 0:
+            p1_min = p1
+        else:
+            p1_max = p1
+        i1 += 1
+    err2 = get_moments_thing(p1, p2)
+
+// how would i actually write this in my own code?
+// thats also start with 2 parameters
+def calib_all(myPars: Pars, myShocks: shocks, do_wH_calib: bool = True,
+                w0_mu_mom_targ: float = 10.0, w0_sigma_mom_targ: float = 3.0, 
+                w1_mom_targ: float = 0.2, w2_mom_targ: float = 0.2, wH_mom_targ: float = 0.2,
+                w0_mu_min: float = 0.0, w0_mu_max: float = 30.0, w0_sigma_min: float = 0.0, w0_sigma_max: float = 10.0,
+                w0_mu_tol: float = 1e-6, w0_sigma_tol: float = 1e-6) -> Tuple(
+                    float, np.ndarray, float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]):
+    # allocate memory
+    # first lets getting working for 1 parameter
+    state_sols = {}
+    sims = {}
+    max_ites = myPars.max_calib_iter
+
+    w0_mu_calib_count = 0
+    w0_mu_err = w0_mu_tol + 1
+    while np.abs(w0_mu_err) > w0_mu_tol and w0_mu_calib_count < max_iter:
+        print(f"***** Calibration w0_mu iteration {w0_mu_calib_count} *****")
+        w0_mu_guess = (w0_mu_min + w0_mu_max) / 2
+        my_w0_mu_mom = w0_mu_moment_giv_mu(myPars, w0_mu_guess) # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
+        err1 = my_w0_mu_mom - w0_mu_mom_targ
+        if err1 > 0:
+            w0_mu_min = w0_mu
+        else:
+            w0_mu_max = w0_mu
+        w0_mu_calib_count += 1
+    
+    if w0_mu_calib_count >= max_iter:
+        print(f"Calibration did not converge after {i+1} iterations")
+    else:
+        print(f"Calibration converged after {i+1} iterations")
+    if not do_wH_calib:
+        print("********** wH calibration was skipped **********")
+    print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mu_mom}, w0_mean_targ = {w0_mu_mom_targ}") 
+    print(f"w0_sd = {my_w0_sigma_mom}, w0_sd_targ = {w0_sigma_mom_targ}")
+    print(f"w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_mom}, w1 mom targ = {w1_mom_targ}")
+    print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
+    print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
+    print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
+    return myPars.alpha, myPars.lab_fe_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, state_sols, sims
+    // myPars.
+

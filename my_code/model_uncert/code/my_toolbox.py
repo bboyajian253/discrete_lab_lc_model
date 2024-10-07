@@ -21,6 +21,35 @@ import os
 import subprocess
 from scipy.optimize import minimize, differential_evolution
 
+@njit
+def range_tuple_numba(length: int) -> Tuple[int]:
+    """
+    returns a tuple of integers from 0 to length
+    """
+    if length == 0:
+        return ()
+    elif length == 1:
+        return (0,)
+    elif length == 2:
+        return (0, 1)
+    elif length == 3:
+        return (0, 1, 2)
+    elif length == 4:
+        return (0, 1, 2, 3)
+    elif length == 5:
+        return (0, 1, 2, 3, 4)
+    elif length == 6:
+        return (0, 1, 2, 3, 4, 5)
+    elif length == 7:
+        return (0, 1, 2, 3, 4, 5, 6)
+    elif length == 8:
+        return (0, 1, 2, 3, 4, 5, 6, 7)
+    elif length == 9:
+        return (0, 1, 2, 3, 4, 5, 6, 7, 8)
+    elif length == 10:
+        return (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+
+
 def collapse_to_last_dim_wperc(values_array: np.ndarray, weights: np.ndarray, percentile: float) -> np.ndarray:
     """
     Collapse the values_array to the last dimension by taking the weighted percentile 

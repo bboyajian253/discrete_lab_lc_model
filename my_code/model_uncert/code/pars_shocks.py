@@ -45,6 +45,7 @@ pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed e
                 ('state_space_shape_no_j', UniTuple(int64, 4)),
                 ('state_space_no_j_size', int64), #size of the state space with out time/age J
                 ('state_space_shape_sims', UniTuple(int64, 4)), #the shape/dimensions of the period state space for simulations
+                ('len_state_space_shape_sims', int64), #size of the state space for simulations
                 ('lab_min', float64 ), #minimum possible choice for labor, cannot pick less than 0 hours
                 ('lab_max', float64), # max possible for labor choice
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
@@ -169,6 +170,7 @@ class Pars() :
         self.state_space_shape_no_j = (self.a_grid_size, self.lab_fe_grid_size, self.H_grid_size, self.H_type_perm_grid_size)
         self.state_space_shape_sims = (self.lab_fe_grid_size, self.H_type_perm_grid_size, self.sim_draws, self.J + 1)
         self.state_space_no_j_size = self.a_grid_size * self.lab_fe_grid_size * self.H_grid_size * self.H_type_perm_grid_size
+        self.len_state_space_shape_sims = len(self.state_space_shape_sims)
 
         self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
 
@@ -245,7 +247,6 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
                                                         hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
         return hist
 
-
 if __name__ == "__main__":
         print("Running pars_shocks_and_wages.py")
         start_time = time.time()
@@ -258,4 +259,5 @@ if __name__ == "__main__":
 		
         end_time = time.time()
         execution_time = end_time - start_time
+        print(myPars.len_state_space_shape_sims)
         print("Execution time:", execution_time, "seconds")
