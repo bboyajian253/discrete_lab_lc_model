@@ -34,15 +34,17 @@ duplicates report indiv_id age
 duplicates report indiv_id year
 duplicates report indiv_id year age
 
-// DROP AFTER DUPLICATE BY indiv_id and age appears 
-* First, sort the data by indiv_id and age
-sort indiv_id age
-* Now flag the first duplicate occurrence of age within each indiv_id
-by indiv_id (age): gen byte first_dup_age = (age == age[_n-1] & indiv_id == indiv_id[_n-1])
-* Create a cumulative sum to identify all observations after the first duplicate
-by indiv_id: gen byte drop_obs = sum(first_dup_age)
-* Keep only observations before and including the first duplicate age
-keep if drop_obs == 0
+duplicates drop indiv_id age, force
+
+// // DROP AFTER DUPLICATE BY indiv_id and age appears 
+// * First, sort the data by indiv_id and age
+// sort indiv_id age
+// * Now flag the first duplicate occurrence of age within each indiv_id
+// by indiv_id (age): gen byte first_dup_age = (age == age[_n-1] & indiv_id == indiv_id[_n-1])
+// * Create a cumulative sum to identify all observations after the first duplicate
+// by indiv_id: gen byte drop_obs = sum(first_dup_age)
+// * Keep only observations before and including the first duplicate age
+// keep if drop_obs == 0
 
 duplicates report indiv_id age
 duplicates report indiv_id year

@@ -22,33 +22,30 @@ import subprocess
 from scipy.optimize import minimize, differential_evolution
 
 @njit
-def range_tuple_numba(length: int) -> Tuple[int]:
+def sum_last_axis_numba(arr: np.ndarray) -> np.ndarray:
     """
-    returns a tuple of integers from 0 to length
+    Reshapes the input array to 2D by collapsing all dimensions except the last one,
+    and sums over the last axis.
     """
-    if length == 0:
-        return ()
-    elif length == 1:
-        return (0,)
-    elif length == 2:
-        return (0, 1)
-    elif length == 3:
-        return (0, 1, 2)
-    elif length == 4:
-        return (0, 1, 2, 3)
-    elif length == 5:
-        return (0, 1, 2, 3, 4)
-    elif length == 6:
-        return (0, 1, 2, 3, 4, 5)
-    elif length == 7:
-        return (0, 1, 2, 3, 4, 5, 6)
-    elif length == 8:
-        return (0, 1, 2, 3, 4, 5, 6, 7)
-    elif length == 9:
-        return (0, 1, 2, 3, 4, 5, 6, 7, 8)
-    elif length == 10:
-        return (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-
+    # Get the current shape of the array
+    original_shape = arr.shape
+    
+    
+    # Calculate the size of the new first dimension (all dimensions except the last one)
+    # first_dim_size = np.prod(original_shape[:-1])
+    first_dim_size = tuple_product(original_shape[:-1])
+    
+    # The last dimension remains the same
+    last_dim_size = original_shape[-1]
+    
+    # Reshape the array to (first_dim_size, last_dim_size)
+    reshaped_arr = arr.reshape(first_dim_size, last_dim_size)
+    
+    # Sum over the last axis (axis=1)
+    # Sum over the last axis (axis=0)
+    summed_arr = np.sum(reshaped_arr, axis=0)
+    
+    return summed_arr
 
 def collapse_to_last_dim_wperc(values_array: np.ndarray, weights: np.ndarray, percentile: float) -> np.ndarray:
     """
@@ -484,6 +481,7 @@ def bisection_search(func: Callable, min_val: float, max_val: float, tol: float,
     
     print("Bisection method did not converge within the specified number of iterations.")
     return x_mid
+
 def my_bisection_search(func: callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
     """
     function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess

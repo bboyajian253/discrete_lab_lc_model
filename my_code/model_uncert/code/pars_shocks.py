@@ -45,7 +45,8 @@ pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed e
                 ('state_space_shape_no_j', UniTuple(int64, 4)),
                 ('state_space_no_j_size', int64), #size of the state space with out time/age J
                 ('state_space_shape_sims', UniTuple(int64, 4)), #the shape/dimensions of the period state space for simulations
-                ('len_state_space_shape_sims', int64), #size of the state space for simulations
+                # ('tuple_sim_ndim', UniTuple(int64, 4)), # tuple from 0 to ndim of a simulation state space
+                # ('len_state_space_shape_sims', int64), #size of the state space for simulations
                 ('lab_min', float64 ), #minimum possible choice for labor, cannot pick less than 0 hours
                 ('lab_max', float64), # max possible for labor choice
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
@@ -170,13 +171,20 @@ class Pars() :
         self.state_space_shape_no_j = (self.a_grid_size, self.lab_fe_grid_size, self.H_grid_size, self.H_type_perm_grid_size)
         self.state_space_shape_sims = (self.lab_fe_grid_size, self.H_type_perm_grid_size, self.sim_draws, self.J + 1)
         self.state_space_no_j_size = self.a_grid_size * self.lab_fe_grid_size * self.H_grid_size * self.H_type_perm_grid_size
-        self.len_state_space_shape_sims = len(self.state_space_shape_sims)
+        # self.tuple_sim_ndim = (0,1,2,3)
+        # self.len_state_space_shape_sims = len(self.state_space_shape_sims)
 
         self.sim_interp_grid_spec = (self.a_min, self.a_max, self.a_grid_size)
 
         self.path = path
         self.max_iters = max_iters
         self.max_calib_iters = max_calib_iters
+
+    def set_w1(self, w1):
+        self.wage_coeff_grid[:,1] = w1
+    
+    def set_w2(self, w2):
+        self.wage_coeff_grid[:,2] = w2
 
 # def copy_pars_instance(myPars: Pars) -> Pars:
 #     # Create a new instance of the Pars class with the same path as myPars
@@ -252,12 +260,22 @@ if __name__ == "__main__":
         start_time = time.time()
         path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
         myPars = Pars(path, J = 51, sim_draws = 1000)
-        print(myPars.H_trans)
-        trans_path = path + "/input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
+        # print(myPars.H_trans)
+        k2_path = path + "/input/k2_moms/"
+        full_trans_path = path + "/input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
+        pop_share_path = k2_path + "MH_clust_k2_pop_shares.csv"
+        # myPars.H_trans = 
+
         myShocks = Shocks(myPars)
-        print(f" H_hist: {myShocks.H_hist}")
+        H_hist = myShocks.H_hist
+        beg = H_hist [:,:,:,0]
+        share_good_H_beg = np.mean(beg)
+        share_bad_H_beg = 1 - share_good_H_beg
+
+        print("share_good_H_beg:", share_good_H_beg, "share_bad_H_beg:", share_bad_H_beg)
+        
 		
         end_time = time.time()
         execution_time = end_time - start_time
-        print(myPars.len_state_space_shape_sims)
+        # print(myPars.len_state_space_shape_sims)
         print("Execution time:", execution_time, "seconds")

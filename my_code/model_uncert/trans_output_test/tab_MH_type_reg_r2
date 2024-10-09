@@ -6,10 +6,10 @@ Lagged MH     & x &   &   & x & x & - \\
 MH Type 50pth &   & x &   & x &   & - \\ 
 MH Type k-means ($k=2$)    &   &   & x &   & x & - \\ 
 \midrule 
-$R^{2}$               & 0.373  & 0.378 & 0.43 
-                                    & 0.461  & 0.484 & - \\ 
-$R^{2}$ with controls & 0.381  & 0.389 & 0.439 
-                                    & 0.466  & 0.489 & 0.072 \\ 
+$R^{2}$               & 0.374  & 0.375 & 0.425 
+                                    & 0.461  & 0.483 & - \\ 
+$R^{2}$ with controls & 0.382  & 0.386 & 0.434 
+                                    & 0.466  & 0.487 & 0.072 \\ 
 \bottomrule 
 Some text for a footnote. 
 \end{tabular}

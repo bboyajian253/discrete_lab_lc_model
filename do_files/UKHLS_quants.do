@@ -13,6 +13,8 @@
 	// use `dir'/UKHLS_sample_clean, clear
 	// use UKHLS_sample, clear
 	use UKHLS_sample_trans, clear
+
+	rename log_labor_earnings log_lab_earn
 	
 	capture drop mh_q*
 	
@@ -32,8 +34,6 @@
 	return list
 	gen median_ph = (physical_health > r(p50))
 	sum median*
-	
-
 	
 	//make physical and mental health quantiles for some quantile q
 	local quants = "2 3 4 5 8 10"
@@ -80,10 +80,11 @@
 	
 ***QUANTS*****************	
 	****make the number of quants smaller for debugging purposes.
+	// local quants = "5 10"
 	local quants = "5"
 	****make the number of quants smaller for debugging purposes.
 ***QUANTS*****************		
-	local deps "log_wage log_hours"
+	local deps "log_lab_earn log_wage log_hours"
 	cd "`savedir'"
 
 foreach q in `quants'{	
@@ -95,7 +96,8 @@ foreach q in `quants'{
 	local myKeepPH`q' ""
 	local i = 2
 	while `i'<=`q'{
-		local myKeepMP`q' "`myKeepMP`q'' `i'.mh_Q`qq' `i'.ph_Q`pq' 2.sex 1.educ" //1.educ
+		// local myKeepMP`q' "`myKeepMP`q'' `i'.mh_Q`qq' `i'.ph_Q`pq' 2.sex 1.educ" //1.educ
+		local myKeepMP`q' "`myKeepMP`q'' `i'.mh_Q`qq' `i'.ph_Q`pq' 2.sex" //1.educ
 		local myKeepMH`q' "`myKeepMH`q'' `i'.mh_Q`qq'"
 		local myKeepPH`q' "`myKeepPH`q'' `i'.mh_Q`pq'"
 		local ++i
@@ -103,8 +105,10 @@ foreach q in `quants'{
 	//end while
 	
 	local specEd "i.mh_Q`qq' i.ph_Q`pq' i.mh_Q`qq'#i.ph_Q`pq' i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
+	local specEdLvl "i.mh_Q`qq' i.ph_Q`pq' i.mh_Q`qq'#i.ph_Q`pq' i.urban i.race age age2 age3 i.mar_stat i.sex i.educ_level [pweight=wght]"
+	local specHighQual "i.mh_Q`qq' i.ph_Q`pq' i.mh_Q`qq'#i.ph_Q`pq' i.urban i.race age age2 age3 i.mar_stat i.sex i.high_qual [pweight=wght]"
 	// local specHighQualif same as above but use highest qualification instead of educ  
-	local specs "specEd"
+	local specs "specEd specEdLvl specHighQual"
 	
 	local FE1 "year"
 	local FE2 "year indiv_id"
@@ -125,43 +129,43 @@ foreach q in `quants'{
 			else if ("``myFE''" == "year indiv_id"){
 				estimates store Reg_emp_year_id
 			}
-			* Perform multiple coeff equality tests and store the results
-			test 2.mh_Q`qq'==0
-			mat m0 =(r(chi2), r(p))
-			mat rowname m0="Test 0"
+			// * Perform multiple coeff equality tests and store the results
+			// test 2.mh_Q`qq'==0
+			// mat m0 =(r(chi2), r(p))
+			// mat rowname m0="Test 0"
 			
-			local m m0
+			// local m m0
 
-			if `qq' > 2 {
-				test 2.mh_Q`qq'=3.mh_Q`qq'
-				mat m1 =(r(chi2), r(p))
-				mat rowname m1="Test 1"
+			// if `qq' > 2 {
+			// 	test 2.mh_Q`qq'=3.mh_Q`qq'
+			// 	mat m1 =(r(chi2), r(p))
+			// 	mat rowname m1="Test 1"
 				
-				local m `m' \m1
-			}
-			if `qq' > 3 {	
-				capture test 3.mh_Q`qq'=4.mh_Q`qq'
-				mat m2 = (r(chi2), r(p))
-				mat rowname m2 = "Test 2"
-				local m `m' \m2
-			}
-			if `qq' > 4 {	
-				test 4.mh_Q`qq'=5.mh_Q`qq'
-				mat m3 = (r(chi2), r(p))
-				mat rowname m3 = "Test 3"
-				local m `m' \m3
-			}
-			mat m = `m'
+			// 	local m `m' \m1
+			// }
+			// if `qq' > 3 {	
+			// 	capture test 3.mh_Q`qq'=4.mh_Q`qq'
+			// 	mat m2 = (r(chi2), r(p))
+			// 	mat rowname m2 = "Test 2"
+			// 	local m `m' \m2
+			// }
+			// if `qq' > 4 {	
+			// 	test 4.mh_Q`qq'=5.mh_Q`qq'
+			// 	mat m3 = (r(chi2), r(p))
+			// 	mat rowname m3 = "Test 3"
+			// 	local m `m' \m3
+			// }
+			// mat m = `m'
 			
-			* Export the results to an Excel file using putexcel
-			putexcel set "coeff_tests_Q`qq'_`spec'.xlsx", sheet(emp) modify
-			putexcel B1= "Chi2"
-			putexcel C1= "P Value"
-			putexcel A2 = "2.mh_Q`qq' == 0"
-			putexcel A3= "2.mh_Q`qq' - 3.mh_Q`qq' = 0"
-			putexcel A4= "3.mh_Q`qq' - 4.mh_Q`qq' = 0"
-			putexcel A5= "4.mh_Q`qq' - 5.mh_Q`qq' = 0"
-			putexcel B2= matrix(m)
+			// * Export the results to an Excel file using putexcel
+			// putexcel set "coeff_tests_Q`qq'_`spec'.xlsx", sheet(emp) modify
+			// putexcel B1= "Chi2"
+			// putexcel C1= "P Value"
+			// putexcel A2 = "2.mh_Q`qq' == 0"
+			// putexcel A3= "2.mh_Q`qq' - 3.mh_Q`qq' = 0"
+			// putexcel A4= "3.mh_Q`qq' - 4.mh_Q`qq' = 0"
+			// putexcel A5= "4.mh_Q`qq' - 5.mh_Q`qq' = 0"
+			// putexcel B2= matrix(m)
 
 			foreach dep in `deps'{
 				// Run regression with year fixed effects, using mh_q1 as the excluded group (comparison group)
@@ -175,39 +179,39 @@ foreach q in `quants'{
 					estimates store Reg_`dep'_year_id
 				}
 				
-				test 2.mh_Q`qq'==0
-				mat m0 =(r(chi2), r(p))
-				mat rowname m0="Test 0"
-				local m m0
+				// test 2.mh_Q`qq'==0
+				// mat m0 =(r(chi2), r(p))
+				// mat rowname m0="Test 0"
+				// local m m0
 			
-				if `qq' > 2 {
-					test 2.mh_Q`qq'=3.mh_Q`qq'
-					mat m1 =(r(chi2), r(p))
-					mat rowname m1="Test 1"
-					local m `m' \m1
-				}
-				if `qq' > 3 {	
-					capture test 3.mh_Q`qq'=4.mh_Q`qq'
-					mat m2 = (r(chi2), r(p))
-					mat rowname m2 = "Test 2"
-					local m `m' \m2
-				}
-				if `qq' > 4 {	
-					test 4.mh_Q`qq'=5.mh_Q`qq'
-					mat m3 = (r(chi2), r(p))
-					mat rowname m3 = "Test 3"
-					local m `m' \m3
-					mat m = `m'
-				}	
-					* Export the results to an Excel file using putexcel
-					putexcel set "coeff_tests_Q`qq'_`spec'.xlsx", sheet(`dep') modify
-					putexcel B1= "Chi2"
-					putexcel C1= "P Value"
-					putexcel A2 = "2.mh_Q`qq' == 0"
-					putexcel A3= "2.mh_Q`qq' - 3.mh_Q`qq' = 0"
-					putexcel A4= "3.mh_Q`qq' - 4.mh_Q`qq' = 0"
-					putexcel A5= "4.mh_Q`qq' - 5.mh_Q`qq' = 0"
-					putexcel B2= matrix(m)
+				// if `qq' > 2 {
+				// 	test 2.mh_Q`qq'=3.mh_Q`qq'
+				// 	mat m1 =(r(chi2), r(p))
+				// 	mat rowname m1="Test 1"
+				// 	local m `m' \m1
+				// }
+				// if `qq' > 3 {	
+				// 	capture test 3.mh_Q`qq'=4.mh_Q`qq'
+				// 	mat m2 = (r(chi2), r(p))
+				// 	mat rowname m2 = "Test 2"
+				// 	local m `m' \m2
+				// }
+				// if `qq' > 4 {	
+				// 	test 4.mh_Q`qq'=5.mh_Q`qq'
+				// 	mat m3 = (r(chi2), r(p))
+				// 	mat rowname m3 = "Test 3"
+				// 	local m `m' \m3
+				// 	mat m = `m'
+				// }	
+				// 	* Export the results to an Excel file using putexcel
+				// 	putexcel set "coeff_tests_Q`qq'_`spec'.xlsx", sheet(`dep') modify
+				// 	putexcel B1= "Chi2"
+				// 	putexcel C1= "P Value"
+				// 	putexcel A2 = "2.mh_Q`qq' == 0"
+				// 	putexcel A3= "2.mh_Q`qq' - 3.mh_Q`qq' = 0"
+				// 	putexcel A4= "3.mh_Q`qq' - 4.mh_Q`qq' = 0"
+				// 	putexcel A5= "4.mh_Q`qq' - 5.mh_Q`qq' = 0"
+				// 	putexcel B2= matrix(m)
 			} 
 			// deps loop ends
 		}		
@@ -218,24 +222,31 @@ foreach q in `quants'{
 		
 		*if `qq' >= 5{
 			*2.mh_Q`qq' 3.mh_Q`qq' 4.mh_Q`qq' 5.mh_Q`qq' 2.ph_Q`pq' 3.ph_Q`pq' 4.ph_Q`pq' 5.ph_Q`pq'
-			esttab Reg_emp_year Reg_log_hours_year Reg_log_hours_year Reg_emp_year_id Reg_log_hours_year_id Reg_log_hours_year_id using reg_results_Q`q'_`spec'.txt, replace cells(b(star fmt(3)) se(par fmt(3))) ///
+			esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
+			Reg_emp_year_id Reg_log_lab_earn_year_id Reg_log_wage_year_id Reg_log_hours_year_id ///
+			using reg_results_Q`q'_`spec'.txt, replace cells(b(star fmt(3)) se(par fmt(3))) ///
+				stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
 				label title("Regression Results with Year Fixed Effects") ///
 				keep(`myKeepMP`q'') /// Exclude all coeffecients excepet quintiles
-				mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 1 0 0)) ///
-				mtitles("Employment" "ln(Wage)" "ln(Hours)" "Employment" "ln(Wage)" "ln(Hours)") ///
+				mgroups("Year FE" "Indiv & Year", pattern(1 0 0 0 1 0 0 0)) ///
+				mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)"  "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)")  ///
 				varwidth(20)
 				*title("Regression Results with Interacations and Year Fixed Effects") 
-			esttab Reg_emp_year Reg_log_hours_year Reg_log_hours_year Reg_emp_year_id Reg_log_hours_year_id Reg_log_hours_year_id using reg_results_Q`q'_`spec'_both.tex, booktabs replace cells(b(star fmt(3)) se(par fmt(3))) ///
+
+			***Combine and export the stored results to a LaTeX .tex file***
+			esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
+			Reg_emp_year_id  Reg_log_lab_earn_year_id Reg_log_wage_year_id Reg_log_hours_year_id ///
+			using reg_results_Q`q'_`spec'_both.tex, booktabs replace cells(b(star fmt(3)) se(par fmt(3))) ///
 				stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
 				label /// width(\textwidth) 
 				prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
 						`"\caption{Mental and Physical Health Quintile Effects and Labor Outcomes}"' ///
 						`"\footnotesize\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth) 
 				substitute(\midrule \hline) ///
-				postfoot(`"\tabnotes{7}{All models also control for sex, a cubic in age, race, marital status, the MHxPH interaction, urban location and year, the 2nd group of models also includes individual fixed effects. The omitted group is poor MH and PH respectively.}"') ///
+				postfoot(`"\tabnotes{9}{All models also control for sex, a cubic in age, race, marital status, the MHxPH interaction, urban location and year, the 2nd group of models also includes individual fixed effects. The omitted group is poor MH and PH respectively.}"') ///
 				keep(`myKeepMP`q'') /// Exclude all coeffecients excepet quintiles
-				mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) ///
-				mtitles("Employment" "ln(Wage)" "ln(Hours)" "Employment" "ln(Wage)" "ln(Hours)") nonumbers collabels(none)  
+				mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) ///
+				mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)" "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none)  
 				
 				*addnotes("All models also control for sex, a cubic in age, \\ race, marital status, urban location and year.") 
 				*`"\tiny"' 
@@ -261,6 +272,7 @@ foreach q in `quants'{
 foreach myFE in `myFEs'{	
 
 	*c.mental_health#c.physical_health
+	// local specCont "mental_health physical_health MHxPH i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
 	local specCont "mental_health physical_health MHxPH i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
 	local myKeepCont "mental_health physical_health MHxPH 2.sex 1.educ"
 	*eventually I can put a loop here if needed
@@ -271,7 +283,7 @@ foreach myFE in `myFEs'{
 	*estimates store Reg_emp
 	if ("``myFE''" == "year"){
 		estimates store Reg_emp_year
-	} 
+	}  
 	else if ("``myFE''" == "year indiv_id"){
 		estimates store Reg_emp_year_id
 	}
@@ -295,50 +307,41 @@ foreach myFE in `myFEs'{
 
 //end fe loop
 ***for table format testing
-*local savedir "$outdir/UKHLS_quant"
-*cd "`savedir'"
-	esttab Reg_emp_year Reg_log_hours_year Reg_log_hours_year Reg_emp_year_id Reg_log_hours_year_id Reg_log_hours_year_id using reg_results_`spec'_both.tex, booktabs replace cells(b(star fmt(5)) se(par fmt(3))) ///
-		stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
-		label /// width(\textwidth)
- 		prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
-		`"\center\caption{Mental and Physical Health Index Effects and Labor Outcomes}"' ///
-		`"\tiny\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth)
-		substitute(\midrule \hline) ///
-		postfoot(`"\tabnotes{7}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}"' ) ///
-		keep(`myKeepCont') /// Exclude all coeffecients excepet quintiles
-		mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 1 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) mtitles("Employment" "ln(Wage)" "ln(Hours)" "Employment" "ln(Wage)" "ln(Hours)") nonumbers collabels(none) //
-		*title("Mental and Physical Health Effects on Labor Outcomes")
-		*`"\tiny"' ///
-		*span erepeat(\cmidrule(lr){@span}
-		
-	esttab Reg_emp_year Reg_log_hours_year Reg_log_hours_year using reg_results_`spec'.tex, booktabs replace cells(b(star fmt(5)) se(par fmt(3))) ///
-		stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
-		label /// width(\textwidth)
- 		prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
-		`"\center\caption{Mental and Physical Health Index Effects and Labor Outcomes}"' ///
-		`"\tiny\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth)
-		substitute(\midrule \hline) ///
-		postfoot(`"\tabnotes{4}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}"') ///
-		keep(`myKeepCont') /// Exclude all coeffecients excepet quintiles
-		mtitles("Employment" "ln(Wage)" "ln(Hours)") nonumbers collabels(none) //
-		*title("Mental and Physical Health Effects on Labor Outcomes")
-		*`"\tiny"' ///
-		*span erepeat(\cmidrule(lr){@span}
+esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
+	Reg_emp_year_id Reg_log_lab_earn_year_id Reg_log_wage_year_id Reg_log_hours_year_id ///
+	using reg_results_`spec'_both.tex, booktabs replace cells(b(star fmt(5)) se(par fmt(3))) ///
+	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
+	label /// width(\textwidth)
+	prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
+	`"\center\caption{Mental and Physical Health Index Effects and Labor Outcomes}"' ///
+	`"\tiny\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth)
+	substitute(\midrule \hline) ///
+	postfoot(`"\tabnotes{9}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}"' ) ///
+	keep(`myKeepCont') /// Exclude all coeffecients excepet quintiles
+	mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) ///
+		mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)" "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none) //
+	*title("Mental and Physical Health Effects on Labor Outcomes")
+	*`"\tiny"' ///
+	*span erepeat(\cmidrule(lr){@span}
+	
+esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year using reg_results_`spec'.tex, booktabs replace cells(b(star fmt(5)) se(par fmt(3))) ///
+	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
+	label /// width(\textwidth)
+	prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
+	`"\center\caption{Mental and Physical Health Index Effects and Labor Outcomes}"' ///
+	`"\tiny\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth)
+	substitute(\midrule \hline) ///
+	postfoot(`"\tabnotes{5}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}"') ///
+	keep(`myKeepCont') /// Exclude all coeffecients excepet quintiles
+	mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none) //
+	*title("Mental and Physical Health Effects on Labor Outcomes")
+	*`"\tiny"' ///
+	*span erepeat(\cmidrule(lr){@span}
 
 cd "`dir'"
 
+rename log_lab_earn log_labor_earnings
+
 save UKHLS_sample_quants, replace
 
-
-	/*
-	prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
-		`"\tiny"' ///
-		`"\caption{Mental and Physical Health Index Effects on Labor Outcomes}"' ///
-		`"\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth)
-		
-		title("Mental and Physical Health Index Effects on Labor Outcomes") ///
-		substitute(\begin{tabular} \tiny\begin{tabular}) ///
-		
-	*/
-	
  di "*****got to the end of UKHLS_quants.do*****"

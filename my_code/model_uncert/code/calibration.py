@@ -65,7 +65,6 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol: float, target: float, w0_mu_m
         print(f"Calibrated weights = {calibrated_weights}")
 
     return calibrated_weights, mean_wage, state_sols, sim_lc
-    
 
 def w0_mu_mom_giv_mu(myPars: Pars, new_mu: float)-> float:
     myPars.lab_fe_tauch_mu = new_mu 
@@ -256,22 +255,27 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
 
     return calibrated_w1, w1_moment, state_sols, sim_lc
 
-# @njit
+@njit
 def w1_moment_giv_w1(myPars: Pars, new_coeff: float)-> float:
     """ updates the wage_coeff_grid and returns the new wage growth """
-    for i in range(myPars.lab_fe_grid_size): 
-        myPars.wage_coeff_grid[i, 1] = new_coeff
+    # for i in range(myPars.lab_fe_grid_size): 
+    #     myPars.wage_coeff_grid[i, 1] = new_coeff
+    myPars.set_w1(new_coeff)
     return w1_moment(myPars)
 
-# @njit
+@njit
 def w1_moment(myPars: Pars)-> float:
     """ calculates the wage growth given the model parameters """
     myShocks = Shocks(myPars)
     wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
-    mean_axis = tuple(range(wage_sims.ndim - 1))
+    # mean_axis = myPars.tuple_sim_ndim[:-1]
+    # mean_axis = tuple(range(wage_sims.ndim - 1))
     # mean_axis = tb.range_tuple_numba(wage_sims.ndim - 1)
     # mean_axis = tuple(range(myPars.len_state_space_shape_sims - 1))
-    mean_wage_by_age = np.sum(wage_sims, axis = mean_axis)
+    # mean_wage_by_age = np.sum(wage_sims, axis = mean_axis)
+    # mean_wage_by_age =tb.sum_axis_numba(wage_sims, mean_axis)
+    mean_wage_by_age = tb.sum_last_axis_numba(wage_sims)
+
     wage_diff = log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[0])
     # mean_axis = tuple(range(myPars.len_state_space_shape_sims - 1))
     # wage_diff = w1_moment_numba(myPars, mean_axis)
@@ -331,21 +335,30 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
 
     return calibrated_w2, w2_moment, state_sols, sim_lc
 
-# @njit
+@njit
 def w2_moment_giv_w2(myPars: Pars, new_coeff: float)-> float:
     """ updates the wage_coeff_grid skipping the first row coefficient and returns the new wage decay """
     # for i in range(1, myPars.lab_fe_grid_size):
-    for i in range(myPars.lab_fe_grid_size):
-        myPars.wage_coeff_grid[i, 2] = new_coeff
+    # for i in range(myPars.lab_fe_grid_size):
+    #     myPars.wage_coeff_grid[i, 2] = new_coeff
+    myPars.set_w2(new_coeff)
     return w2_moment(myPars)
 
-# @njit
+@njit
 def w2_moment(myPars: Pars)-> float:
     """ calculates the wage decay given the model parameters """
     myShocks = Shocks(myPars)
     wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
-    mean_wage = np.sum(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
-    wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
+    mean_wage_by_age = tb.sum_last_axis_numba(wage_sims)
+    # mean_wage_by_age = np.sum(wage_sims, axis = tuple(range(wage_sims.ndim - 1)))
+    # mean_wage = np.sum(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
+    # if np.all(mean_wage > 0):
+    #     wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
+    # else:
+    #     print("Invalid values in mean_wage for log operation")
+    #     print(f"mean_wage = {mean_wage}")
+    #     # return
+    wage_diff = log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[myPars.J-1])
     return wage_diff
 
 def get_w2_targ(myPars: Pars, target_folder_path: str)-> float:
@@ -438,12 +451,12 @@ def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: flo
     alpha_max = 1.0
     
     # define the lambda function to find the zero of     
-    get_mean_lab_diff = lambda new_alpha: alpha_moment_giv_alpha(myPars, main_path, new_alpha)[0] - mean_lab_targ 
+    get_mean_lab_diff = lambda new_alpha: alpha_moment_giv_alpha(myPars, new_alpha, main_path)[0] - mean_lab_targ 
     calib_alpha = tb.bisection_search(get_mean_lab_diff, alpha_min, alpha_max, lab_tol, myPars.max_iters, myPars.print_screen) 
     myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
     
     # solve, simulate and plot model for the calibrated alpha
-    mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, main_path, calib_alpha)
+    mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, calib_alpha, main_path)
     io.print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
     if myPars.print_screen >= 1:
         print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
@@ -451,7 +464,7 @@ def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: flo
     return calib_alpha, mean_lab, state_sols, sim_lc
     
 
-def alpha_moment_giv_alpha(myPars : Pars, main_path : str, new_alpha: float) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def alpha_moment_giv_alpha(myPars : Pars,  new_alpha: float, main_path : str = None) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
         this function solves the model for a given alpha and returns the alpha, the mean labor worked, and the target mean labor worked
         and the model solutions and simulations
@@ -509,153 +522,182 @@ def calib_all_v2(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True,
                 w1_mom_targ: float = 0.2, w2_mom_targ: float = 0.2, wH_mom_targ: float = 0.2,
                 alpha_min_guess: float = 0.0001, alpha_max_guess: float = 1.0,
                 w0_mu_min_guess: float = 0.0, w0_mu_max_guess: float = 30.0, w0_sigma_min_guess: float = 0.0001, w0_sigma_max_guess: float = 10.0,
-                w1_min_guess: float = 0.0, w1_max_guess: float = 10.0, w2_min_guess: float = -1.0, w2_max_guess: float = 1.0, 
+                w1_min_guess: float = 0.0, w1_max_guess: float = 10.0, w2_min_guess: float = -0.25, w2_max_guess: float = 0.0, 
                 wH_min_guess: float = -5.0, wH_max_guess: float = 5.0, 
-                w0_mu_tol: float = 1e-3, w0_sigma_tol: float = 1e-3, w1_tol: float = 1e-3, w2_tol: float = 1e-3, wH_tol: float = 1e-3) -> Tuple[
+                w0_mu_tol: float = 1e-3, w0_sigma_tol: float = 1e-3, w1_tol: float = 1e-3, w2_tol: float = 1e-3, wH_tol: float = 1e-3,
+                alpha_tol: float = 1e-3) -> Tuple[
                     float, np.ndarray, float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     # allocate memory
     state_sols = {}
     sims = {}
     max_iters = myPars.max_calib_iters
-    print(f"w0_mu_mom_targ = {w0_mu_mom_targ}, w0_sigma_mom_targ = {w0_sigma_mom_targ}, w1_mom_targ = {w1_mom_targ}, w2_mom_targ = {w2_mom_targ}, wH_mom_targ = {wH_mom_targ}")
-    # calibrate wH
+    # print(f"w0_mu_mom_targ = {w0_mu_mom_targ}, w0_sigma_mom_targ = {w0_sigma_mom_targ}, w1_mom_targ = {w1_mom_targ}, w2_mom_targ = {w2_mom_targ}, wH_mom_targ = {wH_mom_targ}")
+    # calibrate alpha
     # set initial values
-    # wH_calib_count = 0
-    # wH_err = wH_mom_targ + 1
-    # wH_min = wH_min_guess
-    # wH_max = wH_max_guess
-    # # make sure its viable
-    # wH_low_end_err = wH_moment_giv_wH(myPars, myShocks, wH_min) - wH_mom_targ # this albso updates myPars wH_coeff
-    # wH_high_end_err = wH_moment_giv_wH(myPars, myShocks, wH_max) - wH_mom_targ # this also updates myPars wH_coeff
-    # if wH_low_end_err * wH_high_end_err >= 0:
-    #     # print(f"low_end_err = {wH_low_end_err}, high_end_err = {wH_high_end_err}")
-    #     raise ValueError("""wH moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
-    #                      wH low_end_err = {wH_low_end_err}, wH high_end_err = {wH_high_end_err}""")
-    
-    # while np.abs(wH_err) > wH_tol and wH_calib_count < max_iters:
-    #     print(f"***** Calibration wH iteration {wH_calib_count} *****")
-    #     wH_guess = (wH_min + wH_max) / 2
-    #     myPars.wH_coeff = wH_guess
-    
-    # # calibrate w2
-    # # set initial values
-    # w2_calib_count = 0
-    # w2_err = w2_mom_targ + 1
-    # w2_min = w2_min_guess
-    # w2_max = w2_max_guess
-    # # make sure its viable
-    # w2_low_end_err = w2_moment_giv_w2(myPars, w2_min) - w2_mom_targ # this also updates myPars wage_coeff_grid
-    # w2_high_end_err = w2_moment_giv_w2(myPars, w2_max) - w2_mom_targ # this also updates myPars wage_coeff_grid
-    # if w2_low_end_err * w2_high_end_err >= 0:
-    #     raise ValueError(f"""w2 moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
-    #                      w2 low_end_err = {w2_low_end_err}, w2 high_end_err = {w2_high_end_err}""")
-        
-    # while np.abs(w2_err) > w2_tol and w2_calib_count < max_iters:
-    #     print(f"***** Calibration w2 iteration {w2_calib_count} *****")
-    #     w2_guess = (w2_min + w2_max) / 2
-    #     for i in range(myPars.lab_fe_grid_size):
-    #         myPars.wage_coeff_grid[i, 2] = w2_guess
-        # calibrate w1
-        # set initial values
-    w1_calib_count = 0
-    w1_err = w1_tol + 1
-    w1_min = w1_min_guess
-    w1_max = w1_max_guess
+    alpha_calib_count = 0
+    alpha_err = alpha_mom_targ + 1
+    alpha_min = alpha_min_guess
+    alpha_max = alpha_max_guess
     # make sure its viable
-    w1_low_end_err = w1_moment_giv_w1(myPars, w1_min) - w1_mom_targ # this also updates myPars wage_coeff_grid
-    w1_high_end_err = w1_moment_giv_w1(myPars, w1_max) - w1_mom_targ # this also updates myPars wage_coeff_grid
-    if w1_low_end_err * w1_high_end_err >= 0:
-        raise ValueError(f"""w1 moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.w1 
-                            low_end_err = {w1_low_end_err}, w1 high_end_err = {w1_high_end_err}""")
+    alpha_low_end_err = alpha_moment_giv_alpha(myPars, alpha_min)[0] - alpha_mom_targ # this also updates myPars alpha
+    alpha_high_end_err = alpha_moment_giv_alpha(myPars, alpha_max)[0] - alpha_mom_targ # this also updates myPars alpha
+    if alpha_low_end_err * alpha_high_end_err >= 0:
+        raise ValueError("""alpha moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
+                         alpha low_end_err = {alpha_low_end_err}, alpha high_end_err = {alpha_high_end_err}""")
     
-    while np.abs(w1_err) > w1_tol and w1_calib_count < max_iters:
-        print(f"***** Calibration w1 iteration {w1_calib_count} *****")
-        w1_guess = (w1_min + w1_max) / 2
-        for i in range(myPars.lab_fe_grid_size):
-            myPars.wage_coeff_grid[i, 1] = w1_guess
-        # calibrate w0_sigma
+    while np.abs(alpha_err) > alpha_tol and alpha_calib_count < max_iters:
+        print(f"***** Calibration alpha iteration {alpha_calib_count} *****")
+        alpha_guess = (alpha_min + alpha_max) / 2
+        myPars.alpha = alpha_guess
+        # calibrate wH
         # set initial values
-        w0_sigma_calib_count = 0
-        w0_sigma_err = w0_sigma_tol + 1
-        w0_sigma_min = w0_sigma_min_guess
-        w0_sigma_max = w0_sigma_max_guess
+        wH_calib_count = 0
+        wH_err = wH_mom_targ + 1
+        wH_min = wH_min_guess
+        wH_max = wH_max_guess
         # make sure its viable
-        w0_sigma_low_end_err = w0_sigma_mom_giv_sigma(myPars, w0_sigma_min) - w0_sigma_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
-        w0_sigma_high_end_err = w0_sigma_mom_giv_sigma(myPars, w0_sigma_max) - w0_sigma_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
-        if w0_sigma_low_end_err * w0_sigma_high_end_err >= 0:
-            raise ValueError(f"""w0_sigma moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
-                                w0_sigma_low_end_err = {w0_sigma_low_end_err}, w0_sigma_high_end_err = {w0_sigma_high_end_err}""")
-
-        while np.abs(w0_sigma_err) > w0_sigma_tol and w0_sigma_calib_count < max_iters:
-            # print(f"***** Calibration w0_sigma iteration {w0_sigma_calib_count} *****")
-            w0_sigma_guess = (w0_sigma_min + w0_sigma_max) / 2
-            # myPars.lab_fe_tauch_sigma = w0_sigma_guess
-            # calibrate w0_mu
-            # set initial values
-            w0_mu_calib_count = 0
-            w0_mu_err = w0_mu_tol + 1
-            w0_mu_min = w0_mu_min_guess
-            w0_mu_max = w0_mu_max_guess
-            # make sure its viable
-            w0_mu_low_end_err = w0_mu_mom_giv_mu(myPars, w0_mu_min) - w0_mu_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
-            w0_mu_high_end_err = w0_mu_mom_giv_mu(myPars, w0_mu_max) - w0_mu_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
-            if w0_mu_low_end_err * w0_mu_high_end_err >= 0:
-                # print(f"low_end_err = {w0_mu_low_end_err}, high_end_err = {w0_mu_high_end_err}")
-                raise ValueError(f"""w0_mu moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
-                                    w0_mu_low_end_err = {w0_mu_low_end_err}, w0_mu_high_end_err = {w0_mu_high_end_err}""")
+        # wH_low_end_err = wH_moment_giv_wH(myPars, myShocks, wH_min) - wH_mom_targ # this albso updates myPars wH_coeff
+        # wH_high_end_err = wH_moment_giv_wH(myPars, myShocks, wH_max) - wH_mom_targ # this also updates myPars wH_coeff
+        # if wH_low_end_err * wH_high_end_err >= 0:
+        #     raise ValueError("""wH moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
+        #                     wH low_end_err = {wH_low_end_err}, wH high_end_err = {wH_high_end_err}""")
+        
+        while np.abs(wH_err) > wH_tol and wH_calib_count < max_iters:
+            # print(f"***** Calibration wH iteration {wH_calib_count} *****")
+            wH_guess = (wH_min + wH_max) / 2
+            myPars.wH_coeff = wH_guess
+            
+            # # calibrate w2
+            # # set initial values
+            w2_calib_count = 0
+            w2_err = w2_tol + 1
+            w2_min = w2_min_guess
+            w2_max = w2_max_guess
+            # # make sure its viable
+            # w2_high_end_err = w2_moment_giv_w2(myPars, w2_max) - w2_mom_targ # this also updates myPars wage_coeff_grid
+            # w2_low_end_err = w2_moment_giv_w2(myPars, w2_min) - w2_mom_targ # this also updates myPars wage_coeff_grid
+            # if w2_low_end_err * w2_high_end_err >= 0:
+            #     raise ValueError(f"""w2 moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
+            #                         w2 low_end_err = {w2_low_end_err}, w2 high_end_err = {w2_high_end_err}""")
+            
+            while np.abs(w2_err) > w2_tol and w2_calib_count < max_iters:
+                # print(f"***** Calibration w2 iteration {w2_calib_count} *****")
+                w2_guess = (w2_min + w2_max) / 2
+                myPars.set_w2(w2_guess)
+                # calibrate w1
+                # set initial values
+                w1_calib_count = 0
+                w1_err = w1_tol + 1
+                w1_min = w1_min_guess
+                w1_max = w1_max_guess
+                # make sure its viable
+                # w1_low_end_err = w1_moment_giv_w1(myPars, w1_min) - w1_mom_targ # this also updates myPars wage_coeff_grid
+                # w1_high_end_err = w1_moment_giv_w1(myPars, w1_max) - w1_mom_targ # this also updates myPars wage_coeff_grid
+                # if w1_low_end_err * w1_high_end_err >= 0:
+                #     raise ValueError(f"""w1 moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.w1 
+                #                         low_end_err = {w1_low_end_err}, w1 high_end_err = {w1_high_end_err}""")
                 
-            while np.abs(w0_mu_err) > w0_mu_tol and w0_mu_calib_count < max_iters:
-                # print(f"***** Calibration w0_mu iteration {w0_mu_calib_count} *****")
-                w0_mu_guess = (w0_mu_min + w0_mu_max) / 2
-                # myPars.lab_fe_tauch_mu = w0_mu_guess
-                my_w0_mu_mom = w0_mu_mom_giv_mu(myPars, w0_mu_guess) # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
-                # print(f"my_w0_mu_mom = {my_w0_mu_mom}")
-                w0_mu_err = my_w0_mu_mom - w0_mu_mom_targ
-                # print(f"w0_mu_err = {w0_mu_err}")
-                if w0_mu_err > 0:
-                    w0_mu_max = w0_mu_guess
+                while np.abs(w1_err) > w1_tol and w1_calib_count < max_iters:
+                    # print(f"***** Calibration w1 iteration {w1_calib_count} *****")
+                    w1_guess = (w1_min + w1_max) / 2
+                    myPars.set_w1(w1_guess)
+                    # calibrate w0_sigma
+                    # set initial values
+                    w0_sigma_calib_count = 0
+                    w0_sigma_err = w0_sigma_tol + 1
+                    w0_sigma_min = w0_sigma_min_guess
+                    w0_sigma_max = w0_sigma_max_guess
+                    # make sure its viable
+                    # w0_sigma_low_end_err = w0_sigma_mom_giv_sigma(myPars, w0_sigma_min) - w0_sigma_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
+                    # w0_sigma_high_end_err = w0_sigma_mom_giv_sigma(myPars, w0_sigma_max) - w0_sigma_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
+                    # if w0_sigma_low_end_err * w0_sigma_high_end_err >= 0:
+                    #     raise ValueError(f"""w0_sigma moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
+                    #                         w0_sigma_low_end_err = {w0_sigma_low_end_err}, w0_sigma_high_end_err = {w0_sigma_high_end_err}""")
+
+                    while np.abs(w0_sigma_err) > w0_sigma_tol and w0_sigma_calib_count < max_iters:
+                        # print(f"***** Calibration w0_sigma iteration {w0_sigma_calib_count} *****")
+                        w0_sigma_guess = (w0_sigma_min + w0_sigma_max) / 2
+                        # myPars.lab_fe_tauch_sigma = w0_sigma_guess
+                        # calibrate w0_mu
+                        # set initial values
+                        w0_mu_calib_count = 0
+                        w0_mu_err = w0_mu_tol + 1
+                        w0_mu_min = w0_mu_min_guess
+                        w0_mu_max = w0_mu_max_guess
+                        # make sure its viable
+                        # w0_mu_low_end_err = w0_mu_mom_giv_mu(myPars, w0_mu_min) - w0_mu_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
+                        # w0_mu_high_end_err = w0_mu_mom_giv_mu(myPars, w0_mu_max) - w0_mu_mom_targ # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
+                        # if w0_mu_low_end_err * w0_mu_high_end_err >= 0:
+                            # raise ValueError(f"""w0_mu moment - targ error at the endpoints have the same sign. Bisection method cannot be applied.
+                            #                     w0_mu_low_end_err = {w0_mu_low_end_err}, w0_mu_high_end_err = {w0_mu_high_end_err}""")
+                            
+                        while np.abs(w0_mu_err) > w0_mu_tol and w0_mu_calib_count < max_iters:
+                            # print(f"***** Calibration w0_mu iteration {w0_mu_calib_count} *****")
+                            w0_mu_guess = (w0_mu_min + w0_mu_max) / 2
+                            # myPars.lab_fe_tauch_mu = w0_mu_guess
+                            my_w0_mu_mom = w0_mu_mom_giv_mu(myPars, w0_mu_guess) # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
+                            # print(f"my_w0_mu_mom = {my_w0_mu_mom}")
+                            w0_mu_err = my_w0_mu_mom - w0_mu_mom_targ
+                            # print(f"w0_mu_err = {w0_mu_err}")
+                            if w0_mu_err > 0:
+                                w0_mu_max = w0_mu_guess
+                            else:
+                                w0_mu_min = w0_mu_guess
+                            w0_mu_calib_count += 1
+
+                        my_w0_sigma_mom = w0_sigma_mom_giv_sigma(myPars, w0_sigma_guess) # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
+                        # print(f"my_w0_sigma_mom = {my_w0_sigma_mom}")
+                        w0_sigma_err = my_w0_sigma_mom - w0_sigma_mom_targ
+                        # print(f"w0_sigma_err = {w0_sigma_err}")
+                        if w0_sigma_err > 0:
+                            w0_sigma_max = w0_sigma_guess
+                        else:
+                            w0_sigma_min = w0_sigma_guess
+                        w0_sigma_calib_count += 1
+
+                    my_w1_mom = w1_moment_giv_w1(myPars, w1_guess)
+                    w1_err = my_w1_mom - w1_mom_targ
+                    if w1_err > 0:
+                        w1_max = w1_guess
+                    else:
+                        w1_min = w1_guess
+                    w1_calib_count += 1
+
+                my_w2_mom = w2_moment_giv_w2(myPars, w2_guess)
+                w2_err = my_w2_mom - w2_mom_targ
+                # can actuallyremove all these else statements by decomposing/shifting the if statement logic
+                if w2_err > 0: # if the error is positive, the value of the moment is too high but the guess is too low, recall the moment is a decline  
+                    # w2_max = w2_guess
+                    w2_min = w2_guess
                 else:
-                    w0_mu_min = w0_mu_guess
-                w0_mu_calib_count += 1
+                    # w2_min = w2_guess
+                    w2_max = w2_guess
+                w2_calib_count += 1
+                # print(f"w2_guess = {w2_guess}, w2_err = {w2_err}, w2_mom = {my_w2_mom}, w2_mom_targ = {w2_mom_targ}")
 
-            my_w0_sigma_mom = w0_sigma_mom_giv_sigma(myPars, w0_sigma_guess) # this also updates myPars lab_fe_tauch_mu and lab_fe_weights
-            # print(f"my_w0_sigma_mom = {my_w0_sigma_mom}")
-            w0_sigma_err = my_w0_sigma_mom - w0_sigma_mom_targ
-            # print(f"w0_sigma_err = {w0_sigma_err}")
-            if w0_sigma_err > 0:
-                w0_sigma_max = w0_sigma_guess
+            my_wH_mom = wH_moment_giv_wH(myPars, myShocks, wH_guess)
+            wH_err = my_wH_mom - wH_mom_targ
+            if wH_err > 0:
+                wH_max = wH_guess
             else:
-                w0_sigma_min = w0_sigma_guess
-            w0_sigma_calib_count += 1
+                wH_min = wH_guess
+            wH_calib_count += 1
 
-        my_w1_mom = w1_moment_giv_w1(myPars, w1_guess)
-        w1_err = my_w1_mom - w1_mom_targ
-        if w1_err > 0:
-            w1_max = w1_guess
+        my_alpha_mom = alpha_moment_giv_alpha(myPars, alpha_guess) # this is different
+        alpha_err = my_alpha_mom - alpha_mom_targ
+        if alpha_err > 0:
+            alpha_max = alpha_guess
         else:
-            w1_min = w1_guess
-        w1_calib_count += 1
+            alpha_min = alpha_guess
 
-        # my_w2_mom = w2_moment_giv_w2(myPars, w2_guess)
-        # w2_err = my_w2_mom - w2_mom_targ
-        # if w2_err > 0:
-        #     w2_max = w2_guess
-        # else:
-        #     w2_min = w2_guess
-        # w2_calib_count += 1
-
-        # my_wH_mom = wH_moment_giv_wH(myPars, myShocks, wH_guess)
-        # wH_err = my_wH_mom - wH_mom_targ
-        # if wH_err > 0:
-        #     wH_max = wH_guess
-        # else:
-        #     wH_min = wH_guess
-        # wH_calib_count += 1
-
-    if w1_calib_count >= max_iters:
-        print(f"Calibration did not converge after {w1_calib_count} iterations")
+    if(np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
+        and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
+        and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
+        and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
+        print(f"wH calibration converged after {alpha_calib_count} iterations")
     else:
-        print(f"Calibration converged after {w1_calib_count} iterations")
+        print(f"wH calibration did not converge after {alpha_calib_count} iterations")
+
     if not do_wH_calib:
         print("********** wH calibration was skipped **********")
     

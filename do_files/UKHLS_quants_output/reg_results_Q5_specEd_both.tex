@@ -1,31 +1,29 @@
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
 \caption{Mental and Physical Health Quintile Effects and Labor Outcomes}
-\footnotesize\begin{tabular}{l*{6}{c}}
-                    &\multicolumn{3}{c}{\underline{Year FE}}                          &\multicolumn{3}{c}{\underline{Individ and Year FE}}              \\\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-                    &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}&\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
+\footnotesize\begin{tabular}{l*{8}{c}}
+                    &\multicolumn{4}{c}{\underline{Year FE}}                                                &\multicolumn{4}{c}{\underline{Individ and Year FE}}                                    \\\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+                    &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}&\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
 \hline
-Fair Mental Health  &       0.197\sym{***}&      -0.003         &      -0.003         &       0.029\sym{***}&      -0.015         &      -0.015         \\
-                    &     (0.008)         &     (0.013)         &     (0.013)         &     (0.005)         &     (0.008)         &     (0.008)         \\
-Good Mental Health  &       0.266\sym{***}&       0.006         &       0.006         &       0.041\sym{***}&      -0.021\sym{*}  &      -0.021\sym{*}  \\
-                    &     (0.009)         &     (0.015)         &     (0.015)         &     (0.007)         &     (0.009)         &     (0.009)         \\
-Very Good MH        &       0.305\sym{***}&       0.013         &       0.013         &       0.055\sym{***}&      -0.024\sym{*}  &      -0.024\sym{*}  \\
-                    &     (0.010)         &     (0.016)         &     (0.016)         &     (0.007)         &     (0.010)         &     (0.010)         \\
-Excellent Mental Health&       0.318\sym{***}&       0.003         &       0.003         &       0.049\sym{***}&      -0.015         &      -0.015         \\
-                    &     (0.007)         &     (0.013)         &     (0.013)         &     (0.006)         &     (0.008)         &     (0.008)         \\
-Fair Physical Health&       0.243\sym{***}&       0.015         &       0.015         &       0.040\sym{***}&      -0.003         &      -0.003         \\
-                    &     (0.010)         &     (0.013)         &     (0.013)         &     (0.007)         &     (0.008)         &     (0.008)         \\
-Good Physical Health&       0.351\sym{***}&       0.012         &       0.012         &       0.058\sym{***}&      -0.014         &      -0.014         \\
-                    &     (0.011)         &     (0.013)         &     (0.013)         &     (0.008)         &     (0.009)         &     (0.009)         \\
-Very Good PH        &       0.346\sym{***}&       0.026         &       0.026         &       0.033\sym{**} &      -0.008         &      -0.008         \\
-                    &     (0.014)         &     (0.014)         &     (0.014)         &     (0.011)         &     (0.010)         &     (0.010)         \\
-Excellent Physical Health&       0.398\sym{***}&       0.031\sym{**} &       0.031\sym{**} &       0.055\sym{***}&      -0.020\sym{*}  &      -0.020\sym{*}  \\
-                    &     (0.008)         &     (0.011)         &     (0.011)         &     (0.007)         &     (0.008)         &     (0.008)         \\
-female              &      -0.090\sym{***}&      -0.269\sym{***}&      -0.269\sym{***}&       0.001         &       0.105         &       0.105         \\
-                    &     (0.003)         &     (0.003)         &     (0.003)         &     (0.051)         &     (0.062)         &     (0.062)         \\
-College             &       0.070\sym{***}&       0.053\sym{***}&       0.053\sym{***}&       0.099\sym{***}&       0.042\sym{*}  &       0.042\sym{*}  \\
-                    &     (0.003)         &     (0.003)         &     (0.003)         &     (0.020)         &     (0.017)         &     (0.017)         \\
+Fair Mental Health  &       0.198\sym{***}&       0.006         &       0.012         &      -0.006         &       0.033\sym{***}&      -0.001         &       0.013         &      -0.014         \\
+                    &     (0.008)         &     (0.018)         &     (0.013)         &     (0.013)         &     (0.005)         &     (0.010)         &     (0.009)         &     (0.008)         \\
+Good Mental Health  &       0.269\sym{***}&       0.034         &       0.032\sym{*}  &       0.002         &       0.046\sym{***}&      -0.003         &       0.016         &      -0.018\sym{*}  \\
+                    &     (0.009)         &     (0.020)         &     (0.014)         &     (0.014)         &     (0.006)         &     (0.010)         &     (0.009)         &     (0.008)         \\
+Very Good MH        &       0.305\sym{***}&       0.087\sym{***}&       0.076\sym{***}&       0.011         &       0.060\sym{***}&       0.002         &       0.023\sym{*}  &      -0.021\sym{*}  \\
+                    &     (0.010)         &     (0.022)         &     (0.016)         &     (0.015)         &     (0.007)         &     (0.012)         &     (0.010)         &     (0.009)         \\
+Excellent Mental Health&       0.320\sym{***}&       0.059\sym{***}&       0.060\sym{***}&      -0.001         &       0.051\sym{***}&       0.002         &       0.016         &      -0.014         \\
+                    &     (0.007)         &     (0.017)         &     (0.013)         &     (0.012)         &     (0.006)         &     (0.010)         &     (0.009)         &     (0.008)         \\
+Fair Physical Health&       0.243\sym{***}&       0.056\sym{**} &       0.047\sym{***}&       0.010         &       0.044\sym{***}&       0.014         &       0.017\sym{*}  &      -0.003         \\
+                    &     (0.009)         &     (0.017)         &     (0.013)         &     (0.012)         &     (0.007)         &     (0.009)         &     (0.008)         &     (0.008)         \\
+Good Physical Health&       0.344\sym{***}&       0.073\sym{***}&       0.064\sym{***}&       0.009         &       0.062\sym{***}&       0.012         &       0.022\sym{*}  &      -0.010         \\
+                    &     (0.011)         &     (0.017)         &     (0.013)         &     (0.013)         &     (0.008)         &     (0.010)         &     (0.009)         &     (0.008)         \\
+Very Good PH        &       0.351\sym{***}&       0.098\sym{***}&       0.080\sym{***}&       0.018         &       0.038\sym{***}&       0.017         &       0.024\sym{*}  &      -0.008         \\
+                    &     (0.013)         &     (0.019)         &     (0.015)         &     (0.014)         &     (0.010)         &     (0.011)         &     (0.010)         &     (0.009)         \\
+Excellent Physical Health&       0.398\sym{***}&       0.166\sym{***}&       0.140\sym{***}&       0.026\sym{*}  &       0.060\sym{***}&      -0.001         &       0.019\sym{*}  &      -0.020\sym{**} \\
+                    &     (0.008)         &     (0.015)         &     (0.011)         &     (0.011)         &     (0.007)         &     (0.009)         &     (0.008)         &     (0.007)         \\
+female              &      -0.090\sym{***}&      -0.416\sym{***}&      -0.150\sym{***}&      -0.266\sym{***}&       0.002         &       0.210\sym{*}  &       0.107\sym{*}  &       0.104         \\
+                    &     (0.002)         &     (0.004)         &     (0.003)         &     (0.002)         &     (0.050)         &     (0.082)         &     (0.052)         &     (0.061)         \\
 \hline
-Observations        &  133114.000         &   72017.000         &   72017.000         &  127334.000         &   68030.000         &   68030.000         \\
-R-Square            &       0.400         &       0.200         &       0.200         &       0.813         &       0.796         &       0.796         \\
-Adj. R-Square       &       0.399         &       0.200         &       0.200         &       0.776         &       0.751         &       0.751         \\
-\tabnotes{7}{All models also control for sex, a cubic in age, race, marital status, the MHxPH interaction, urban location and year, the 2nd group of models also includes individual fixed effects. The omitted group is poor MH and PH respectively.}
+Observations        &  142055.000         &   76858.000         &   76858.000         &   76858.000         &  136652.000         &   73078.000         &   73078.000         &   73078.000         \\
+R-Square            &       0.403         &       0.320         &       0.266         &       0.199         &       0.810         &       0.881         &       0.825         &       0.790         \\
+Adj. R-Square       &       0.402         &       0.319         &       0.265         &       0.198         &       0.774         &       0.857         &       0.788         &       0.746         \\
+\tabnotes{9}{All models also control for sex, a cubic in age, race, marital status, the MHxPH interaction, urban location and year, the 2nd group of models also includes individual fixed effects. The omitted group is poor MH and PH respectively.}

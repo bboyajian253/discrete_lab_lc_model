@@ -20,6 +20,7 @@ import simulate as simulate
 import plot_lc as plot_lc
 import run 
 import io_manager as io
+import pandas as pd
 
 # move to factory class?
 def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path: str = None, my_lab_fe_grid: np.ndarray = None
@@ -34,7 +35,7 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
                 alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 25, sigma_util = 0.9999,
                 print_screen=0)
     # Get and set some parameters 
     if H_type_pop_share_path is None:
@@ -42,9 +43,22 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
     myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights = io.get_H_type_pop_shares(myPars, H_type_pop_share_path)
     if H_trans_path is not None:
         print(f"Using health transition matrix from: {H_trans_path}")
-        myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
+        # read in health transition matrix as pandas dataframe
+        H_trans_df = pd.read_csv(H_trans_path)
+        H_trans_df_shape = H_trans_df.shape
+        if H_trans_df_shape == (1,myPars.H_grid_size**2):
+            myPars.H_trans = io.read_and_shape_H_trans_uncond(myPars, path = H_trans_path)
+        elif H_trans_df_shape == (1, myPars.H_type_perm_grid_size * myPars.H_grid_size**2):
+            myPars.H_trans = io.read_and_shape_H_trans_H_type(myPars, path = H_trans_path)
+        elif H_trans_df_shape[1] == myPars.H_grid_size**2+1: # the +1 is for the age column
+            myPars.H_trans = io.read_and_shape_H_trans_uncond_age(myPars, path = H_trans_path)
+        elif H_trans_df_shape[1] == myPars.H_type_perm_grid_size * myPars.H_grid_size**2 + 1: # the +1 is for the age column
+            myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = H_trans_path)
+        else:
+            print("WARNING: Health transition matrix shape not recognized. Using default health transition matrix")
     else:
         print("Using default health transition matrix")
+
     return myPars
     
 def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None, 

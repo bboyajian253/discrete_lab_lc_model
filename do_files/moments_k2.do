@@ -188,7 +188,7 @@ local MH_clust MH_clust_k2
 
 mata: M = J(1, 0, .)
 
-sum `MH_clust' 
+sum `MH_clust' if age == `start_age' 
 local share_in_high_type = r(mean)
 
 mata: M = M, 1 - `share_in_high_type'
@@ -287,6 +287,70 @@ preserve
 clear
 svmat M, names(col)
 export delimited using "$outdir/MH_trans_uncond.csv", replace
+restore
+
+// By age
+foreach tran in `trans'{
+	tab age MH_`tran' [aweight=wght0] if `start_age' <= age & age <= `end_age', matcell(xx) matrow(yy) matcol(zz)
+
+	* Convert matrices to Mata
+	mata : xx = st_matrix("xx")
+	mata : yy = st_matrix("yy")
+	mata : xx = xx :/ rowsum(xx)
+	mata : st_matrix("xx", xx)
+
+	// Load matrices
+	mata: xx = st_matrix("xx")
+	mata: yy = st_matrix("yy")
+
+	// Check dimensions and contents
+	mata: num_rows = rows(xx)
+	mata: num_cols = cols(xx)
+	mata: st_numscalar("num_rows", num_rows)
+	
+	// Create a temporary matrix to store the output
+	mata: temp_matrix = J(num_rows, num_cols + 1, .) // Adding one for age
+	mata: temp_matrix[., 2..(num_cols + 1)] = xx
+	mata: temp_matrix[., 1] = yy
+	mata: temp_matrix
+	
+	if "`tran'" == "G2P" {
+		// Swap the second and third columns
+		mata: temp_matrix[., (2, 3)] = temp_matrix[., (3, 2)]
+	}
+	
+	mata: st_matrix("temp_matrix_`tran'", temp_matrix)
+
+	preserve
+	clear
+	// local outfile "$outdir/MH_trans_`tran'.csv"
+	matrix list temp_matrix_`tran'
+	svmat temp_matrix_`tran', names(col)
+	if "`tran'" == "P2G"{
+		local c1_name "MH_P2P"
+		local c2_name "MH_P2G"
+	}
+	else {
+		local c1_name "MH_G2P"
+		local c2_name "MH_G2G"
+	}
+	rename c1 age
+	rename c2 `c1_name'
+	rename c3 `c2_name'
+	// *export delimited using "`outfile'", replace
+	tempfile tempfile_`tran'
+	save `tempfile_`tran''
+	restore
+}
+
+* Merge and store
+preserve
+clear 
+local outfile "$outdir/MH_trans_uncond_age.csv"
+use `tempfile_P2G'
+merge 1:1 age using `tempfile_G2P'
+drop _merge
+export delimited using "`outfile'",replace
 restore
 
 *By K Means index cluster

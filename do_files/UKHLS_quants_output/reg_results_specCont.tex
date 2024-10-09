@@ -1,20 +1,20 @@
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
 \center\caption{Mental and Physical Health Index Effects and Labor Outcomes}
-\tiny\begin{tabular}{l*{3}{c}}
-                    &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
+\tiny\begin{tabular}{l*{4}{c}}
+                    &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
 \hline
-Mental Health       &     0.01674\sym{***}&    -0.00029         &    -0.00029         \\
-                    &     (0.000)         &     (0.001)         &     (0.001)         \\
-Physical Health     &     0.01922\sym{***}&     0.00072         &     0.00072         \\
-                    &     (0.000)         &     (0.001)         &     (0.001)         \\
-MH $\times$ PH      &    -0.00023\sym{***}&     0.00002         &     0.00002         \\
-                    &     (0.000)         &     (0.000)         &     (0.000)         \\
-female              &    -0.08845\sym{***}&    -0.26875\sym{***}&    -0.26875\sym{***}\\
-                    &     (0.002)         &     (0.003)         &     (0.003)         \\
-College             &     0.06762\sym{***}&     0.05269\sym{***}&     0.05269\sym{***}\\
-                    &     (0.003)         &     (0.003)         &     (0.003)         \\
+Mental Health       &     0.01680\sym{***}&     0.00199         &     0.00238\sym{**} &    -0.00039         \\
+                    &     (0.000)         &     (0.001)         &     (0.001)         &     (0.001)         \\
+Physical Health     &     0.01923\sym{***}&     0.00613\sym{***}&     0.00557\sym{***}&     0.00056         \\
+                    &     (0.000)         &     (0.001)         &     (0.001)         &     (0.001)         \\
+MH $\times$ PH      &    -0.00023\sym{***}&     0.00002         &    -0.00000         &     0.00002         \\
+                    &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         \\
+female              &    -0.08781\sym{***}&    -0.41379\sym{***}&    -0.14767\sym{***}&    -0.26613\sym{***}\\
+                    &     (0.002)         &     (0.004)         &     (0.003)         &     (0.002)         \\
+College             &     0.06757\sym{***}&     0.36101\sym{***}&     0.30971\sym{***}&     0.05130\sym{***}\\
+                    &     (0.002)         &     (0.004)         &     (0.003)         &     (0.002)         \\
 \hline
-Observations        &133114.00000         & 72017.00000         & 72017.00000         \\
-R-Square            &     0.40479         &     0.20041         &     0.20041         \\
-Adj. R-Square       &     0.40460         &     0.19993         &     0.19993         \\
-\tabnotes{4}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}
+Observations        &142055.00000         & 76858.00000         & 76858.00000         & 76858.00000         \\
+R-Square            &     0.40776         &     0.31920         &     0.26400         &     0.19917         \\
+Adj. R-Square       &     0.40758         &     0.31882         &     0.26359         &     0.19872         \\
+\tabnotes{5}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}
