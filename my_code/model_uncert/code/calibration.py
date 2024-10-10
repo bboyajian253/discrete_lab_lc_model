@@ -28,7 +28,7 @@ import simulate
 import plot_lc as plot_lc
 import io_manager as io
 
-def calib_w0_mu(myPars: Pars, main_path: str, tol: float, target: float, w0_mu_min: float, w0_mu_max: float
+def calib_w0_mu(myPars: Pars, main_path: str, tol:float, target:float, w0_mu_min:float, w0_mu_max:float
                   )-> Tuple[np.ndarray, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     calibrates the wage fixed effect weights to match the target mean wage
@@ -66,7 +66,7 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol: float, target: float, w0_mu_m
 
     return calibrated_weights, mean_wage, state_sols, sim_lc
 
-def w0_mu_mom_giv_mu(myPars: Pars, new_mu: float)-> float:
+def w0_mu_mom_giv_mu(myPars: Pars, new_mu:float)-> float:
     myPars.lab_fe_tauch_mu = new_mu 
     my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
     new_weights, tauch_state_grid = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = new_mu, state_grid = my_lab_fe_grid)
@@ -81,7 +81,7 @@ def w0_mu_moment(myPars: Pars)-> float:
     mean_first_per_wage = np.sum(first_per_weighted_wages)
     return mean_first_per_wage
 
-def calib_w0_sigma(myPars: Pars, main_path: str, tol: float, target: float, w0_sigma_min: float, w0_sigma_max: float
+def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sigma_min:float, w0_sigma_max:float
                 )-> Tuple[np.ndarray, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     calibrates the wage fixed effect weights to match the target standard deviation of wages
@@ -116,7 +116,7 @@ def calib_w0_sigma(myPars: Pars, main_path: str, tol: float, target: float, w0_s
 
     return calibrated_weights, sd_wage, state_sols, sim_lc
 
-def w0_sigma_mom_giv_sigma(myPars: Pars, new_sigma: float)-> float:
+def w0_sigma_mom_giv_sigma(myPars: Pars, new_sigma:float)-> float:
     myPars.lab_fe_tauch_sigma = new_sigma
     my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
     new_weights, tauch_state_grid = tb.Taucheniid(new_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = my_lab_fe_grid)
@@ -145,7 +145,7 @@ def w0_sigma_moment(myPars: Pars)-> float:
     return sd_first_per_wage
 
 
-def calib_w0(myPars: Pars, main_path: str, mean_target: float, sd_target: float):
+def calib_w0(myPars: Pars, main_path: str, mean_target:float, sd_target:float):
     """
     calibrates the wage fixed effect weights to match the target mean and standard deviation of wages
     takes the following arguments:
@@ -221,7 +221,7 @@ def get_w0_sd_targ(myPars: Pars, target_folder_path: str)-> float:
     sd_wage_col= tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return sd_wage_col[0]
 
-def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: float, w1_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_w1(myPars: Pars, main_path: str, tol:float, target:float, w1_min:float, w1_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     calibrates the wage growth coefficient to match the target wage growth
     takes the following arguments:
@@ -256,7 +256,7 @@ def calib_w1(myPars: Pars, main_path: str, tol: float, target: float, w1_min: fl
     return calibrated_w1, w1_moment, state_sols, sim_lc
 
 @njit
-def w1_moment_giv_w1(myPars: Pars, new_coeff: float)-> float:
+def w1_moment_giv_w1(myPars: Pars, new_coeff:float)-> float:
     """ updates the wage_coeff_grid and returns the new wage growth """
     # for i in range(myPars.lab_fe_grid_size): 
     #     myPars.wage_coeff_grid[i, 1] = new_coeff
@@ -301,7 +301,7 @@ def get_w1_targ(myPars: Pars, target_folder_path: str)-> float:
     my_max = np.max(mean_wage_by_age[:age_60_ind])
     return log(my_max)- log(mean_wage_by_age[0])
 
-def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: float, w2_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_w2(myPars: Pars, main_path: str, tol:float, target:float, w2_min:float, w2_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     calibrates the quadratic wage coefficient to match the target wage decay
     takes the following arguments:
@@ -336,7 +336,7 @@ def calib_w2(myPars: Pars, main_path: str, tol: float, target: float, w2_min: fl
     return calibrated_w2, w2_moment, state_sols, sim_lc
 
 @njit
-def w2_moment_giv_w2(myPars: Pars, new_coeff: float)-> float:
+def w2_moment_giv_w2(myPars: Pars, new_coeff:float)-> float:
     """ updates the wage_coeff_grid skipping the first row coefficient and returns the new wage decay """
     # for i in range(1, myPars.lab_fe_grid_size):
     # for i in range(myPars.lab_fe_grid_size):
@@ -371,7 +371,7 @@ def get_w2_targ(myPars: Pars, target_folder_path: str)-> float:
     my_max = np.max(mean_wage_by_age[:age_60_ind])
     return log(my_max) - log(mean_wage_by_age[-1])
 
-def calib_wH(myPars: Pars, myShocks: Shocks, main_path: str, tol: float, target: float, wH_min: float, wH_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_wH(myPars: Pars, myShocks: Shocks, main_path: str, tol:float, target:float, wH_min:float, wH_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """ 
     calibrate the wage coeffecient on the health state to match the target wage premium
     takes the following arguments:
@@ -405,7 +405,7 @@ def calib_wH(myPars: Pars, myShocks: Shocks, main_path: str, tol: float, target:
     return calibrated_wH, wH_moment, state_sols, sim_lc
 
 # @njit
-def wH_moment_giv_wH(myPars: Pars, myShocks: Shocks, new_coeff: float)-> float:
+def wH_moment_giv_wH(myPars: Pars, myShocks: Shocks, new_coeff:float)-> float:
     myPars.wH_coeff = new_coeff
     return wH_moment(myPars, myShocks)
 
@@ -433,7 +433,7 @@ def get_wH_targ(myPars: Pars, target_folder_path: str)-> float:
     mean_wage_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return mean_wage_diff[0]
 
-def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_alpha(myPars: Pars, main_path: str, lab_tol:float, mean_lab_targ:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray], Shocks]:
     """
     calibrates the alpha parameter of the model to match the target mean labor worked.
     takes the following arguments:
@@ -456,15 +456,15 @@ def calib_alpha(myPars: Pars, main_path: str, lab_tol: float, mean_lab_targ: flo
     myPars.alpha = calib_alpha # myPars is mutable this also happens inside solve_mean_lab_giv_alpha but i think its more readable here
     
     # solve, simulate and plot model for the calibrated alpha
-    mean_lab, state_sols, sim_lc = alpha_moment_giv_alpha(myPars, calib_alpha, main_path)
+    mean_lab, state_sols, sim_lc, shocks = alpha_moment_giv_alpha(myPars, calib_alpha, main_path)
     io.print_params_to_csv(myPars, path = main_path, file_name = "alpha_calib_params.csv")
     if myPars.print_screen >= 1:
         print(f"Calibration exited: alpha = {calib_alpha}, mean labor worked = {mean_lab}, target mean labor worked = {mean_lab_targ}")
     
-    return calib_alpha, mean_lab, state_sols, sim_lc
+    return calib_alpha, mean_lab, state_sols, sim_lc, shocks
     
 
-def alpha_moment_giv_alpha(myPars : Pars,  new_alpha: float, main_path : str = None) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def alpha_moment_giv_alpha(myPars : Pars,  new_alpha:float, main_path : str = None) ->Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray], Shocks]:
     '''
         solves the model for a given alpha and returns the alpha moment: the mean labor worked, the model solutions and simulations
     ''' 
@@ -473,7 +473,7 @@ def alpha_moment_giv_alpha(myPars : Pars,  new_alpha: float, main_path : str = N
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     mean_lab = alpha_moment_giv_sims(myPars, sim_lc) 
-    return mean_lab, state_sols, sim_lc
+    return mean_lab, state_sols, sim_lc, shocks
 
 def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     """
@@ -499,7 +499,7 @@ def get_alpha_targ(myPars: Pars, target_folder_path: str) -> float:
     mean_labor_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return np.mean(mean_labor_by_age)
 
-def calib_phi_H(myPars: Pars, main_path: str, tol: float, target: float, phi_H_min: float, phi_H_max: float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_phi_H(myPars: Pars, main_path: str, tol:float, target:float, phi_H_min:float, phi_H_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
     calibrates the phi_H parameter of the model to match the target difference in mean log hours worked between the bad MH and good MH states
     takes the following arguments:
@@ -529,7 +529,7 @@ def calib_phi_H(myPars: Pars, main_path: str, tol: float, target: float, phi_H_m
 
     return calibrated_phi_H, phi_H_moment, state_sols, sim_lc
 
-def phi_H_moment_giv_phi_H(myPars: Pars, new_phi_H: float)-> Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def phi_H_moment_giv_phi_H(myPars: Pars, new_phi_H:float)-> Tuple[float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
     solves the model for a given phi_H and returns the phi_H moment, the mean phi_H, the state solutions and the simulations
     '''
@@ -543,14 +543,18 @@ def phi_H_moment(myPars: Pars, sims: Dict[str, np.ndarray], shocks: Shocks)-> fl
     '''
     returns the difference in mean log hours worked between the bad MH and good MH states 
     '''
-    lab_sims = sims['lab']
-    log_lab_sims = np.log(lab_sims)
-    H_hist = shocks.H_hist
+    lab_sims: np.ndarray = sims['lab'][:, :, :, :myPars.J]
+    # take the log where hours are positive
+    log_lab_sims = np.log(lab_sims, where = lab_sims > 0)
+    # log_lab_sims = np.log(lab_sims)
 
-    bad_MH_log_lab_sims = log_lab_sims * (1 - H_hist[:, :, :, :myPars.J])
-    bad_MH_log_lab_mean = model.wmean_non_zero(bad_MH_log_lab_sims)
-    good_MH_log_lab_sims = log_lab_sims * H_hist[:, :, :, :myPars.J]
-    good_MH_log_lab_mean = model.wmean_non_zero(good_MH_log_lab_sims)
+    H_hist: np.ndarray = shocks.H_hist[:, :, :, :myPars.J]
+
+    bad_MH_log_lab_sims = log_lab_sims * (H_hist == 0)
+    good_MH_log_lab_sims = log_lab_sims * (H_hist == 1)
+
+    bad_MH_log_lab_mean = model.wmean_non_zero(myPars, bad_MH_log_lab_sims)
+    good_MH_log_lab_mean = model.wmean_non_zero(myPars, good_MH_log_lab_sims)
 
     return bad_MH_log_lab_mean - good_MH_log_lab_mean
     
@@ -581,12 +585,12 @@ def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float,
     return alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ, phi_H_targ
 
 def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H_calib: bool = True,  
-        alpha_mom_targ: float = 0.40, w0_mu_mom_targ: float = 20.0, w0_sigma_mom_targ: float = 3.0, w1_mom_targ: float = 0.2, w2_mom_targ: float = 0.2, 
-        wH_mom_targ: float = 0.2, phi_H_mom_targ: float = 0.02, 
-        w0_mu_min: float = 0.0, w0_mu_max:float = 100.0, w0_sigma_min: float = 0.001, w0_sigma_max = 50.0, 
-        w1_min:float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
-        phi_H_min: float = 0.0001, phi_H_max:float = 0.4,
-        alpha_tol: float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol: float = 0.0001, w1_tol: float = 0.001, w2_tol: float = 0.001, wH_tol: float = 0.001, phi_H_tol:float = 0.001,
+        alpha_mom_targ:float = 0.40, w0_mu_mom_targ:float = 20.0, w0_sigma_mom_targ:float = 3.0, w1_mom_targ:float = 0.2, w2_mom_targ:float = 0.2, 
+        wH_mom_targ:float = 0.2, phi_H_mom_targ:float = 0.02, 
+        w0_mu_min:float = 0.0, w0_mu_max:float = 100.0, w0_sigma_min:float = 0.001, w0_sigma_max = 50.0, 
+        w1_min:float = 0.0, w1_max:float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
+        phi_H_min:float = 0.0001, phi_H_max:float = 0.4,
+        alpha_tol:float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol:float = 0.0001, w1_tol:float = 0.001, w2_tol:float = 0.001, wH_tol:float = 0.001, phi_H_tol:float = 0.001,
         calib_path: str = None)-> (
         Tuple[float, np.ndarray, float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
     """
@@ -643,7 +647,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                             and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol
                             and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol)):
                             # print("Calibrating alpha")
-                            alpha_calib, my_alpha_mom, state_sols, sims = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
+                            alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
                             my_w0_mu_mom = w0_mu_moment(myPars)
                             my_w0_sigma_mom = w0_sigma_moment(myPars)
                             my_w1_mom = w1_moment(myPars)
@@ -656,6 +660,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                             if do_phi_H_calib:
                                 # print("Calirating phi_H")
                                 phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
+                            else:
+                                my_phi_H_mom = phi_H_moment(myPars, sims, shocks)
                             my_w0_mu_mom = w0_mu_moment(myPars)
                             my_w0_sigma_mom = w0_sigma_moment(myPars)
                             my_w1_mom = w1_moment(myPars)

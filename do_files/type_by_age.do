@@ -36,6 +36,6 @@ list indiv_id age MH_age_dec MH_clust_50p_age_flag MH_clust_50p_age_mean in 1/10
 
 capture drop MH_clust_50p_age
 gen MH_clust_50p_age = 0
-replace MH_clust_50p_age = 1 if MH_clust_50p_age_mean <= 0.5 
+replace MH_clust_50p_age = 1 if MH_clust_50p_age_mean > 0.5 
 
 // restore

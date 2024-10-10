@@ -44,7 +44,7 @@ def weighted_var_sim_by_age(myPars: Pars, sim: np.ndarray) -> np.ndarray:
     # var_by_age = np.var(sim, axis = tuple(range(sim.ndim - 1)))
     # return var_by_age
 
-def wperc_sim_by_age(myPars: Pars, sim: np.ndarray, perc: float) -> np.ndarray:
+def wperc_sim_by_age(myPars: Pars, sim: np.ndarray, perc:float) -> np.ndarray:
     """
     calculate the weighted percentile of the simulated variable by age and return it as a 1D array
     """
@@ -62,7 +62,7 @@ def wperc_sim_by_age(myPars: Pars, sim: np.ndarray, perc: float) -> np.ndarray:
     perc_sim_by_age = tb.collapse_to_last_dim_wperc(sim, combined_weights, perc)
     return perc_sim_by_age
 
-def wperc_log_lab_earn_by_age(myPars: Pars, sims: Dict[str, np.ndarray], percentile: float) -> np.ndarray:
+def wperc_log_lab_earn_by_age(myPars: Pars, sims: Dict[str, np.ndarray], percentile:float) -> np.ndarray:
     """
     calculate the weighted percentile of the log of labor earnings by age and return it as a 1D array
     """

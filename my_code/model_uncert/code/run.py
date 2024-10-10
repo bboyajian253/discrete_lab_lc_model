@@ -27,7 +27,8 @@ import plot_aggregates as plot_aggregates
 import io_manager as io
 
 # Run the model
-def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, do_wH_calib: bool = True, get_targets: bool = True, sim_no_calib  : bool = False, 
+def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, do_wH_calib: bool = True, do_phi_H_calib: bool = True, 
+              get_targets: bool = True, sim_no_calib  : bool = False, 
               output_flag: bool = True, tex: bool = True, output_path: str = None, data_moms_folder_path: str = None)-> List[Dict[str, np.ndarray]]:
     """
     Given the model parameters, solve, calibrate, simulate, and, if desired, output the results.
@@ -67,28 +68,29 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         if get_targets: 
-            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ, phi_H_target = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
+            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ, phi_H_targ = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
             print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mu_targ}, w0_sd_targ = {w0_sigma_targ}, 
-                                        w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}, phi_H_target = {phi_H_target}""")
-            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib,
+                                        w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}, phi_H_target = {phi_H_targ}""")
+            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, calib_phi_H, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_phi_H_calib = do_phi_H_calib,
                                                                                                     alpha_mom_targ = alpha_lab_targ, w0_mu_mom_targ = w0_mu_targ, w0_sigma_mom_targ = w0_sigma_targ, 
-                                                                                                    w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, wH_mom_targ = wH_targ)
+                                                                                                    w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, 
+                                                                                                    wH_mom_targ = wH_targ, phi_H_mom_targ = phi_H_targ)
             # calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all_v2(myPars, myShocks, do_wH_calib = do_wH_calib,
             #                                                                                         alpha_mom_targ = alpha_lab_targ, 
             #                                                                                         w0_mu_mom_targ = w0_mu_targ, w0_sigma_mom_targ = w0_sigma_targ, 
             #                                                                                         w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, wH_mom_targ = wH_targ)
         else: # otherwise use default argument targets
-            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib)
+            calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, calib_phi_H, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_phi_H_calib = do_phi_H_calib)
             # calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all_v2(myPars, myShocks, do_wH_calib = do_wH_calib)
 
         calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 
                                 'w0_mean': w0_mu_targ, 'w0_sd': w0_sigma_targ, 
                                 'w1': w1_targ, 'w2': w2_targ, 
-                                'wH': wH_targ}
+                                'wH': wH_targ, 'phi_H': phi_H_targ}
         calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
                                     'w0_mean': calibration.w0_moments(myPars)[0], 'w0_sd': calibration.w0_moments(myPars)[1],
                                     'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
-                                    'wH': calibration.wH_moment(myPars, myShocks)}
+                                    'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc, myShocks)}
 
         for label in sim_lc.keys():
             np.save(output_path + f'sim{label}.npy', sim_lc[label])

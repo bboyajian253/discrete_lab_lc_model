@@ -39,7 +39,7 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
                 print_screen=0)
     # Get and set some parameters 
     if H_type_pop_share_path is None:
-        H_type_pop_share_path = main_path + "input/k2_moms/" + "MH_clust_k2_pop_shares.csv"
+        H_type_pop_share_path = main_path + "input/50p_age_moms/" + "MH_clust_50p_age_pop_shares.csv"
     myPars.H_beg_pop_weights_by_H_type, myPars.H_type_perm_weights = io.get_H_type_pop_shares(myPars, H_type_pop_share_path)
     if H_trans_path is not None:
         print(f"Using health transition matrix from: {H_trans_path}")
@@ -62,14 +62,14 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
     return myPars
     
 def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None, 
-            output_flag: bool = True, do_wH_calib: bool = True) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+            output_flag: bool = True, do_wH_calib: bool = True, do_phi_H_calib:bool = True) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     run the model with the given parameters and return myPars, myShocks, sols, sims
     """
     # myPars = givPars 
 
     if out_folder_name is not None:
-        print(f"*****Running main_io with out_folder_name = {out_folder_name}*****")
+        print(f"*****Running main_io with out_folder_name = {out_folder_name}*****")    
     else:
         print(f"*****Running main_io with default out_folder_name*****")
     if myPars is None:
@@ -80,9 +80,9 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
     if out_folder_name is not None:
         out_path = myPars.path + out_folder_name + '/'
 
-    sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib, sim_no_calib = False, 
+    sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib, do_phi_H_calib = do_phi_H_calib, sim_no_calib = False, 
                           get_targets = True, output_flag = output_flag, tex = True, output_path = out_path, 
-                          data_moms_folder_path= myPars.path + '/input/k2_moms/')
+                          data_moms_folder_path= myPars.path + '/input/50p_age_moms/')
     return myPars, myShocks, sols, sims
 
 # run if main condition
@@ -95,8 +95,11 @@ if __name__ == "__main__":
     # ***** may want to change how trans is generated its redundant in do file.
     of_name = None
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-    trans_path = main_path + "input/k2_moms/MH_trans_by_MH_clust_age.csv"
-    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
+    # trans_path = main_path + "input/k2_moms/MH_trans_by_MH_clust_age.csv"
+    trans_path = main_path + "input/50p_age_moms/MH_trans_by_MH_clust_age.csv"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    # myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
+    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib=False)
 
     # my_age_grid = myPars.age_grid[:31] # only want to plot up to age 55
     # out_path = main_path + "output/var_earn_test_fig.pdf"

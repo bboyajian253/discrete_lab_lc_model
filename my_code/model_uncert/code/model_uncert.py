@@ -19,7 +19,7 @@ from pars_shocks import Pars, Shocks
 import my_toolbox as tb
 
 @njit
-def leis_giv_lab(myPars: Pars, labor: float, health: float) -> float:
+def leis_giv_lab(myPars: Pars, labor:float, health:float) -> float:
     """
     converts labor to leisure within period
     encodes the time endowment constraint
@@ -29,7 +29,7 @@ def leis_giv_lab(myPars: Pars, labor: float, health: float) -> float:
     return max(myPars.leis_min, leisure)
 
 @njit
-def lab_giv_leis(myPars: Pars, leisure: float, health: float) -> float:
+def lab_giv_leis(myPars: Pars, leisure:float, health:float) -> float:
     """
     converts leisure to labor within period
     encodes the time endowment constraint
@@ -39,7 +39,7 @@ def lab_giv_leis(myPars: Pars, leisure: float, health: float) -> float:
     return max(myPars.lab_min, labor)
 
 @njit
-def leis_giv_c(myPars: Pars, c: float, wage: float) -> float:
+def leis_giv_c(myPars: Pars, c:float, wage:float) -> float:
     """
     convert consumption to leisure within period
     To do this we want to leverage the static equation:
@@ -54,7 +54,7 @@ def leis_giv_c(myPars: Pars, c: float, wage: float) -> float:
     return leis
    
 @njit
-def c_giv_leis(myPars: Pars,  leis: float, wage: float) -> float:
+def c_giv_leis(myPars: Pars,  leis:float, wage:float) -> float:
     """
     convert leisure to consumption within period
     To do this we want to leverage the static equation:
@@ -65,7 +65,7 @@ def c_giv_leis(myPars: Pars,  leis: float, wage: float) -> float:
     return constant * leis
 
 @njit
-def util_giv_leis(myPars: Pars, c: float, leis: float) -> float:
+def util_giv_leis(myPars: Pars, c:float, leis:float) -> float:
     """
     utility function given leisure and consumption
     """
@@ -75,7 +75,7 @@ def util_giv_leis(myPars: Pars, c: float, leis: float) -> float:
 
 #derivative of utility function with respect to consumption given consumption and leisure
 @njit
-def util_c_giv_leis(myPars: Pars, c: float, leis: float) -> float:
+def util_c_giv_leis(myPars: Pars, c:float, leis:float) -> float:
     """
     derivative of utility function with respect to consumption given consumption and leisure
     """
@@ -84,7 +84,7 @@ def util_c_giv_leis(myPars: Pars, c: float, leis: float) -> float:
     return alpha*c**(alpha - 1)*leis**(1 - alpha)/(c**alpha*leis**(1 - alpha))**sig #this denom is 0 if c or leis is 0
 
 @njit
-def mb_lab(myPars: Pars, c: float, wage: float, labor: float, health: float) -> float:
+def mb_lab(myPars: Pars, c:float, wage:float, labor:float, health:float) -> float:
     """
     marginal benefit of labor
     """
@@ -92,7 +92,7 @@ def mb_lab(myPars: Pars, c: float, wage: float, labor: float, health: float) -> 
     return wage * util_c_giv_leis(myPars, c, leis)
 
 @njit
-def mc_lab(myPars: Pars, c: float, labor: float, health: float) -> float:
+def mc_lab(myPars: Pars, c:float, labor:float, health:float) -> float:
     """
     marginal cost of labor
     """
@@ -100,14 +100,14 @@ def mc_lab(myPars: Pars, c: float, labor: float, health: float) -> float:
     return myPars.phi_n * util_leis_giv_c(myPars, leis, c)
 
 @njit
-def util_leis_giv_c(myPars: Pars, leis: float, c: float) -> float:
+def util_leis_giv_c(myPars: Pars, leis:float, c:float) -> float:
     """
     derivative of utility function with respect to leisure given consumption and leisure
     """
     return (1-myPars.alpha)*c**(myPars.alpha)*leis**(-myPars.alpha)/(c**myPars.alpha*leis**(1-myPars.alpha))**myPars.sigma_util
 
 @njit
-def util_c(myPars: Pars, c: float, wage: float) -> float:
+def util_c(myPars: Pars, c:float, wage:float) -> float:
     """
     deriveative of utility function with respect to consumption given consumption and health
     """
@@ -115,7 +115,7 @@ def util_c(myPars: Pars, c: float, wage: float) -> float:
     return util_c_giv_leis(myPars, c, leis)
 
 @njit
-def util_c_inv(myPars: Pars, u: float, wage: float) ->float:
+def util_c_inv(myPars: Pars, u:float, wage:float) ->float:
     """
     given a marginal utility u and a current wage return the consumption that yields that utility
     inverse of the derivative of the utility function with respect to consumption
@@ -128,7 +128,7 @@ def util_c_inv(myPars: Pars, u: float, wage: float) ->float:
     return c
 
 @njit
-def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe_ind: int, health_ind: int, H_type_perm_ind: int, c_prime0: float, c_prime1: float ) -> float: 
+def infer_c(myPars: Pars, curr_wage:float, age: int, lab_fe_ind: int, health_ind: int, H_type_perm_ind: int, c_prime0:float, c_prime1:float ) -> float: 
     """
     infer what current consumption should be given future consumption, curr wage, and the curr state space
     calculated expectation on rhs of euler, calc the rest of the rhs, then invert util_c to get the curr c on the lhs
@@ -144,7 +144,7 @@ def infer_c(myPars: Pars, curr_wage: float, age: int, lab_fe_ind: int, health_in
     return max(myPars.c_min, c)  
 
 @njit
-def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, health_ind: int) -> float:
+def solve_lab_a(myPars: Pars, c:float, a_prime:float,  curr_wage:float, health_ind: int) -> float:
     """
     solve for labor and assets given consumption and wage
     given current choice of c and a_prime, as well the state's wage and health 
@@ -160,7 +160,7 @@ def solve_lab_a(myPars: Pars, c: float, a_prime: float,  curr_wage: float, healt
     return lab, a
 
 @njit
-def invert_lab (myPars : Pars, c: float, curr_wage: float, health: float) -> float:
+def invert_lab (myPars : Pars, c:float, curr_wage:float, health:float) -> float:
     """
     invert the foc to get labor given consumption and wage
     """
@@ -170,7 +170,7 @@ def invert_lab (myPars : Pars, c: float, curr_wage: float, health: float) -> flo
     return lab
 
 @njit
-def util_leis_inv(myPars: Pars, u: float, c: float) -> float:
+def util_leis_inv(myPars: Pars, u:float, c:float) -> float:
     """
     invert the utility function with respect to leisure
     """
@@ -183,7 +183,7 @@ def util_leis_inv(myPars: Pars, u: float, c: float) -> float:
     return inside ** out_exp
     
 @njit
-def lab_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float)-> float:
+def lab_star(myPars: Pars, a_prime:float, a:float, health:float, wage:float)-> float:
     """
     return the optimal labor decision given an asset choice a_prime and a current asset level, health status, and wage
     """
@@ -193,7 +193,7 @@ def lab_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float)
     return max(myPars.lab_min, lab)
 
 @njit
-def c_star(myPars: Pars, a_prime: float, a: float, health: float, wage: float) -> float:
+def c_star(myPars: Pars, a_prime:float, a:float, health:float, wage:float) -> float:
     """
     return the optimal consumption given an asset choice a_prime and a current asset level, health status, and wage
     """
@@ -288,7 +288,7 @@ def wmean_non_zero(myPars: Pars, sim_with_zeros: np.ndarray) -> float:
     return wsum / wN
 
 @njit
-def recover_wage(myPars: Pars, c: float, lab: float, a_prime: float, a: float) -> float: #this will divide by zero if lab = 0
+def recover_wage(myPars: Pars, c:float, lab:float, a_prime:float, a:float) -> float: #this will divide by zero if lab = 0
     """
     recover the wage given consumption, labor, and assets
     """

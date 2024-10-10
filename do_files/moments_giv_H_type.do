@@ -60,6 +60,17 @@ restore
 * Change to output directory
 cd "$outdir"
 
+
+// may want to run a regression here to isolate the effect of MH on wages, accounting for other factors represented in the model e.g. an age quadratic/cubic
+capture drop age2
+gen age2 = age*age
+reg emp i.MH i.MH_clust_50p_age age age2 i.year
+reg log_labor_earnings i.MH i.MH_clust_50p_age age age2 i.year if emp == 1
+reg log_wage i.MH i.MH_clust_50p_age age age2 i.year if emp == 1 
+reg log_hours i.MH i.MH_clust_50p_age age age2 i.year if emp == 1
+
+
+
 * Calculate mean wages for MH = 0 and MH = 1
 sum wage if MH == 0 & emp == 1
 local mean_wage0 = r(mean) 

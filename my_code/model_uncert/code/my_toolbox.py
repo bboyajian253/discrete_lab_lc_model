@@ -47,7 +47,7 @@ def sum_last_axis_numba(arr: np.ndarray) -> np.ndarray:
     
     return summed_arr
 
-def collapse_to_last_dim_wperc(values_array: np.ndarray, weights: np.ndarray, percentile: float) -> np.ndarray:
+def collapse_to_last_dim_wperc(values_array: np.ndarray, weights: np.ndarray, percentile:float) -> np.ndarray:
     """
     Collapse the values_array to the last dimension by taking the weighted percentile 
     across all other dimensions.
@@ -58,7 +58,7 @@ def collapse_to_last_dim_wperc(values_array: np.ndarray, weights: np.ndarray, pe
         A multi-dimensional array where we want to collapse all dimensions except the last one.
     weights: np.ndarray
         A weights array with one less dimension than values_array, applied uniformly across the last dimension.
-    percentile: float
+    percentile:float
         The desired percentile (0 to 100) to calculate, e.g., 50 for the median.
         
     Returns:
@@ -266,16 +266,16 @@ def tuple_product(shape_tuple: Tuple[float]) -> float:
     return product
 
 @njit
-def compute_weighted_mean(values: np.ndarray, weights: float) -> float:
+def compute_weighted_mean(values: np.ndarray, weights:float) -> float:
     return np.dot(weights, values)
 
 @njit
-def compute_weighted_std(values: np.ndarray, weights: float, weighted_mean: float) -> float:
+def compute_weighted_std(values: np.ndarray, weights:float, weighted_mean:float) -> float:
     weighted_var = np.dot(weights, (values - weighted_mean) ** 2)
     return np.sqrt(weighted_var)
 
 @njit
-def mean_and_sd_objective(weights: np.ndarray, values: np.ndarray, target_mean: float, target_std: float)-> float:
+def mean_and_sd_objective(weights: np.ndarray, values: np.ndarray, target_mean:float, target_std:float)-> float:
     """
     returns the squared difference between the weighted mean and weighted standard deviation and the target mean and standard deviation
     given weights, values, target mean, and target standard deviation
@@ -305,7 +305,7 @@ def weighted_stats(fe_weights: np.ndarray, values: np.ndarray, wage_hist: np.nda
     return weighted_mean, weighted_sd
 
 @njit
-def objective(fe_weights: np.ndarray, values: np.ndarray, target_mean: float, target_std: float,
+def objective(fe_weights: np.ndarray, values: np.ndarray, target_mean:float, target_std:float,
                wage_hist: np.ndarray, sim_draws: int, H_type_weights: np.ndarray) -> float:
     """
     Objective function to minimize: squared difference from target mean and std.
@@ -316,7 +316,7 @@ def objective(fe_weights: np.ndarray, values: np.ndarray, target_mean: float, ta
     total_diff = mean_diff + std_diff
     return total_diff
 
-def optimize_weights(values: np.ndarray, target_mean: float, target_std: float,
+def optimize_weights(values: np.ndarray, target_mean:float, target_std:float,
                       wage_hist: np.ndarray, sim_draws: int, H_type_weights: np.ndarray) -> np.ndarray:
     """
     Optimize the  weights to match the target mean and std as closely as possible.
@@ -450,7 +450,7 @@ def gen_even_row_weights(matrix: np.ndarray) -> np.ndarray:
     return np.ones(matrix.shape[0]) / matrix.shape[0]
 
 #
-def bisection_search(func: Callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
+def bisection_search(func: Callable, min_val:float, max_val:float, tol:float, max_iter: int, print_screen: int = 3) -> float:
     """
     function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
     this is a simple bisection method but does this take advantage of the monotoniciy of the function to speed up the search?
@@ -482,7 +482,7 @@ def bisection_search(func: Callable, min_val: float, max_val: float, tol: float,
     print("Bisection method did not converge within the specified number of iterations.")
     return x_mid
 
-def my_bisection_search(func: callable, min_val: float, max_val: float, tol: float, max_iter: int, print_screen: int = 3) -> float:
+def my_bisection_search(func: callable, min_val:float, max_val:float, tol:float, max_iter: int, print_screen: int = 3) -> float:
     """
     function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
     this bisection search takes advantage of the monotoniciy of the function to speed up the search
@@ -557,7 +557,7 @@ def gen_flat_joint_trans(trans1: np.ndarray, trans2: np.ndarray) -> np.ndarray:
     joint_transition = manual_kron(trans1, trans2)
     return joint_transition.flatten()
 
-def print_exec_time (message: str , start_time: float)-> None:    
+def print_exec_time (message: str , start_time:float)-> None:    
     """
     prints the execution time and a message of a function given the start time and a message
     """
@@ -565,7 +565,7 @@ def print_exec_time (message: str , start_time: float)-> None:
     execution_time = end_time - start_time
     print(message, execution_time, "seconds")
 
-def rouwenhorst(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[np.ndarray, np.ndarray]:
+def rouwenhorst(N: int, rho:float, sigma:float, mu:float=0.0) -> Tuple[np.ndarray, np.ndarray]:
     """
     Rouwenhorst method to discretize AR(1) process
     The Rouwenhorst method, developed by Koen Rouwenhorst in 1995, is another technique for discretizing AR(1) processes, especially useful for highly persistent processes.
@@ -588,7 +588,7 @@ def rouwenhorst(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[np.nda
     return s, P
 
 @njit
-def rouwenhorst_numba(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[np.ndarray, np.ndarray]:
+def rouwenhorst_numba(N: int, rho:float, sigma:float, mu:float=0.0) -> Tuple[np.ndarray, np.ndarray]:
     q = (rho + 1) / 2
     nu = np.sqrt((N - 1) / (1 - rho**2)) * sigma
     s = np.linspace(mu / (1 - rho) - nu, mu / (1 - rho) + nu, N)
@@ -606,7 +606,7 @@ def rouwenhorst_numba(N: int, rho: float, sigma: float, mu: float=0.0) -> Tuple[
     return s, P
 
 @njit
-def gen_grid(size: int, min: float, max: float, grid_growth: float = 0.0) -> np.ndarray:
+def gen_grid(size: int, min:float, max:float, grid_growth:float = 0.0) -> np.ndarray:
     """
     returns a grid of size size with min and max values and grid growth rate grid_growth
     """
@@ -779,7 +779,7 @@ def avg_wgt_3d(v, w):
     return tot / max(1e-6, totw)
 
 
-def Taucheniid(sigma: float, num_grid_points: int, Nsd: int=3, mean: float=0.0, state_grid: np.ndarray=np.zeros(1))->Tuple[np.ndarray, np.ndarray]:
+def Taucheniid(sigma:float, num_grid_points: int, Nsd: int=3, mean:float=0.0, state_grid: np.ndarray=np.zeros(1))->Tuple[np.ndarray, np.ndarray]:
     """
     This function uses the method of Tauchen (1986) to approximate a continuous iid Normal process.
 

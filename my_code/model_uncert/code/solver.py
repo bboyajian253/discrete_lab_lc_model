@@ -119,8 +119,8 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
     return mat_c_ap, mat_lab_ap, mat_a_ap
 
 @njit
-def solve_j_indiv( myPars: Pars, a_prime: float, curr_wage: float, j: int, lab_fe_ind: int, H_ind: int, 
-                  H_type_perm_ind: int, c_prime0: float, c_prime1: float)-> Tuple[float, float, float]:
+def solve_j_indiv( myPars: Pars, a_prime:float, curr_wage:float, j: int, lab_fe_ind: int, H_ind: int, 
+                  H_type_perm_ind: int, c_prime0:float, c_prime1:float)-> Tuple[float, float, float]:
     """
     Solve the individual period problem for a given state
     returns c, lab, a

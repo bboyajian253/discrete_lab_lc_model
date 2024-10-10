@@ -1,9 +1,9 @@
 import numpy as np
 from typing import Tuple, Dict
 
-def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ: float,  w0_mean_targ: float, w0_sd_targ: float, w1_mom_targ: float, w2_mom_targ: float, wH_mom_targ: float,
-              w1_min: float = 0.0, w1_max: float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, wH_tol: float = 0.001,
-              alpha_tol: float = 0.001, w0_mom_tol: float = 0.001, w1_tol: float = 0.001, w2_tol: float = 0.001) -> Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+def calib_all(myPars: Pars, calib_path: str, alpha_mom_targ:float,  w0_mean_targ:float, w0_sd_targ:float, w1_mom_targ:float, w2_mom_targ:float, wH_mom_targ:float,
+              w1_min:float = 0.0, w1_max:float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, wH_tol:float = 0.001,
+              alpha_tol:float = 0.001, w0_mom_tol:float = 0.001, w1_tol:float = 0.001, w2_tol:float = 0.001) -> Tuple[float, np.ndarray, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     Calibrates all the parameters of the model.
     Takes arguments that represent the targets and tolerances for the calibration.

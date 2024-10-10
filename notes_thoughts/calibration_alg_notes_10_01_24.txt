@@ -26,10 +26,10 @@ while abs(err2) > tol2 and i2 < max_iter:
 // how would i actually write this in my own code?
 // thats also start with 2 parameters
 def calib_all(myPars: Pars, myShocks: shocks, do_wH_calib: bool = True,
-                w0_mu_mom_targ: float = 10.0, w0_sigma_mom_targ: float = 3.0, 
-                w1_mom_targ: float = 0.2, w2_mom_targ: float = 0.2, wH_mom_targ: float = 0.2,
-                w0_mu_min: float = 0.0, w0_mu_max: float = 30.0, w0_sigma_min: float = 0.0, w0_sigma_max: float = 10.0,
-                w0_mu_tol: float = 1e-6, w0_sigma_tol: float = 1e-6) -> Tuple(
+                w0_mu_mom_targ:float = 10.0, w0_sigma_mom_targ:float = 3.0, 
+                w1_mom_targ:float = 0.2, w2_mom_targ:float = 0.2, wH_mom_targ:float = 0.2,
+                w0_mu_min:float = 0.0, w0_mu_max:float = 30.0, w0_sigma_min:float = 0.0, w0_sigma_max:float = 10.0,
+                w0_mu_tol:float = 1e-6, w0_sigma_tol:float = 1e-6) -> Tuple(
                     float, np.ndarray, float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]):
     # allocate memory
     # first lets getting working for 1 parameter
