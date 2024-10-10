@@ -45,15 +45,16 @@ export delimited using "mean_earnings_by_health_age.csv", replace
 restore
 
 // by type
+local MH_clust MH_clust_50p_age
 preserve
-collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 0
+collapse (mean) labor_earnings if emp == 1 & `MH_clust' == 0
 rename labor_earnings mean_earnings_MHT0
 tempfile mean_earnings_MHT0
 save `mean_earnings_MHT0', replace
 restore
 
 preserve
-collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 1
+collapse (mean) labor_earnings if emp == 1 & `MH_clust' == 1
 rename labor_earnings mean_earnings_MHT1
 tempfile mean_earnings_MHT1
 save `mean_earnings_MHT1', replace
@@ -61,14 +62,14 @@ restore
 
 //by type and age
 preserve
-collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 0, by(age)
+collapse (mean) labor_earnings if emp == 1 & `MH_clust' == 0, by(age)
 rename labor_earnings mean_earnings_MHT0_age
 tempfile mean_earnings_MHT0_age
 save `mean_earnings_MHT0_age', replace
 restore
 
 preserve
-collapse (mean) labor_earnings if emp == 1 & MH_clust_k2 == 1, by(age)
+collapse (mean) labor_earnings if emp == 1 & `MH_clust' == 1, by(age)
 rename labor_earnings mean_earnings_MHT1_age
 tempfile mean_earnings_MHT1_age
 save `mean_earnings_MHT1_age', replace
