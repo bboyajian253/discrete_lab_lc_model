@@ -77,6 +77,23 @@ collapse (mean) diff
 export delimited using "MH_wage_moments.csv", replace
 restore
 
+// calculate mean hours for MH = 0 and MH = 1
+sum job_hours_decimal if MH == 0 & emp == 1
+local mean_hours0 = r(mean)
+sum job_hours_decimal if MH == 1 & emp == 1
+local mean_hours1 = r(mean)
+
+// calculate the difference
+local difference_hours = log(`mean_hours1') - log(`mean_hours0')
+
+// preserve the original dataset
+preserve
+// collapse the dataset to a single observation with the difference
+gen diff_hours = `difference_hours'
+collapse (mean) diff_hours
+export delimited using "MH_hours_moments.csv", replace
+restore
+
 preserve
 collapse (mean) wage if emp == 1 & age >= `start_age' & age <= `end_age', by(age)
 list
@@ -227,17 +244,6 @@ local mean_mental_health_good = r(mean)
 local n_MH_clust1 = r(N)
 
 local mean_mental_health_type_diff = `mean_mental_health_good' - `mean_mental_health_bad'
-// di `mean_mental_health_type_diff'
-// local share_bad_MH_clust = `n_MH_clust0'/(`n_MH_clust0' + `n_MH_clust1')
-// di `share_bad_MH_clust'
-
-// * Preserve the original dataset
-// preserve
-// * Collapse the dataset to a single observation with the difference
-// gen share_bad = `share_bad_MH_clust'
-// collapse (mean) share_bad
-// export delimited using "share_bad_MH_clust.csv", replace
-// restore
 
 gen u_H = 0
 replace u_H = `mean_mental_health_type_diff' if `MH_clust' == 1

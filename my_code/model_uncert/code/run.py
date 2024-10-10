@@ -67,8 +67,9 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         if get_targets: 
-            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
-            print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mu_targ}, w0_sd_targ = {w0_sigma_targ}, w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}""")
+            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ, phi_H_target = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
+            print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mu_targ}, w0_sd_targ = {w0_sigma_targ}, 
+                                        w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}, phi_H_target = {phi_H_target}""")
             calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib,
                                                                                                     alpha_mom_targ = alpha_lab_targ, w0_mu_mom_targ = w0_mu_targ, w0_sigma_mom_targ = w0_sigma_targ, 
                                                                                                     w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, wH_mom_targ = wH_targ)

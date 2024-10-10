@@ -259,6 +259,7 @@ def gen_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
                     wage_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = wage(myPars, j, lab_fe_ind, my_H)
     return wage_hist
 
+# should probable jit this
 # @njit
 def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     """
@@ -268,9 +269,23 @@ def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     sim_draw_weights = np.ones(myPars.sim_draws)/myPars.sim_draws
     weighted_sim = lc_moment_sim * myPars.lab_fe_weights[:, np.newaxis, np.newaxis, np.newaxis]
     weighted_sim = weighted_sim * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis, np.newaxis]
-    sim_draws_weight = sim_draw_weights[np.newaxis, np.newaxis, :, np.newaxis]
-    weighted_sim = weighted_sim * sim_draws_weight
+    weighted_sim = weighted_sim * sim_draw_weights[np.newaxis, np.newaxis, :, np.newaxis]
     return weighted_sim
+
+# should probable jit this
+# @njit
+def wmean_non_zero(myPars: Pars, sim_with_zeros: np.ndarray) -> float:
+    '''
+    calculate the weighted mean of the lc simulation ignoring zeros
+    '''
+    non_zero_mask = (sim_with_zeros != 0)
+    wnon_zero_mask = non_zero_mask * myPars.lab_fe_weights[:, np.newaxis, np.newaxis, np.newaxis] * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis, np.newaxis]
+    wN = np.sum(wnon_zero_mask)
+
+    wsim = sim_with_zeros * myPars.lab_fe_weights[:, np.newaxis, np.newaxis, np.newaxis] * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis, np.newaxis]
+    wsum = np.sum(wsim[non_zero_mask])
+
+    return wsum / wN
 
 @njit
 def recover_wage(myPars: Pars, c: float, lab: float, a_prime: float, a: float) -> float: #this will divide by zero if lab = 0
