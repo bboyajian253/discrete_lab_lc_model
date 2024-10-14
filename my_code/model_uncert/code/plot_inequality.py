@@ -31,6 +31,18 @@ def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, outpath: st
     fig, ax = tb.plot_lc_mom_by_age(var_log_sim_by_age, my_age_grid, y_axis_lab, quietly = quietly)
     return fig, ax
 
+def plot_var_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, outpath: str = None, full_age_grid: bool = False, quietly: bool = False) -> Tuple[Figure, Axes]:
+    """
+    plot the variance of the log of the simulated variable by age
+    """
+    var_sim_by_age = weighted_var_sim_by_age(myPars, sim)
+    my_age_grid = myPars.age_grid[:31] # only plot up to age 55
+    # my_age_grid = myPars.age_grid[:41] # only plot up to age 65
+    if full_age_grid:
+        my_age_grid = myPars.age_grid
+    fig, ax = tb.plot_lc_mom_by_age(var_sim_by_age, my_age_grid, y_axis_lab, quietly = quietly)
+    return fig, ax
+
 def weighted_var_sim_by_age(myPars: Pars, sim: np.ndarray) -> np.ndarray:
     """
      calculate the variance of the simulated variable by age and return it as a 1D array
