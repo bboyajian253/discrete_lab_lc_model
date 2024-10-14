@@ -7,6 +7,7 @@ pause on
 cd "$datadir"
 use UKHLS_merged, clear
 
+
 ***rename some specific vars
 *UKHLS given date of survey/interview
 *Year
@@ -76,7 +77,7 @@ rename scsf6b sf_energy
 rename scsf6c sf_felt_depressed
 *health or emotional problems interfered with social activities
 rename scsf7 sf_limit_social
-*scsf1 is teh self-completion version of the question. in wave = a which is the first wave there was no self-completion portion so you need to use the sf1 question from interviews.
+*scsf1 is the self-completion version of the question. in wave = a which is the first wave there was no self-completion portion so you need to use the sf1 question from interviews.
 if wave == "a"{
 	*each of the health (physical and mental) shortform questions
 	*general health
@@ -209,38 +210,6 @@ label variable mh_q5 "Excellent Mental Health: Quintile 5"
 // Display table of statistics for each quintile 
 tabstat mental_health, stat(n mean min max sd p50) by(mh_quintiles)
 
-*generate log of labor income
-// gen log_labor_earnings = log(labor_earnings)
-gen log_labor_earnings =.
-replace log_labor_earnings = log(labor_earnings) if labor_earnings > 0 & labor_earnings != .
-local inc_label : variable label labor_earnings
-label variable log_labor_earnings "log of `inc_label' "
-
-*generate log of gross income
-gen log_gross_inc = log(inc_gross_month)
-local inc_label : variable label inc_gross_month
-label variable log_gross_inc "log of `inc_label' "
-
-*generate log of hours
-gen log_hours = log(job_hours)
-local inc_label : variable label job_hours
-label variable log_hours "log of `inc_label' "
-
-*generate hourly wage
-gen wage = .
-replace wage = labor_earnings / (4*job_hours) if job_hours > 0 & job_hours != . & labor_earnings > 0 & labor_earnings != .
-label variable wage "estimated hourly wage from labor_earnings and job_hours"
-
-*generate log of hourly wage
-gen log_wage = log(wage)
-local wage_label : variable label wage
-label variable log_wage "log of `wage_label' "
-
-*generate weekly job_hours decimal
-gen job_hours_decimal = .
-label variable job_hours_decimal "job_hours converted to be between 0-1"
-replace job_hours_decimal = 1.0 if job_hours >= 100 //& job_hours != .
-replace job_hours_decimal = job_hours / 100 if job_hours < 100
 
 *generate age squared and cubed
 gen age2 = age*age
@@ -272,13 +241,18 @@ replace educ = 0 if (high_qual >0 & educHigher != 1) //non college
 label define educLab 0 "No College" 1 "College"
 label values educ educLab
 	 
+*generate hourly wage
+gen wage = .
+replace wage = labor_earnings / (4*job_hours) if job_hours > 0 & job_hours != . & labor_earnings > 0 & labor_earnings != .
+label variable wage "estimated hourly wage from labor_earnings and job_hours"
 	 
 *keep only the vars I rename + sex (i.e. keep only the vars I use)
 keep age age2 age3 job_hours* mental_health job_stat job_indus job_ft ///
-	indiv_id jbhas mar_stat race wave labor_earnings sex urban ///
-	mh_* emp self_emp log_* sf_* physical_* long_weights ///
-	birthyear high_qual interest psu strata wage log_wage educ educHS educHigher educ_level ///	 
+	indiv_id jbhas mar_stat race wave labor_earnings inc_gross_month sex urban ///
+	mh_* emp self_emp sf_* physical_* long_weights ///
+	birthyear high_qual interest psu strata wage educ educHS educHigher educ_level ///	 
 	day month year
+	// log_* wage
 	// date_year_dv
 
 // replace all negative numbers with missing values
@@ -290,10 +264,43 @@ foreach var of varlist _all {
     }
 }
 
+*generate log of labor income
+// gen log_labor_earnings = log(labor_earnings)
+gen log_labor_earnings =.
+replace log_labor_earnings = log(labor_earnings) if labor_earnings > 0 & labor_earnings != .
+local inc_label : variable label labor_earnings
+label variable log_labor_earnings "log of `inc_label' "
+
+*generate log of gross income
+gen log_gross_inc = log(inc_gross_month)
+local inc_label : variable label inc_gross_month
+label variable log_gross_inc "log of `inc_label' "
+
+*generate log of hours
+gen log_hours = log(job_hours)
+local inc_label : variable label job_hours
+label variable log_hours "log of `inc_label' "
+
+
+*generate log of hourly wage
+gen log_wage = log(wage)
+local wage_label : variable label wage
+label variable log_wage "log of `wage_label' "
+
+*generate weekly job_hours decimal
+gen job_hours_decimal = .
+label variable job_hours_decimal "job_hours converted to be between 0-1"
+replace job_hours_decimal = 1.0 if job_hours >= 100 //& job_hours != .
+replace job_hours_decimal = job_hours / 100 if job_hours < 100
+
+*generate log of weekly job_hours decimal
+gen log_hours_decimal = log(job_hours_decimal)
+sum log_hours_decimal
+pause on
+pause
+
 *drop duplicates by indiv_id and year
 duplicates report indiv_id year //report duplicates there should be none
-// pause on
-// pause
 // duplicates drop indiv_id year, force //drp em just in case
 
 *************************************************   

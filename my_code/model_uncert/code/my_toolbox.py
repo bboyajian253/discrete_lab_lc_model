@@ -461,7 +461,8 @@ def bisection_search(func: Callable, min_val:float, max_val:float, tol:float, ma
     f1 = func(x1)
     
     if f0 * f1 >= 0:
-        raise ValueError("Function values at the endpoints have the same sign. Bisection method cannot be applied.")
+        raise ValueError(f"""Function values at the endpoints have the same sign. Bisection method cannot be applied.
+                            f({x0}) = {f0}, f({x1}) = {f1}""")
     
     for i in range(max_iter):
         x_mid = (x0 + x1) / 2
@@ -493,7 +494,8 @@ def my_bisection_search(func: callable, min_val:float, max_val:float, tol:float,
     high_end_val = func(high_end_point)
 
     if low_end_val * high_end_val >= 0:
-        raise ValueError("Function values at the endpoints have the same sign. Bisection method cannot be applied.")
+        raise ValueError(f"""Function values at the endpoints have the same sign. Bisection method cannot be applied.
+                            f({low_end_point}) = {low_end_val}, f({high_end_point}) = {high_end_val}""")
     
     for i in range(max_iter):
         mid_point = (low_end_point + high_end_point) / 2

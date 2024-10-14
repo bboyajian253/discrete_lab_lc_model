@@ -24,6 +24,7 @@ drop if emp == 1 & missing(labor_earnings)
 
 drop if emp == 1 & wage < 5.22 // minimum wage in the uk is 11.44 euros for those over 21 years of age
 drop if emp == 1 & job_hours < 10.0
+drop if emp == 1 & job_hours > 100.0
 
 local start_age = 25
 local end_age = 75

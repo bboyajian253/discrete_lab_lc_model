@@ -273,7 +273,7 @@ def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     return weighted_sim
 
 # should probable jit this
-# @njit
+@njit
 def wmean_non_zero(myPars: Pars, sim_with_zeros: np.ndarray) -> float:
     '''
     calculate the weighted mean of the lc simulation ignoring zeros
@@ -283,7 +283,13 @@ def wmean_non_zero(myPars: Pars, sim_with_zeros: np.ndarray) -> float:
     wN = np.sum(wnon_zero_mask)
 
     wsim = sim_with_zeros * myPars.lab_fe_weights[:, np.newaxis, np.newaxis, np.newaxis] * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis, np.newaxis]
-    wsum = np.sum(wsim[non_zero_mask])
+    wsum = np.sum(wsim*non_zero_mask)
+    # wsum = np.sum(wsim[non_zero_mask])
+    # for i in wsim.size:
+        # if wsim.flat[i] == 0:
+            # wsim.flat[i] = np.nan
+    # wsum = np.nansum(wsim*non_zero_mask)
+
 
     return wsum / wN
 

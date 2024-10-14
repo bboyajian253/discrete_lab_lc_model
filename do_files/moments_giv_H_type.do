@@ -62,46 +62,99 @@ cd "$outdir"
 
 
 // may want to run a regression here to isolate the effect of MH on wages, accounting for other factors represented in the model e.g. an age quadratic/cubic
-capture drop age2
-gen age2 = age*age
-reg emp i.MH i.MH_clust_50p_age age age2 i.year
-reg log_labor_earnings i.MH i.MH_clust_50p_age age age2 i.year if emp == 1
-reg log_wage i.MH i.MH_clust_50p_age age age2 i.year if emp == 1 
-reg log_hours i.MH i.MH_clust_50p_age age age2 i.year if emp == 1
-
-
+// capture drop age2
+// gen age2 = age*age
+// local spec = "i.MH i.MH_clust_50p_age age age2 i.year i.educ i.mar_stat i.sex"
+// local spec = "i.MH i.MH_clust_50p_age i.MH#i.MH_clust_50p_age age age2 i.year i.educ"
+// reg emp `spec'
+// reg log_labor_earnings `spec' if emp == 1
+// reg log_hours `spec' if emp == 1
+// reg log_wage `spec' if emp == 1
 
 * Calculate mean wages for MH = 0 and MH = 1
-sum wage if MH == 0 & emp == 1
+sum log_wage if MH == 0 & emp == 1
 local mean_wage0 = r(mean) 
-sum wage if MH == 1 & emp == 1
+sum log_wage if MH == 1 & emp == 1
 local mean_wage1 = r(mean)
 
 * Calculate the difference
-local difference = log(`mean_wage1') - log(`mean_wage0')
+// local difference = log(`mean_wage1') - log(`mean_wage0')
+local difference = `mean_wage1' - `mean_wage0'
+di `difference'
 
 * Preserve the original dataset
 preserve
 * Collapse the dataset to a single observation with the difference
 gen diff = `difference'
 collapse (mean) diff
+rename diff MH_diff_lnwage
+tempfile wage_diff_data
+save `wage_diff_data', replace
+// export delimited using "MH_wage_moments.csv", replace
+restore
+
+// local spec = "i.MH i.MH_clust_50p_age i.MH#i.MH_clust_50p_age age age2 i.year i.educ"
+local spec = "i.MH age age2 i.year" 
+reg log_wage `spec' if emp == 1
+// Store the coefficient for MH == 1
+local mycoeff = _b[1.MH]
+di "Coefficient for MH == 1: `mycoeff'"
+
+* Preserve the original dataset and collapse to a single observation with the coefficient
+preserve
+gen MH_coeff_lnwage = `mycoeff'
+collapse (mean) MH_coeff_lnwage
+tempfile coeff_data
+save `coeff_data', replace
+restore
+
+// merge and store
+preserve
+* Cross both datasets to combine them
+use `wage_diff_data', clear
+cross using `coeff_data'
+* Export the combined dataset to CSV
 export delimited using "MH_wage_moments.csv", replace
 restore
 
 // calculate mean hours for MH = 0 and MH = 1
-sum job_hours_decimal if MH == 0 & emp == 1
-local mean_hours0 = r(mean)
-sum job_hours_decimal if MH == 1 & emp == 1
-local mean_hours1 = r(mean)
+sum log_hours_decimal if MH == 0 & emp == 1
+local mean_log_hours0 = r(mean)
+sum log_hours_decimal if MH == 1 & emp == 1
+local mean_log_hours1 = r(mean)
 
 // calculate the difference
-local difference_hours = log(`mean_hours1') - log(`mean_hours0')
+local difference_hours = `mean_log_hours1' - `mean_log_hours0'
 
 // preserve the original dataset
 preserve
 // collapse the dataset to a single observation with the difference
-gen diff_hours = `difference_hours'
-collapse (mean) diff_hours
+gen MH_diff_hours = `difference_hours'
+collapse (mean) MH_diff_hours
+tempfile hours_diff_data
+save `hours_diff_data', replace
+// export delimited using "MH_hours_moments.csv", replace
+restore
+
+reg log_hours_decimal `spec' if emp == 1
+// store the coefficient for MH == 1
+local mycoeff_hours = _b[1.MH]
+di "Coefficient for MH == 1: `mycoeff_hours'"
+
+// preserve the original dataset and collapse to a single observation with the coefficient
+preserve
+gen MH_coeff_lnhours = `mycoeff_hours'
+collapse (mean) MH_coeff_lnhours
+tempfile coeff_hours_data
+save `coeff_hours_data', replace
+restore
+
+// merge and store
+preserve
+// cross both datasets to combine them
+use `hours_diff_data', clear
+cross using `coeff_hours_data'
+// export the combined dataset to CSV
 export delimited using "MH_hours_moments.csv", replace
 restore
 

@@ -61,7 +61,7 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
 
     return myPars
     
-def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None, 
+def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_folder_name: str = None, H_trans_path: str = None, H_type_pop_share_path: str = None, my_lab_fe_grid: np.ndarray = None,
             output_flag: bool = True, do_wH_calib: bool = True, do_phi_H_calib:bool = True) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     run the model with the given parameters and return myPars, myShocks, sols, sims
@@ -73,7 +73,7 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
     else:
         print(f"*****Running main_io with default out_folder_name*****")
     if myPars is None:
-        myPars = pars_factory(main_path = main_path, H_trans_path= H_trans_path, H_type_pop_share_path = H_type_pop_share_path)
+        myPars = pars_factory(main_path = main_path, H_trans_path= H_trans_path, H_type_pop_share_path = H_type_pop_share_path, my_lab_fe_grid = my_lab_fe_grid)
     if myShocks is None:
         myShocks = Shocks(myPars)
     out_path = None
