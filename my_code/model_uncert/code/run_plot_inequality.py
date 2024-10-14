@@ -11,7 +11,8 @@ import my_toolbox as tb
 
 if __name__ == "__main__":
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-    trans_path = main_path + "input/k2_moms/MH_trans_by_MH_clust_age.csv"
+    input_path = main_path + "input/50p_age_moms/"
+    trans_path = input_path + "MH_trans_by_MH_clust_age.csv"
     of_name = None
     myPars_bench, myShocks_bench, sols_bench, sims_bench = main.main_io(main_path, out_folder_name = of_name, 
                                                                         H_trans_path = trans_path, output_flag = False)
@@ -83,27 +84,6 @@ if __name__ == "__main__":
                     (fig_var_all_high_H_types, ax_var_all_high_H_types), (fig_var_no_MH, ax_var_no_MH)], 
                         save_path=plot_save_path, label_lists = my_label_lists, quietly = True)
 
-
-    # fig.savefig(plot_save_path)
-    # fig.show()
-    # plt.show()
-    # tb.save_plot(combined_plot_list[0][0], plot_save_path)
-
-
-    # for i in range(len(bench_perc_plot_list)):
-    #     combined_plot_list.append(tb.combine_plots([bench_perc_plot_list[i], 
-    #                     no_cost_perc_plot_list[i], no_wH_perc_plot_list[i], 
-    #                     all_high_H_types_perc_plot_list[i], no_MH_perc_plot_list[i]], 
-    #                     label_lists = my_label_lists, quietly = True))
-    # plot_save_name = f"my_combined_plot{i}.pdf"
-    # plot_save_path = outpath + "my_combined_plot" + ".pdf"
-    # my_combined_plot = combined_plot_list[0][0]
-    # my_combined_plot.savefig(plot_save_path)
-    # Now switch to an interactive backend for displaying
-    # plt.show()  # Show the plot
-    # for plot_pair in combined_plot_list:
-    #     plot_save_path = outpath + "my_combined_plot" + ".pdf"
-    #     tb.save_plot(plot_pair[0], plot_save_path)
 
 
     plt.close('all')

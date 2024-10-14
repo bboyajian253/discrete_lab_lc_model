@@ -71,6 +71,7 @@ cd "$outdir"
 // reg log_hours `spec' if emp == 1
 // reg log_wage `spec' if emp == 1
 
+
 sum job_hours_decimal if emp == 1
 local mean_hours = r(mean)
 
@@ -87,9 +88,9 @@ export delimited using "alpha_mom_targ.csv", replace
 restore
 
 * Calculate mean wages for MH = 0 and MH = 1
-sum log_wage if MH == 0 & emp == 1
+sum log_wage if MH == 0 & emp == 1 
 local mean_wage0 = r(mean) 
-sum log_wage if MH == 1 & emp == 1
+sum log_wage if MH == 1 & emp == 1 
 local mean_wage1 = r(mean)
 
 * Calculate the difference
@@ -132,10 +133,13 @@ cross using `coeff_data'
 export delimited using "MH_wage_moments.csv", replace
 restore
 
+// local retirement_age = 60
+local pre_retirement_age = 55
+
 // calculate mean hours for MH = 0 and MH = 1
-sum log_hours_decimal if MH == 0 & emp == 1
+sum log_hours_decimal if MH == 0 & emp == 1 & age < `pre_retirement_age'
 local mean_log_hours0 = r(mean)
-sum log_hours_decimal if MH == 1 & emp == 1
+sum log_hours_decimal if MH == 1 & emp == 1 & age < `pre_retirement_age'
 local mean_log_hours1 = r(mean)
 
 // calculate the difference
@@ -151,7 +155,7 @@ save `hours_diff_data', replace
 // export delimited using "MH_hours_moments.csv", replace
 restore
 
-reg log_hours_decimal `spec' if emp == 1
+reg log_hours_decimal `spec' if emp == 1 & age < `pre_retirement_age'
 // store the coefficient for MH == 1
 local mycoeff_hours = _b[1.MH]
 di "Coefficient for MH == 1: `mycoeff_hours'"

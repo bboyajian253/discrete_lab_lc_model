@@ -18,7 +18,8 @@ from pars_shocks import Pars
 import model_uncert as model
 import my_toolbox as tb
 
-def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, outpath: str = None, full_age_grid: bool = False, quietly: bool = False) -> Tuple[Figure, Axes]:
+def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, y_lim: np.ndarray = None, outpath: str = None, 
+                     full_age_grid: bool = False, quietly: bool = False) -> Tuple[Figure, Axes]:
     """
     plot the variance of the log of the simulated variable by age
     """
@@ -28,7 +29,7 @@ def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, outpath: st
     # my_age_grid = myPars.age_grid[:41] # only plot up to age 65
     if full_age_grid:
         my_age_grid = myPars.age_grid
-    fig, ax = tb.plot_lc_mom_by_age(var_log_sim_by_age, my_age_grid, y_axis_lab, quietly = quietly)
+    fig, ax = tb.plot_lc_mom_by_age(var_log_sim_by_age, my_age_grid, y_axis_lab, y_lim = y_lim, quietly = quietly)
     return fig, ax
 
 def plot_var_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, outpath: str = None, full_age_grid: bool = False, quietly: bool = False) -> Tuple[Figure, Axes]:
@@ -82,7 +83,8 @@ def wperc_log_lab_earn_by_age(myPars: Pars, sims: Dict[str, np.ndarray], percent
     perc_log_lab_earn_by_age = wperc_sim_by_age(myPars, log_lab_earn, percentile)
     return perc_log_lab_earn_by_age
 
-def plot_many_sim_perc_ratio(myPars: Pars, sim: np.ndarray, y_axis_label_root: str, outpath: str, quietly: bool = False
+def plot_many_sim_perc_ratio(myPars: Pars, sim: np.ndarray, y_axis_label_root: str, outpath: str, quietly: bool = False,
+                             full_age_grid: bool = False, age_grid: np.ndarray = None
                              ) -> Tuple[Figure, Axes]:
     """
     plots the 5th, 10th, 50th, and 90th percentiles of the simulated variable and their ratios by age
@@ -97,8 +99,12 @@ def plot_many_sim_perc_ratio(myPars: Pars, sim: np.ndarray, y_axis_label_root: s
     sim_age_50_10p = sim_age_50p / sim_age_10p
     sim_age_90_5p = sim_age_90p / sim_age_5p
     sim_age_50_5p = sim_age_50p / sim_age_5p
-    my_age_grid = myPars.age_grid
-    my_age_grid = myPars.age_grid[:31] # only plot up to age 55
+    if age_grid: 
+        my_age_grid = age_grid
+    else:
+        my_age_grid = myPars.age_grid[:31] # only plot up to age 55
+        if full_age_grid:
+            my_age_grid = myPars.age_grid
 
     fig_90, ax_90 = tb.plot_lc_mom_by_age(sim_age_90p, my_age_grid,  "90th Percentile of " + y_axis_label_root, quietly = quietly)
     fig_50, ax_50 = tb.plot_lc_mom_by_age(sim_age_50p, my_age_grid,  "50th Percentile of " + y_axis_label_root, quietly = quietly)

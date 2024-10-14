@@ -49,7 +49,7 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol:float, target:float, w0_mu_min
     
     # # define the lambda function to find the zero of
     get_w0_mean_diff = lambda new_mu: w0_mu_mom_giv_mu(myPars, new_mu) - target
-    calibrated_mu = tb.my_bisection_search(get_w0_mean_diff, w0_mu_min, w0_mu_max, tol, myPars.max_iters, myPars.print_screen)
+    calibrated_mu = tb.bisection_search(get_w0_mean_diff, w0_mu_min, w0_mu_max, tol, myPars.max_iters, myPars.print_screen)
     my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
     calibrated_weights = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = calibrated_mu, state_grid = my_lab_fe_grid)[0] 
 
@@ -99,7 +99,7 @@ def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sig
     # define the lambda function to find the zero of
     get_w0_sd_diff = lambda new_sigma: w0_sigma_mom_giv_sigma(myPars, new_sigma) - target
     # calibrated_sigma = tb.bisection_search(get_w0_sd_diff, w0_sigma_min, w0_sigma_max, tol, myPars.max_iters, myPars.print_screen)
-    calibrated_sigma = tb.my_bisection_search(get_w0_sd_diff, w0_sigma_min, w0_sigma_max, tol, myPars.max_iters, myPars.print_screen)
+    calibrated_sigma = tb.bisection_search(get_w0_sd_diff, w0_sigma_min, w0_sigma_max, tol, myPars.max_iters, myPars.print_screen)
     my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
     calibrated_weights = tb.Taucheniid(calibrated_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = my_lab_fe_grid)[0]
 
@@ -521,7 +521,7 @@ def calib_phi_H(myPars: Pars, main_path: str, tol:float, target:float, phi_H_min
     # define the lambda function to find the zero of
     get_phi_H_diff = lambda new_phi_H: phi_H_moment_giv_phi_H(myPars, new_phi_H)[0] - target
     # print("Entering bisection search")
-    calibrated_phi_H = tb.my_bisection_search(get_phi_H_diff, phi_H_min, phi_H_max, tol, myPars.max_iters, myPars.print_screen)
+    calibrated_phi_H = tb.bisection_search(get_phi_H_diff, phi_H_min, phi_H_max, tol, myPars.max_iters, myPars.print_screen)
     myPars.phi_H = calibrated_phi_H
 
     # solve, simulate model for the calibrated phi_H
@@ -550,23 +550,18 @@ def phi_H_moment(myPars: Pars, lab_sims: np.ndarray, shocks: Shocks)-> float:
     '''
     returns the difference in mean log hours worked between the bad MH and good MH states 
     '''
-    # lab_sims: np.ndarray = sims['lab'][:, :, :, :myPars.J]
-    # print(f"lab_sims mean by age: {np.mean(lab_sims, axis = tuple(range(1, lab_sims.ndim - 1)))}")
+    # pre_retirement_age = 55
+    # pre_retirement_age_ind = np.where(myPars.age_grid == pre_retirement_age)[0][0]
+    # lab_sims = lab_sims[:, :, :, :pre_retirement_age_ind]
+    # H_hist: np.ndarray = shocks.H_hist[:, :, :, :pre_retirement_age_ind]
     lab_sims = lab_sims[:, :, :, :myPars.J]
+    H_hist: np.ndarray = shocks.H_hist[:, :, :, :myPars.J]
 
     # take the log where hours are positive
-    # lab_non_zero_mask = (lab_sims >= 0)
     for i in range(lab_sims.size):
         if lab_sims.flat[i] <= 0:
             lab_sims.flat[i] = 1e-10
-
-    # log_lab_sims = np.log(lab_sims, where = lab_sims > 0)
-    # log_lab_sims = np.log(lab_sims * lab_non_zero_mask)
-
     log_lab_sims = np.log(lab_sims)
-    # log_lab_sims = lab_sims
-    
-    H_hist: np.ndarray = shocks.H_hist[:, :, :, :myPars.J]
 
     bad_MH_log_lab_sims = log_lab_sims * (H_hist == 0)
     good_MH_log_lab_sims = log_lab_sims * (H_hist == 1)
@@ -612,8 +607,9 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
         wH_mom_targ:float = 0.2, phi_H_mom_targ:float = 0.02, 
         w0_mu_min:float = 0.0, w0_mu_max:float = 100.0, w0_sigma_min:float = 0.001, w0_sigma_max = 50.0, 
         w1_min:float = 0.0, w1_max:float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
-        phi_H_min:float = 0.0001, phi_H_max:float = 0.4,
-        alpha_tol:float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol:float = 0.0001, w1_tol:float = 0.001, w2_tol:float = 0.001, wH_tol:float = 0.001, phi_H_tol:float = 0.001,
+        phi_H_min:float = 0.00001, phi_H_max:float = 0.25,
+        alpha_tol:float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol:float = 0.0001, w1_tol:float = 0.001, w2_tol:float = 0.001, 
+        wH_tol:float = 0.001, phi_H_tol:float = 1e-2,
         calib_path: str = None)-> (
         Tuple[float, np.ndarray, float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
     """
@@ -676,40 +672,41 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                             my_w1_mom = w1_moment(myPars)
                             my_w2_mom = w2_moment(myPars)
                             my_wH_mom = wH_moment(myPars, myShocks)
-                        if(np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
-                            and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
-                            and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
-                            and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
-                            if do_phi_H_calib:
-                                # print("Calirating phi_H")
-                                phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
-                            else:
-                                my_phi_H_mom = phi_H_moment(myPars, sims["lab"], shocks)
-                            my_w0_mu_mom = w0_mu_moment(myPars)
-                            my_w0_sigma_mom = w0_sigma_moment(myPars)
-                            my_w1_mom = w1_moment(myPars)
-                            my_w2_mom = w2_moment(myPars)
-                            my_wH_mom = wH_moment(myPars, myShocks)
-                            my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
                             if(np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                                 and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                                 and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
-                                and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol
-                                and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
+                                and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
+                                # calibrating phi_H
+                                if do_phi_H_calib:
+                                    # print("Calirating phi_H")
+                                    phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
+                                else:
+                                    my_phi_H_mom = phi_H_moment(myPars, sims["lab"], shocks)
+                                my_w0_mu_mom = w0_mu_moment(myPars)
+                                my_w0_sigma_mom = w0_sigma_moment(myPars)
+                                my_w1_mom = w1_moment(myPars)
+                                my_w2_mom = w2_moment(myPars)
+                                my_wH_mom = wH_moment(myPars, myShocks)
+                                my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
+                                if(np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
+                                    and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
+                                    and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
+                                    and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol
+                                    and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
 
-                                print(f"Calibration converged after {i+1} iterations")
-                                if not do_wH_calib:
-                                    print("********** wH calibration was skipped **********")
-                                if not do_phi_H_calib:
-                                    print("********** phi_H calibration was skipped **********")
-                                print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mu_mom}, w0_mean_targ = {w0_mu_mom_targ}") 
-                                print(f"w0_sd = {my_w0_sigma_mom}, w0_sd_targ = {w0_sigma_mom_targ}")
-                                print(f"w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_mom}, w1 mom targ = {w1_mom_targ}")
-                                print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
-                                print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
-                                print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
-                                print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
-                                return myPars.alpha, myPars.lab_fe_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, myPars.phi_H, state_sols, sims
+                                    print(f"Calibration converged after {i+1} iterations")
+                                    if not do_wH_calib:
+                                        print("********** wH calibration was skipped **********")
+                                    if not do_phi_H_calib:
+                                        print("********** phi_H calibration was skipped **********")
+                                    print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mu_mom}, w0_mean_targ = {w0_mu_mom_targ}") 
+                                    print(f"w0_sd = {my_w0_sigma_mom}, w0_sd_targ = {w0_sigma_mom_targ}")
+                                    print(f"w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_mom}, w1 mom targ = {w1_mom_targ}")
+                                    print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
+                                    print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
+                                    print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
+                                    print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
+                                    return myPars.alpha, myPars.lab_fe_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, myPars.phi_H, state_sols, sims
 
     # calibration does not converge
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")

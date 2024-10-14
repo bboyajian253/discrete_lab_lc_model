@@ -26,6 +26,6 @@ do "$dodir/moments_giv_H_type.do" //generate the moments for the model with give
 
 // do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
 
-// do "$dodir/earnings_and_health.do" //generate the earnings by health moments
+do "$dodir/earnings_and_health.do" //generate the earnings by health moments
 
 di "*****got to the end of main_model_moms.do*****"

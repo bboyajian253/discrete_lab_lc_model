@@ -20,6 +20,8 @@ from typing import List, Dict, Tuple, Callable, Optional
 import os
 import subprocess
 from scipy.optimize import minimize, differential_evolution
+from math import erf, sqrt, exp, pi
+
 
 @njit
 def wmean_non_zero(arr_with_zeros: np.ndarray, weights_new_axis: np.ndarray) -> float:
@@ -144,7 +146,8 @@ def mean_nonzero_numba(arr: np.ndarray) -> float:
         return 0.0
     return total / count
 
-def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, mom_name: str, save_path: str = None, quietly: bool = False) -> Tuple[Figure, Axes]:
+def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, mom_name: str, y_lim: np.ndarray = None, 
+                       save_path: str = None, quietly: bool = False) -> Tuple[Figure, Axes]:
     J = len(age_grid) - 1
     values = lc_mom_by_age[:J]
     age_grid = age_grid[:J]
@@ -159,6 +162,8 @@ def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, mom_name
     ax.set_xlabel(x_label)
     ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
     ax.set_ylabel(y_label)
+    if y_lim:
+        ax.set_ylim(y_lim)
     ax.legend()
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')
@@ -466,41 +471,8 @@ def gen_even_row_weights(matrix: np.ndarray) -> np.ndarray:
     """
     return np.ones(matrix.shape[0]) / matrix.shape[0]
 
-#
-def bisection_search(func: Callable, min_val:float, max_val:float, tol:float, max_iter: int, print_screen: int = 3) -> float:
-    """
-    function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
-    this is a simple bisection method but does this take advantage of the monotoniciy of the function to speed up the search?
-    """
-    x0 = min_val
-    x1 = max_val
-    f0 = func(x0)
-    f1 = func(x1)
-    
-    if f0 * f1 >= 0:
-        raise ValueError(f"""Function values at the endpoints have the same sign. Bisection method cannot be applied.
-                            f({x0}) = {f0}, f({x1}) = {f1}""")
-    
-    for i in range(max_iter):
-        x_mid = (x0 + x1) / 2
-        f_mid = func(x_mid)
-        if print_screen >= 1:
-            print(f"iteration {i}: x_mid = {x_mid}, f_mid = {f_mid}")
-        
-        if abs(f_mid) < tol:
-            return x_mid
-        
-        if f_mid * f0 < 0:
-            x1 = x_mid
-            f1 = f_mid
-        else:
-            x0 = x_mid
-            f0 = f_mid
-    
-    print("Bisection method did not converge within the specified number of iterations.")
-    return x_mid
 
-def my_bisection_search(func: callable, min_val:float, max_val:float, tol:float, max_iter: int, print_screen: int = 3) -> float:
+def bisection_search(func: callable, min_val:float, max_val:float, tol:float, max_iter: int, print_screen: int = 3) -> float:
     """
     function that searches for the zero of a function given a range of possible values, a function to evaluate, a tolerance, max number of iterations, and an initial guess
     this bisection search takes advantage of the monotoniciy of the function to speed up the search
@@ -509,8 +481,14 @@ def my_bisection_search(func: callable, min_val:float, max_val:float, tol:float,
     high_end_point = max_val
     low_end_val = func(low_end_point)
     high_end_val = func(high_end_point)
-
+    
     if low_end_val * high_end_val >= 0:
+        if abs(low_end_val) < tol:
+            print("Bisection search: returning low end point")
+            return low_end_point
+        if abs(high_end_val) < tol:
+            print("Bisection search: returning high end point")
+            return high_end_point
         raise ValueError(f"""Function values at the endpoints have the same sign. Bisection method cannot be applied.
                             f({low_end_point}) = {low_end_val}, f({high_end_point}) = {high_end_val}""")
     

@@ -6,9 +6,12 @@
 
 // Define the dependent variables
 local dep_vars "emp log_labor_earnings log_wage log_hours log_hours_decimal"
-
 // Define the controls
-local controls "age age2 age3 i.sex i.mar_stat i.educ i.race i.urban i.MH_clust_50p_age"
+// local controls "age age2 age3 i.sex i.mar_stat i.educ i.race i.urban i.MH_clust_50p_age"
+local controls "age age2 age3 i.educ i.sex i.mar_stat i.race i.urban i.MH_clust_50p_age"
+
+local pre_retirement_age = 55
+local if_cond "age < `pre_retirement_age'"
 
 // Tokenize the controls list to get the number of elements
 local num_controls : word count `controls'
@@ -22,10 +25,10 @@ foreach dep_var in `dep_vars' {
         
         local curr_controls = "`curr_controls' `control'"
         if "`dep_var'" != "emp" {
-            reg `dep_var' i.MH `curr_controls' [pweight=wght] if emp == 1
+            reg `dep_var' i.MH `curr_controls' [pweight=wght] if `if_cond' & emp == 1
         }
         else {
-            reg `dep_var' i.MH `curr_controls' [pweight=wght]
+            reg `dep_var' i.MH `curr_controls' [pweight=wght] if `if_cond'
         }
         local MH_coef_`dep_var'_`i' = _b[1.MH]
         // di "MH == 1 coeff with `control': `MH_coeff_`control''"

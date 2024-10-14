@@ -85,8 +85,8 @@ class Pars() :
             sigma_util = 3, # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
 
             # time costs and health costs
-            phi_n = 1.125, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision
-            phi_H = .10, # time cost to being in bad health, for now pretend there are only two states
+            phi_n = 1.125, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision was originally 1.125
+            phi_H = .02, # time cost to being in bad health, for now pretend there are only two states was originally 0.10
 
             # interest rate and maybe taxes later
             r = 0.02, # interest rate on assets
@@ -261,9 +261,9 @@ if __name__ == "__main__":
         path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
         myPars = Pars(path, J = 51, sim_draws = 1000)
         # print(myPars.H_trans)
-        k2_path = path + "/input/k2_moms/"
-        full_trans_path = path + "/input/MH_trans/MH_trans_by_MH_clust_k2_age.csv"
-        pop_share_path = k2_path + "MH_clust_k2_pop_shares.csv"
+        input_path = path + "/input/50p_age_moms/"
+        full_trans_path = input_path + "MH_trans_by_MH_clust_age.csv"
+        pop_share_path = input_path + "MH_clust_50p_age_pop_shares.csv"
         # myPars.H_trans = 
 
         myShocks = Shocks(myPars)
