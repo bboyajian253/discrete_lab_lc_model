@@ -6,7 +6,7 @@ beta,0.9803921568627451
 alpha,0.45
 sigma_util,0.9999
 phi_n,1.125
-phi_H,0.05
+phi_H,0.02
 r,0.02
 a_min,-100.0
 a_max,100.0
