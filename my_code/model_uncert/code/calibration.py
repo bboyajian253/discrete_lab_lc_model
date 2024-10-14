@@ -494,10 +494,12 @@ def get_alpha_targ(myPars: Pars, target_folder_path: str) -> float:
     reads alpha target moment from myPars.path + '/input/labor_moments.csv'
     """
     # data_moments_path = myPars.path + '/input/labor_moments.csv'
-    data_moments_path = target_folder_path + '/labor_moments.csv'
-    data_mom_col_ind = 1
+    data_moments_path = target_folder_path + '/alpha_mom_targ.csv'
+    # data_mom_col_ind = 1
+    data_mom_col_ind = 0
     mean_labor_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return np.mean(mean_labor_by_age)
+
 
 def calib_phi_H(myPars: Pars, main_path: str, tol:float, target:float, phi_H_min:float, phi_H_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
@@ -518,14 +520,15 @@ def calib_phi_H(myPars: Pars, main_path: str, tol:float, target:float, phi_H_min
 
     # define the lambda function to find the zero of
     get_phi_H_diff = lambda new_phi_H: phi_H_moment_giv_phi_H(myPars, new_phi_H)[0] - target
-    calibrated_phi_H = tb.bisection_search(get_phi_H_diff, phi_H_min, phi_H_max, tol, myPars.max_iters, myPars.print_screen)
+    # print("Entering bisection search")
+    calibrated_phi_H = tb.my_bisection_search(get_phi_H_diff, phi_H_min, phi_H_max, tol, myPars.max_iters, myPars.print_screen)
     myPars.phi_H = calibrated_phi_H
 
     # solve, simulate model for the calibrated phi_H
     phi_H_moment, state_sols, sim_lc = phi_H_moment_giv_phi_H(myPars, calibrated_phi_H)
     io.print_params_to_csv(myPars, path = main_path, file_name = "phi_H_calib_params.csv")
-    if myPars.print_screen >= 1:
-        print(f"Calibration exited: phi_H = {calibrated_phi_H}, difference in mean log hours worked = {phi_H_moment}, target difference in mean log hours worked = {target}")
+    # if myPars.print_screen >= 1:
+    #     print(f"Calibration exited: phi_H = {calibrated_phi_H}, difference in mean log hours worked = {phi_H_moment}, target difference in mean log hours worked = {target}")
 
     return calibrated_phi_H, phi_H_moment, state_sols, sim_lc
 
@@ -537,17 +540,32 @@ def phi_H_moment_giv_phi_H(myPars: Pars, new_phi_H:float)-> Tuple[float, Dict[st
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    return phi_H_moment(myPars, sim_lc, shocks), state_sols, sim_lc
+    lab_sim_lc = sim_lc['lab']
+    return phi_H_moment(myPars, lab_sim_lc, shocks), state_sols, sim_lc
 
-def phi_H_moment(myPars: Pars, sims: Dict[str, np.ndarray], shocks: Shocks)-> float:
+# def phi_H_moment(myPars: Pars, sims: Dict[str, np.ndarray], shocks: Shocks)-> float:
+
+@njit
+def phi_H_moment(myPars: Pars, lab_sims: np.ndarray, shocks: Shocks)-> float:
     '''
     returns the difference in mean log hours worked between the bad MH and good MH states 
     '''
-    lab_sims: np.ndarray = sims['lab'][:, :, :, :myPars.J]
-    # take the log where hours are positive
-    log_lab_sims = np.log(lab_sims, where = lab_sims > 0)
-    # log_lab_sims = np.log(lab_sims)
+    # lab_sims: np.ndarray = sims['lab'][:, :, :, :myPars.J]
+    # print(f"lab_sims mean by age: {np.mean(lab_sims, axis = tuple(range(1, lab_sims.ndim - 1)))}")
+    lab_sims = lab_sims[:, :, :, :myPars.J]
 
+    # take the log where hours are positive
+    # lab_non_zero_mask = (lab_sims >= 0)
+    for i in range(lab_sims.size):
+        if lab_sims.flat[i] <= 0:
+            lab_sims.flat[i] = 1e-10
+
+    # log_lab_sims = np.log(lab_sims, where = lab_sims > 0)
+    # log_lab_sims = np.log(lab_sims * lab_non_zero_mask)
+
+    log_lab_sims = np.log(lab_sims)
+    # log_lab_sims = lab_sims
+    
     H_hist: np.ndarray = shocks.H_hist[:, :, :, :myPars.J]
 
     bad_MH_log_lab_sims = log_lab_sims * (H_hist == 0)
@@ -555,8 +573,13 @@ def phi_H_moment(myPars: Pars, sims: Dict[str, np.ndarray], shocks: Shocks)-> fl
 
     bad_MH_log_lab_mean = model.wmean_non_zero(myPars, bad_MH_log_lab_sims)
     good_MH_log_lab_mean = model.wmean_non_zero(myPars, good_MH_log_lab_sims)
+    # bad_MH_log_lab_mean = np.mean(bad_MH_log_lab_sims, where = bad_MH_log_lab_sims != 0)
+    # good_MH_log_lab_mean = np.mean(good_MH_log_lab_sims, where = good_MH_log_lab_sims != 0)
+    diff = good_MH_log_lab_mean - bad_MH_log_lab_mean   
 
-    return bad_MH_log_lab_mean - good_MH_log_lab_mean
+    # print(f"good_MH_log_lab_mean: {good_MH_log_lab_mean} - bad_MH_log_lab_mean: {bad_MH_log_lab_mean} = diff: {diff}")
+
+    return diff
     
 def get_phi_H_targ(myPars: Pars, target_folder_path: str)-> float:
     '''
@@ -661,7 +684,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                                 # print("Calirating phi_H")
                                 phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
                             else:
-                                my_phi_H_mom = phi_H_moment(myPars, sims, shocks)
+                                my_phi_H_mom = phi_H_moment(myPars, sims["lab"], shocks)
                             my_w0_mu_mom = w0_mu_moment(myPars)
                             my_w0_sigma_mom = w0_sigma_moment(myPars)
                             my_w1_mom = w1_moment(myPars)

@@ -90,7 +90,7 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
                                     'w0_mean': calibration.w0_moments(myPars)[0], 'w0_sd': calibration.w0_moments(myPars)[1],
                                     'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
-                                    'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc, myShocks)}
+                                    'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc["lab"], myShocks)}
 
         for label in sim_lc.keys():
             np.save(output_path + f'sim{label}.npy', sim_lc[label])
@@ -105,32 +105,32 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
     #if output, output the results
     if output_flag:
         output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, tex, get_targets, 
-               data_moms_folder_path = data_moms_folder_path, out_path = output_path)
+               data_moms_folder_path = data_moms_folder_path, outpath = output_path)
     
     return [state_sols, sim_lc]
 
 def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np.ndarray], targ_moments: Dict[str, np.ndarray], 
-           model_moments: Dict[str, np.ndarray], tex: bool, get_targets: bool, data_moms_folder_path: str, out_path: str = None)-> None:
-    if out_path is None:
-        out_path = myPars.path + 'output/tabs_fit_figs/'
-    if not os.path.exists(out_path):
-        os.makedirs(out_path)
-    io.print_params_to_csv(myPars, out_path)
+           model_moments: Dict[str, np.ndarray], tex: bool, get_targets: bool, data_moms_folder_path: str, outpath: str = None)-> None:
+    if outpath is None:
+        outpath = myPars.path + 'output/tabs_fit_figs/'
+    if not os.path.exists(outpath):
+        os.makedirs(outpath)
+    io.print_params_to_csv(myPars, outpath)
     if tex:
-        tables.print_exog_params_to_tex(myPars, out_path)
-        tables.print_endog_params_to_tex(myPars, targ_moments, model_moments, out_path)
-        tables.print_w0_calib_to_tex(myPars, targ_moments, model_moments, out_path)
+        tables.print_exog_params_to_tex(myPars, outpath)
+        tables.print_endog_params_to_tex(myPars, targ_moments, model_moments, outpath)
+        tables.print_w0_calib_to_tex(myPars, targ_moments, model_moments, outpath)
         # calibration.print_H_trans_to_tex(myPars, path)
     if get_targets:
         lab_mom_path = data_moms_folder_path + 'labor_moments.csv'
-        plot_aggregates.plot_lab_aggs_and_moms(myPars, sim_lc, data_moms_path=lab_mom_path, out_path = out_path)
+        plot_aggregates.plot_lab_aggs_and_moms(myPars, sim_lc, data_moms_path=lab_mom_path, outpath = outpath)
         emp_mom_path = data_moms_folder_path + 'emp_rate_moments.csv'
-        plot_aggregates.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, out_path = out_path)
+        plot_aggregates.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, outpath = outpath)
         wage_mom_path = data_moms_folder_path + 'wage_moments.csv'
-        plot_aggregates.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, out_path = out_path)
+        plot_aggregates.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, outpath = outpath)
         earn_mom_path = data_moms_folder_path + 'earnings_moments.csv'
-        plot_aggregates.plot_earnings_aggs_and_moms(myPars, sim_lc, data_moms_path=earn_mom_path, out_path = out_path)
-    plot_lc.plot_lc_profiles(myPars, sim_lc, out_path)
+        plot_aggregates.plot_earnings_aggs_and_moms(myPars, sim_lc, data_moms_path=earn_mom_path, outpath = outpath)
+    plot_lc.plot_lc_profiles(myPars, sim_lc, outpath)
 
 # run if main function
 if __name__ == "__main__":

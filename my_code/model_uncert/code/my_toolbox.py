@@ -22,6 +22,23 @@ import subprocess
 from scipy.optimize import minimize, differential_evolution
 
 @njit
+def wmean_non_zero(arr_with_zeros: np.ndarray, weights_new_axis: np.ndarray) -> float:
+    '''
+    calculate the weighted mean of the arr ignoring zeros
+    takes the following arguments:
+    arr_with_zeros: the array to calculate the weighted mean of
+    weights_new_axis: the weights for reshaped with new axes that can be broadcasted with the shape of arr_with_zeros
+    '''
+    non_zero_mask = (arr_with_zeros != 0)
+    wnon_zero_mask = non_zero_mask * weights_new_axis   
+    wN = np.sum(wnon_zero_mask)
+
+    wsim = arr_with_zeros * weights_new_axis
+    wsum = np.sum(wsim*non_zero_mask)
+
+    return wsum / wN
+
+@njit
 def sum_last_axis_numba(arr: np.ndarray) -> np.ndarray:
     """
     Reshapes the input array to 2D by collapsing all dimensions except the last one,
@@ -780,6 +797,43 @@ def avg_wgt_3d(v, w):
 
     return tot / max(1e-6, totw)
 
+@njit
+def normal_cdf_numba(x, mean=0.0, sigma=1.0):
+    """
+    Numba-compatible approximation for the CDF of the normal distribution.
+    Uses the error function (erf) to compute the CDF.
+    """
+    return 0.5 * (1 + erf((x - mean) / (sigma * sqrt(2))))
+
+@njit
+def Taucheniid_numba(sigma: float, num_grid_points: int, Nsd: int = 3, mean: float = 0.0, state_grid: np.ndarray = np.zeros(1)) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Numba-compatible version of the Taucheniid function to approximate a continuous iid Normal process.
+
+    Normal process: ε ~ N(0, σ**2).
+
+    INPUTS:  - σ: SD of innovation in AR(1) process
+             - num_grid_points: number of grid points
+             - Nsd: number of standard deviations from the mean for grid to span
+
+    OUTPUTS: - state_grid: grid of state variable s
+             - probs: grid of probabilities for each state
+    """
+    # Compute grid over state s and the half-distance between grid points (δ)
+    if len(state_grid) == 1:
+        state_grid = np.linspace(mean - Nsd * sigma, mean + Nsd * sigma, num_grid_points)
+    δ = (state_grid[-1] - state_grid[0]) / (num_grid_points - 1) / 2
+
+    # Compute cumulative probabilities of state_grid using normal_cdf
+    probscum = np.ones(num_grid_points)
+    for s in range(num_grid_points - 1):
+        probscum[s] = normal_cdf_numba(state_grid[s] + δ, mean=mean, sigma=sigma)
+
+    # Compute probabilities of state_grid
+    probs = probscum.copy()  # Copy to avoid modifying in place
+    probs[1:] = probscum[1:] - probscum[:-1]
+
+    return probs, state_grid
 
 def Taucheniid(sigma:float, num_grid_points: int, Nsd: int=3, mean:float=0.0, state_grid: np.ndarray=np.zeros(1))->Tuple[np.ndarray, np.ndarray]:
     """

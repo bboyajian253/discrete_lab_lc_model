@@ -82,11 +82,11 @@ def print_w0_calib_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_mo
     tb.list_to_tex(path, tex_file_name, tab)
     tb.tex_to_pdf(path, tex_file_name)
 
-def print_cum_earn_moms(myPars: Pars, model_moms: Dict[str, float], data_moms: Dict[str, float], out_path: str = None, 
+def print_cum_earn_moms(myPars: Pars, model_moms: Dict[str, float], data_moms: Dict[str, float], outpath: str = None, 
                             tex_file_name: str = None) -> None:
     '''This generates a LaTeX table of the cumulative earnings moments and compiles it to a PDF.'''
-    if out_path is None:
-        out_path = myPars.path + 'output/'
+    if outpath is None:
+        outpath = myPars.path + 'output/'
     if tex_file_name is None:
         tex_file_name = 'cum_earns_moms.tex'
     
@@ -116,15 +116,15 @@ def print_cum_earn_moms(myPars: Pars, model_moms: Dict[str, float], data_moms: D
         "\\end{document}\n"
     ]
 
-    tb.list_to_tex(out_path, tex_file_name, tab)
-    tb.tex_to_pdf(out_path, tex_file_name)
+    tb.list_to_tex(outpath, tex_file_name, tab)
+    tb.tex_to_pdf(outpath, tex_file_name)
 
 def table_H_trans_by_type_alg(myPars: Pars, H_trans_alg_0: np.ndarray, H_trans_alg_1: np.ndarray, 
-                              out_path: str  = None, tex_file_name: str = None, 
+                              outpath: str  = None, tex_file_name: str = None, 
                               )-> None:
     """prints transition matrices by typing method to a LaTeX table and compiles it to a PDF"""
-    if out_path is None:
-        out_path = myPars.path + 'output/'
+    if outpath is None:
+        outpath = myPars.path + 'output/'
     if tex_file_name is None:
         tex_file_name = "H_trans_by_type_alg_test.tex"
     
@@ -156,15 +156,15 @@ def table_H_trans_by_type_alg(myPars: Pars, H_trans_alg_0: np.ndarray, H_trans_a
     ]
 
 
-    tb.list_to_tex(out_path, tex_file_name, tab)
-    tb.tex_to_pdf(out_path, tex_file_name)
+    tb.list_to_tex(outpath, tex_file_name, tab)
+    tb.tex_to_pdf(outpath, tex_file_name)
 
 def table_r2_by_type_alg(myPars: Pars, r2_arr: np.ndarray, 
-                              out_path: str  = None, tex_file_name: str = None, 
+                              outpath: str  = None, tex_file_name: str = None, 
                               )-> None:
     """This function prints the R^2 values for the different typing methods to a LaTeX table and compiles it to a PDF."""
-    if out_path is None:
-        out_path = myPars.path + 'output/'
+    if outpath is None:
+        outpath = myPars.path + 'output/'
     if tex_file_name is None:
         tex_file_name = "table_r2_by_type_alg.tex"
     
@@ -194,8 +194,8 @@ def table_r2_by_type_alg(myPars: Pars, r2_arr: np.ndarray,
         "\\end{document}\n"
     ]
 
-    tb.list_to_tex(out_path, tex_file_name, tab)
-    tb.tex_to_pdf(out_path, tex_file_name)
+    tb.list_to_tex(outpath, tex_file_name, tab)
+    tb.tex_to_pdf(outpath, tex_file_name)
 
 def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''
@@ -221,7 +221,7 @@ def print_wage_coeffs_to_tex(myPars: Pars, path: str = None)-> None:
     tb.list_to_tex(path, tex_file_name, tab)
     tb.tex_to_pdf(path, tex_file_name)
 
-def print_H_trans_to_tex_uncond(myPars: Pars, out_path: str = None, tex_file_name: str = None)-> None:
+def print_H_trans_to_tex_uncond(myPars: Pars, outpath: str = None, tex_file_name: str = None)-> None:
     """This function prints the unconditional transition matrix to a LaTeX table and compiles it to a PDF."""
     tab = [
         "\\documentclass[border=3mm,preview]{standalone}",
@@ -234,14 +234,14 @@ def print_H_trans_to_tex_uncond(myPars: Pars, out_path: str = None, tex_file_nam
         "\\end{document}"
     ]
 
-    if out_path is None:
-        out_path = myPars.path + 'output/'
+    if outpath is None:
+        outpath = myPars.path + 'output/'
     if tex_file_name is None:
         tex_file_name = 'H_trans_uncond.tex'
-    tb.list_to_tex(out_path, tex_file_name, tab)
-    tb.tex_to_pdf(out_path, tex_file_name)
+    tb.list_to_tex(outpath, tex_file_name, tab)
+    tb.tex_to_pdf(outpath, tex_file_name)
 
-def print_H_trans_to_tex(myPars: Pars, trans_matrix: np.ndarray, out_path: str = None, new_file_name: str = None, 
+def print_H_trans_to_tex(myPars: Pars, trans_matrix: np.ndarray, outpath: str = None, new_file_name: str = None, 
                          tex_lhs_of_equals: str = None)-> None:
     if trans_matrix.shape != (2, 2):
         raise ValueError("Transition matrix must be 2x2.")
@@ -263,14 +263,14 @@ def print_H_trans_to_tex(myPars: Pars, trans_matrix: np.ndarray, out_path: str =
         "\\end{document}"
     ]
 
-    if out_path is None:
-        out_path = myPars.path + 'output/'  # Assuming `myPars.path` is available globally
+    if outpath is None:
+        outpath = myPars.path + 'output/'  # Assuming `myPars.path` is available globally
     if new_file_name is None:
         new_file_name = 'H_trans_test.tex'
     else:
         new_file_name = new_file_name + '.tex'
-    tb.list_to_tex(out_path, new_file_name, tab)
-    tb.tex_to_pdf(out_path, new_file_name)
+    tb.list_to_tex(outpath, new_file_name, tab)
+    tb.tex_to_pdf(outpath, new_file_name)
 
 def print_exog_params_to_tex(myPars: Pars, path: str = None)-> None:
     '''this generates a latex table of the parameters'''

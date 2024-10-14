@@ -18,7 +18,7 @@ from pars_shocks import Pars
 import model_uncert as model
 import my_toolbox as tb
 
-def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, out_path: str = None, full_age_grid: bool = False, quietly: bool = False) -> Tuple[Figure, Axes]:
+def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, outpath: str = None, full_age_grid: bool = False, quietly: bool = False) -> Tuple[Figure, Axes]:
     """
     plot the variance of the log of the simulated variable by age
     """
@@ -70,7 +70,7 @@ def wperc_log_lab_earn_by_age(myPars: Pars, sims: Dict[str, np.ndarray], percent
     perc_log_lab_earn_by_age = wperc_sim_by_age(myPars, log_lab_earn, percentile)
     return perc_log_lab_earn_by_age
 
-def plot_many_sim_perc_ratio(myPars: Pars, sim: np.ndarray, y_axis_label_root: str, out_path: str, quietly: bool = False
+def plot_many_sim_perc_ratio(myPars: Pars, sim: np.ndarray, y_axis_label_root: str, outpath: str, quietly: bool = False
                              ) -> Tuple[Figure, Axes]:
     """
     plots the 5th, 10th, 50th, and 90th percentiles of the simulated variable and their ratios by age

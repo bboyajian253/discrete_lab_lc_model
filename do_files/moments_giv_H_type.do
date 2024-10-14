@@ -71,6 +71,21 @@ cd "$outdir"
 // reg log_hours `spec' if emp == 1
 // reg log_wage `spec' if emp == 1
 
+sum job_hours_decimal if emp == 1
+local mean_hours = r(mean)
+
+preserve
+gen mean_hours = `mean_hours'
+collapse (mean) mean_hours
+tempfile mean_hours_data
+save `mean_hours_data', replace
+restore
+
+preserve
+use `mean_hours_data', clear
+export delimited using "alpha_mom_targ.csv", replace
+restore
+
 * Calculate mean wages for MH = 0 and MH = 1
 sum log_wage if MH == 0 & emp == 1
 local mean_wage0 = r(mean) 

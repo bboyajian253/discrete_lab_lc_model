@@ -76,12 +76,12 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
         myPars = pars_factory(main_path = main_path, H_trans_path= H_trans_path, H_type_pop_share_path = H_type_pop_share_path, my_lab_fe_grid = my_lab_fe_grid)
     if myShocks is None:
         myShocks = Shocks(myPars)
-    out_path = None
+    outpath = None
     if out_folder_name is not None:
-        out_path = myPars.path + out_folder_name + '/'
+        outpath = myPars.path + out_folder_name + '/'
 
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib, do_phi_H_calib = do_phi_H_calib, sim_no_calib = False, 
-                          get_targets = True, output_flag = output_flag, tex = True, output_path = out_path, 
+                          get_targets = True, output_flag = output_flag, tex = True, output_path = outpath, 
                           data_moms_folder_path= myPars.path + '/input/50p_age_moms/')
     return myPars, myShocks, sols, sims
 
@@ -99,17 +99,17 @@ if __name__ == "__main__":
     trans_path = main_path + "input/50p_age_moms/MH_trans_by_MH_clust_age.csv"
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     # myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path)
-    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib=False)
+    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib=True)
 
     # my_age_grid = myPars.age_grid[:31] # only want to plot up to age 55
-    # out_path = main_path + "output/var_earn_test_fig.pdf"
+    # outpath = main_path + "output/var_earn_test_fig.pdf"
     # y_axis_label_var = "Variance of log earnings"
     # input_path = main_path + "input/k2_moms/"
     # plot_save_path = main_path + "validation/" 
 
     # var_earns_data = tb.read_specific_column_from_csv(input_path + "var_earn_moments.csv", 1)
     # fig_var_benchmark, ax_var_benchmark = plot_ineq.plot_var_log_sim(myPars,sims["lab_earnings"], 
-    #                                                                  y_axis_label_var, out_path, quietly = False)
+    #                                                                  y_axis_label_var, outpath, quietly = False)
 
     # fig_var_earns_data, ax_var_earns_data =tb.plot_lc_mom_by_age(var_earns_data, my_age_grid, 
     #                                                 mom_name = "Variance of Log Labor Earnings" , quietly = False)

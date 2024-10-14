@@ -61,19 +61,19 @@ if __name__ == "__main__":
     y_label_root = "Log Earnings"
     y_axis_label_var = "Variance" + " " + y_label_root
     my_label_lists = [["Benchmark"], ["No time cost"], ["No wH"], ["All high type"],["No mental health"]]
-    out_path = main_path + "trans_output_test/"
+    outpath = main_path + "trans_output_test/"
 
-    fig_var_benchmark, ax_var_benchmark = plot_ineq.plot_var_log_sim(myPars_bench,sims_bench["lab_earnings"], y_axis_label_var, out_path, quietly)
-    fig_var_no_cost, ax_var_no_cost = plot_ineq.plot_var_log_sim(myPars_no_cost, sims_no_cost["lab_earnings"], y_axis_label_var, out_path, quietly)
-    fig_var_no_wH, ax_var_no_wH = plot_ineq.plot_var_log_sim(myPars_no_wH, sims_no_wH["lab_earnings"], y_axis_label_var, out_path, quietly)
-    fig_var_all_high_H_types, ax_var_all_high_H_types = plot_ineq.plot_var_log_sim(myPars_all_high_H_types, sims_all_high_H_types["lab_earnings"], y_axis_label_var, out_path, quietly)
-    fig_var_no_MH, ax_var_no_MH = plot_ineq.plot_var_log_sim(myPars_no_MH, sims_no_MH["lab_earnings"], y_axis_label_var, out_path, quietly)
+    fig_var_benchmark, ax_var_benchmark = plot_ineq.plot_var_log_sim(myPars_bench,sims_bench["lab_earnings"], y_axis_label_var, outpath, quietly)
+    fig_var_no_cost, ax_var_no_cost = plot_ineq.plot_var_log_sim(myPars_no_cost, sims_no_cost["lab_earnings"], y_axis_label_var, outpath, quietly)
+    fig_var_no_wH, ax_var_no_wH = plot_ineq.plot_var_log_sim(myPars_no_wH, sims_no_wH["lab_earnings"], y_axis_label_var, outpath, quietly)
+    fig_var_all_high_H_types, ax_var_all_high_H_types = plot_ineq.plot_var_log_sim(myPars_all_high_H_types, sims_all_high_H_types["lab_earnings"], y_axis_label_var, outpath, quietly)
+    fig_var_no_MH, ax_var_no_MH = plot_ineq.plot_var_log_sim(myPars_no_MH, sims_no_MH["lab_earnings"], y_axis_label_var, outpath, quietly)
 
-    bench_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_bench, np.log(np.where(sims_bench["lab_earnings"]>0,sims_bench["lab_earnings"],1e-3)), y_label_root, out_path, quietly)
-    no_cost_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_no_cost, np.log(np.where(sims_no_cost["lab_earnings"]>0,sims_no_cost["lab_earnings"],1e-3)), y_label_root, out_path, quietly)
-    no_wH_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_no_wH, np.log(np.where(sims_no_wH["lab_earnings"]>0,sims_no_wH["lab_earnings"],1e-3)), y_label_root, out_path, quietly)
-    all_high_H_types_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_all_high_H_types, np.log(np.where(sims_all_high_H_types["lab_earnings"]>0,sims_all_high_H_types["lab_earnings"],1e-3)), y_label_root, out_path, quietly)
-    no_MH_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_no_MH, np.log(np.where(sims_no_MH["lab_earnings"]>0,sims_no_MH["lab_earnings"],1e-3)), y_label_root, out_path, quietly)
+    bench_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_bench, np.log(np.where(sims_bench["lab_earnings"]>0,sims_bench["lab_earnings"],1e-3)), y_label_root, outpath, quietly)
+    no_cost_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_no_cost, np.log(np.where(sims_no_cost["lab_earnings"]>0,sims_no_cost["lab_earnings"],1e-3)), y_label_root, outpath, quietly)
+    no_wH_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_no_wH, np.log(np.where(sims_no_wH["lab_earnings"]>0,sims_no_wH["lab_earnings"],1e-3)), y_label_root, outpath, quietly)
+    all_high_H_types_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_all_high_H_types, np.log(np.where(sims_all_high_H_types["lab_earnings"]>0,sims_all_high_H_types["lab_earnings"],1e-3)), y_label_root, outpath, quietly)
+    no_MH_perc_plot_list = plot_ineq.plot_many_sim_perc_ratio(myPars_no_MH, np.log(np.where(sims_no_MH["lab_earnings"]>0,sims_no_MH["lab_earnings"],1e-3)), y_label_root, outpath, quietly)
 
     combined_plot_list = []
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
@@ -96,13 +96,13 @@ if __name__ == "__main__":
     #                     all_high_H_types_perc_plot_list[i], no_MH_perc_plot_list[i]], 
     #                     label_lists = my_label_lists, quietly = True))
     # plot_save_name = f"my_combined_plot{i}.pdf"
-    # plot_save_path = out_path + "my_combined_plot" + ".pdf"
+    # plot_save_path = outpath + "my_combined_plot" + ".pdf"
     # my_combined_plot = combined_plot_list[0][0]
     # my_combined_plot.savefig(plot_save_path)
     # Now switch to an interactive backend for displaying
     # plt.show()  # Show the plot
     # for plot_pair in combined_plot_list:
-    #     plot_save_path = out_path + "my_combined_plot" + ".pdf"
+    #     plot_save_path = outpath + "my_combined_plot" + ".pdf"
     #     tb.save_plot(plot_pair[0], plot_save_path)
 
 

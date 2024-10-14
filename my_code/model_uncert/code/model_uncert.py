@@ -260,7 +260,7 @@ def gen_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
     return wage_hist
 
 # should probable jit this
-# @njit
+@njit
 def gen_weighted_sim(myPars: Pars, lc_moment_sim: np.ndarray) -> np.ndarray:
     """
     generate the weighted simulation

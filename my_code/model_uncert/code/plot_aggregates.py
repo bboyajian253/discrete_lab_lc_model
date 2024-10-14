@@ -26,9 +26,9 @@ import solver
 import simulate
 import io_manager as io
 
-def plot_wage_aggs_and_moms(myPars: Pars, data_moms_path: str = None, out_path: str = None)-> None:
-    if out_path == None:
-        out_path = myPars.path + 'output/'
+def plot_wage_aggs_and_moms(myPars: Pars, data_moms_path: str = None, outpath: str = None)-> None:
+    if outpath == None:
+        outpath = myPars.path + 'output/'
     if data_moms_path == None:
         data_moms_path = myPars.path + '/input/wage_moments.csv'
     # calcualte weighted mean wages by age
@@ -68,12 +68,12 @@ def plot_wage_aggs_and_moms(myPars: Pars, data_moms_path: str = None, out_path: 
         short_name = 'wage'
 
         #save the figure
-        fullpath = out_path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fullpath = outpath + f'fig_fit_{short_name}_{modifier}.pdf'
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close()
 
         #save the data
-        fullpath =  out_path + f'fig_fit_{short_name}_{modifier}.csv'
+        fullpath =  outpath + f'fig_fit_{short_name}_{modifier}.csv'
         with open(fullpath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))
@@ -86,9 +86,9 @@ def weighted_avg_lab_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.nd
     mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
     return mean_lab_by_age
 
-def plot_earnings_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, out_path: str = None)-> None:
-    if out_path == None:
-        out_path = myPars.path + 'output/'
+def plot_earnings_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, outpath: str = None)-> None:
+    if outpath == None:
+        outpath = myPars.path + 'output/'
     if data_moms_path == None:
         data_moms_path = myPars.path + '/input/earnings_moments.csv'
     # calcualte weighted mean earnings by age
@@ -125,12 +125,12 @@ def plot_earnings_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], dat
         short_name = 'earnings'
 
         #save the figure
-        fullpath = out_path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fullpath = outpath + f'fig_fit_{short_name}_{modifier}.pdf'
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close()
 
         #save the data
-        fullpath =  out_path + f'fig_fit_{short_name}_{modifier}.csv'
+        fullpath =  outpath + f'fig_fit_{short_name}_{modifier}.csv'
         with open(fullpath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))
@@ -145,9 +145,9 @@ def weighted_avg_earnings_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> 
     # mean_earn_by_age = np.mean(earn_sims, axis = tuple(range(earn_sims.ndim-1)))
     return mean_earn_by_age
 
-def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, out_path: str = None)-> None:
-    if out_path == None:
-        out_path = myPars.path + 'output/'
+def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, outpath: str = None)-> None:
+    if outpath == None:
+        outpath = myPars.path + 'output/'
     if data_moms_path == None: 
         data_moms_path = myPars.path + '/input/labor_moments.csv'
     avg_lab = weighted_avg_lab_by_age(myPars, sim_lc)
@@ -183,12 +183,12 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_mom
         short_name = 'lab'
 
         #save the figure
-        fullpath = out_path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fullpath = outpath + f'fig_fit_{short_name}_{modifier}.pdf'
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close()
 
         #save the data
-        fullpath =  out_path + f'fig_fit_{short_name}_{modifier}.csv'
+        fullpath =  outpath + f'fig_fit_{short_name}_{modifier}.csv'
         with open(fullpath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))
@@ -202,9 +202,9 @@ def weighted_emp_rate_by_age(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> np.n
     mean_emp_by_age = np.sum(weighted_emp_sims, axis = tuple(range(weighted_emp_sims.ndim-1)))
     return mean_emp_by_age     
 
-def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, out_path: str = None)-> None:
-    if out_path == None:
-        out_path = myPars.path + 'output/'
+def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], data_moms_path: str = None, outpath: str = None)-> None:
+    if outpath == None:
+        outpath = myPars.path + 'output/'
     if data_moms_path == None:
         data_moms_path = myPars.path + '/input/emp_rate_moments.csv'
     avg_emp = weighted_emp_rate_by_age(myPars, sim_lc)
@@ -240,12 +240,12 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], data_mo
         short_name = 'emp_rate'
 
         #save the figure
-        fullpath = out_path + f'fig_fit_{short_name}_{modifier}.pdf'
+        fullpath = outpath + f'fig_fit_{short_name}_{modifier}.pdf'
         fig.savefig(fullpath, bbox_inches='tight')
         plt.close()
 
         #save the data
-        fullpath =  out_path + f'fig_fit_{short_name}_{modifier}.csv'
+        fullpath =  outpath + f'fig_fit_{short_name}_{modifier}.csv'
         with open(fullpath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['age'] + list(age_grid))
