@@ -15,13 +15,11 @@ timer on 1
 
 // do "$dodir/UKHLS_merge.do" /* merge the data from all waves */
 
-do "$dodir/UKHLS_clean.do"  /* clean the data and generate input file for estimation of various statistics */
+// do "$dodir/UKHLS_clean.do"  /* clean the data and generate input file for estimation of various statistics */
 
-do "$dodir/UKHLS_sample.do"  /* choose my sample, but leave women in, take them out in quants if you want */
+// do "$dodir/UKHLS_sample.do"  /* choose my sample, but leave women in, take them out in quants if you want */
 
-// do "$dodir/labor_earn_data_explore.do" /* explore the labor earnings data */
-
-do "$dodir/UKHLS_trans.do" /*calculate some PH and MH transiton probabilities, do some persistance stuff*/
+// do "$dodir/UKHLS_trans.do" /*calculate some PH and MH transiton probabilities, do some persistance stuff*/
 
 do "$dodir/UKHLS_quants.do" /* investigate the quantiles of my continuous mh variable and run some regressions*/
 

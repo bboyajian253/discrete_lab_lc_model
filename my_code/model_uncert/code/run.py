@@ -38,7 +38,7 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
     (iv) Output the results and model aggregates
     """
     if output_path is None:
-        output_path = myPars.path + '/output/'
+        output_path = myPars.path + 'output/'
     if data_moms_folder_path is None:
         data_moms_folder_path = myPars.path + '/input/'
     if not os.path.exists(output_path):

@@ -547,13 +547,22 @@ drop _merge
 export delimited using "`outfile'",replace
 restore
 
-// share of people in bad health state by age
+// share of people in bad mental health state by age
 preserve
 collapse (mean) badMH, by(age)
 rename badMH mean_badMH
 tempfile mean_MH
 save `mean_MH', replace
 export delimited using "mean_bad_MH_by_age.csv", replace
+restore
+
+// share of people in bad physical health state by age
+preserve
+collapse (mean) badPH, by(age)
+rename badPH mean_badPH
+tempfile mean_PH
+save `mean_PH', replace
+export delimited using "mean_bad_PH_by_age.csv", replace
 restore
 
 

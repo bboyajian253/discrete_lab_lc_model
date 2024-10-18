@@ -321,7 +321,8 @@ def plot_H_trans_H_type_alg(myPars1: Pars, myPars2: Pars, path: str = None,
 
     return low_fig, low_ax, high_fig, high_ax
 
-def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str = None)-> Tuple[plt.Figure, plt.Axes]:
+def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str = None,
+                        colors: list[str] = None)-> Tuple[plt.Figure, plt.Axes]:
     if path == None:
         path = myPars.path + 'output/'
     #if the path doesn't exist, create it
@@ -341,6 +342,7 @@ def plot_H_trans_H_type(myPars: Pars, path: str = None, plot_and_csv_name: str =
         writer = csv.writer(file)
         writer.writerow(['age'] + list(age_grid))
 
+    
     for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
         for curr_H_state in range(myPars.H_grid_size):
             for fut_H_state in range(myPars.H_grid_size):
@@ -391,8 +393,13 @@ def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str =
             if curr_H_state != fut_H_state:
                 
                 trans = values[0,:,curr_H_state,fut_H_state] 
-                lab = f"From {curr_H_state} to {fut_H_state}"
-                ax.plot(age_grid, trans, label = lab)
+                if curr_H_state == 0:
+                    lab = f"From Bad MH to Good MH"
+                    color = 'g'
+                else:
+                    lab = f"From Good MH to Bad MH"
+                    color = 'r'
+                ax.plot(age_grid, trans, label = lab, color = color)
                 #save the data
                 with open(csv_path, 'a', newline='') as file:
                     writer = csv.writer(file)

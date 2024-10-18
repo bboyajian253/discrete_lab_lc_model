@@ -1,0 +1,23 @@
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{table}
+\center\caption{Mental and Physical Health State Effects and Labor Outcomes}
+\footnotesize
+\begin{tabular}{l*{4}{c}}
+                    &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
+\midrule
+good                &       0.178\sym{***}&       0.053\sym{***}&       0.046\sym{***}&       0.007         \\
+                    &     (0.004)         &     (0.007)         &     (0.005)         &     (0.005)         \\
+good                &       0.224\sym{***}&       0.106\sym{***}&       0.091\sym{***}&       0.016\sym{***}\\
+                    &     (0.005)         &     (0.007)         &     (0.005)         &     (0.005)         \\
+female              &      -0.092\sym{***}&      -0.417\sym{***}&      -0.150\sym{***}&      -0.267\sym{***}\\
+                    &     (0.002)         &     (0.004)         &     (0.003)         &     (0.002)         \\
+College             &       0.080\sym{***}&       0.364\sym{***}&       0.312\sym{***}&       0.052\sym{***}\\
+                    &     (0.003)         &     (0.004)         &     (0.003)         &     (0.002)         \\
+\midrule
+Observations        &  142051.000         &   76849.000         &   76849.000         &   76849.000         \\
+R-Square            &       0.383         &       0.316         &       0.261         &       0.199         \\
+Adj. R-Square       &       0.383         &       0.316         &       0.261         &       0.198         \\
+\hline
+\multicolumn{5}{l}{\small{All models control for race, marital status, urban location, an age cubic, and year.}} \\
+\end{tabular}
+\end{table}

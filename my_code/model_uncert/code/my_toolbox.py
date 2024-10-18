@@ -147,7 +147,7 @@ def mean_nonzero_numba(arr: np.ndarray) -> float:
     return total / count
 
 def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, mom_name: str, y_lim: np.ndarray = None, 
-                       save_path: str = None, quietly: bool = False) -> Tuple[Figure, Axes]:
+                       save_path: str = None, quietly: bool = False, color: str = None) -> Tuple[Figure, Axes]:
     J = len(age_grid) - 1
     values = lc_mom_by_age[:J]
     age_grid = age_grid[:J]
@@ -158,7 +158,10 @@ def plot_lc_mom_by_age(lc_mom_by_age: np.ndarray, age_grid: np.ndarray, mom_name
     x_label = "Age"
 
     fig, ax = plt.subplots()
-    ax.plot(age_grid, values, label = key_label)
+    if color is not None:
+        ax.plot(age_grid, values, label = key_label, color=color)
+    else:
+        ax.plot(age_grid, values, label = key_label)
     ax.set_xlabel(x_label)
     ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
     ax.set_ylabel(y_label)

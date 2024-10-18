@@ -97,7 +97,7 @@ if __name__ == "__main__":
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     trans_path = main_path + "input/50p_age_moms/MH_trans_by_MH_clust_age.csv"
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-    do_phi_H_calib = False
+    do_phi_H_calib = True
     myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib = do_phi_H_calib)
 
     tb.print_exec_time("Main.py executed in", start_time) 

@@ -1,5 +1,4 @@
 // calculate the mean of earnings by health state and type. over all and then by age 
-
 //by health state
 preserve
 collapse (mean) labor_earnings if emp == 1 & MH == 0
@@ -44,7 +43,53 @@ export delimited using "mean_earnings_by_health_age.csv", replace
 
 restore
 
-// do the same for log hours
+
+// do teh same for log labor earnings
+//by health state
+preserve
+collapse (mean) log_labor_earnings if emp == 1 & MH == 0
+rename log_labor_earnings mean_earnings_MH0
+tempfile mean_log_earnings_MH0
+save `mean_log_earnings_MH0', replace
+restore
+
+preserve
+collapse (mean) log_labor_earnings if emp == 1 & MH == 1
+rename log_labor_earnings mean_earnings_MH1
+tempfile mean_log_earnings_MH1
+save `mean_log_earnings_MH1', replace
+restore
+
+//by health state and age
+preserve
+collapse (mean) log_labor_earnings if emp == 1 & MH == 0, by(age)
+rename log_labor_earnings mean_earnings_MH0_age
+tempfile mean_log_earnings_MH0_age
+save `mean_log_earnings_MH0_age', replace
+restore
+
+preserve
+collapse (mean) log_labor_earnings if emp == 1 & MH == 1, by(age)
+rename log_labor_earnings mean_earnings_MH1_age
+tempfile mean_log_earnings_MH1_age
+save `mean_log_earnings_MH1_age', replace
+restore
+
+// * Merge and save
+cd "$outdir"
+preserve 
+
+use `mean_log_earnings_MH0', clear
+merge 1:1 _n using `mean_log_earnings_MH1'
+export delimited using "mean_log_earnings_by_health.csv", replace
+
+use `mean_log_earnings_MH0_age', clear
+merge 1:1 _n using `mean_log_earnings_MH1_age'
+export delimited using "mean_log_earnings_by_health_age.csv", replace
+
+restore
+
+// do the same for log_hours
 //by health state
 preserve
 collapse (mean) log_hours_decimal if emp == 1 & MH == 0
@@ -88,6 +133,52 @@ merge 1:1 _n using `mean_log_hours_MH1_age'
 export delimited using "mean_log_hours_by_health_age.csv", replace
 
 restore
+
+// do the same for hours
+//by health state
+preserve
+collapse (mean) job_hours_decimal if emp == 1 & MH == 0
+rename job_hours_decimal mean_hours_MH0
+tempfile mean_hours_MH0
+save `mean_hours_MH0', replace
+restore
+
+preserve
+collapse (mean) job_hours_decimal if emp == 1 & MH == 1
+rename job_hours_decimal mean_hours_MH1
+tempfile mean_hours_MH1
+save `mean_hours_MH1', replace
+restore
+
+//by health state and age
+preserve
+collapse (mean) job_hours_decimal if emp == 1 & MH == 0, by(age)
+rename job_hours_decimal mean_hours_MH0_age
+tempfile mean_hours_MH0_age
+save `mean_hours_MH0_age', replace
+restore
+
+preserve
+collapse (mean) job_hours_decimal if emp == 1 & MH == 1, by(age)
+rename job_hours_decimal mean_hours_MH1_age
+tempfile mean_hours_MH1_age
+save `mean_hours_MH1_age', replace
+restore
+
+// * Merge and save
+cd "$outdir"
+preserve
+
+use `mean_hours_MH0', clear
+merge 1:1 _n using `mean_hours_MH1'
+export delimited using "mean_hours_by_health.csv", replace
+
+use `mean_hours_MH0_age', clear
+merge 1:1 _n using `mean_hours_MH1_age'
+export delimited using "mean_hours_by_health_age.csv", replace
+
+restore
+
 // do the same for log wages
 // by health state
 preserve
@@ -133,6 +224,50 @@ export delimited using "mean_log_wage_by_health_age.csv", replace
 
 restore
 
+// do the same for wages
+// by health state
+preserve
+collapse (mean) wage if emp == 1 & MH == 0
+rename wage mean_wage_MH0
+tempfile mean_wage_MH0
+save `mean_wage_MH0', replace
+restore
+
+preserve
+collapse (mean) wage if emp == 1 & MH == 1
+rename wage mean_wage_MH1
+tempfile mean_wage_MH1
+save `mean_wage_MH1', replace
+restore
+
+//by health state and age
+preserve
+collapse (mean) wage if emp == 1 & MH == 0, by(age)
+rename wage mean_wage_MH0_age
+tempfile mean_wage_MH0_age
+save `mean_wage_MH0_age', replace
+restore
+
+preserve
+collapse (mean) wage if emp == 1 & MH == 1, by(age)
+rename wage mean_wage_MH1_age
+tempfile mean_wage_MH1_age
+save `mean_wage_MH1_age', replace
+restore
+
+// * Merge and save
+cd "$outdir"
+preserve
+
+use `mean_wage_MH0', clear
+merge 1:1 _n using `mean_wage_MH1'
+export delimited using "mean_wage_by_health.csv", replace
+
+use `mean_wage_MH0_age', clear
+merge 1:1 _n using `mean_wage_MH1_age'
+export delimited using "mean_wage_by_health_age.csv", replace
+
+restore
 // by type
 local MH_clust MH_clust_50p_age
 preserve

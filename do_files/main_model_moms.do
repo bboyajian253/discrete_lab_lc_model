@@ -22,7 +22,7 @@ global outdir "$master_outdir/50p_age_moms"
 // do "$dodir/moments_k2.do" //generate the moments for the model with 2 health types
 do "$dodir/moments_giv_H_type.do" //generate the moments for the model with given binary permanent health types
 
-// do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
+do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
 
 // do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
 

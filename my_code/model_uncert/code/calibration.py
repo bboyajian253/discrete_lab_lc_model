@@ -665,35 +665,57 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                         if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                             and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol
                             and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol)):
-                            # print("Calibrating alpha")
-                            alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
+                            # calibrating phi_H
+                            if do_phi_H_calib:
+                                # print("Calirating phi_H")
+                                phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
+                            else:
+                                shocks = Shocks(myPars) # this is inefficient we could calculate the shocks at an earlier calib step maybe
+                                my_phi_H_mom = phi_H_moment(myPars, sims["lab"], shocks)
                             my_w0_mu_mom = w0_mu_moment(myPars)
                             my_w0_sigma_mom = w0_sigma_moment(myPars)
                             my_w1_mom = w1_moment(myPars)
                             my_w2_mom = w2_moment(myPars)
                             my_wH_mom = wH_moment(myPars, myShocks)
+                            # # print("Calibrating alpha")
+                            # alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
+                            # my_w0_mu_mom = w0_mu_moment(myPars)
+                            # my_w0_sigma_mom = w0_sigma_moment(myPars)
+                            # my_w1_mom = w1_moment(myPars)
+                            # my_w2_mom = w2_moment(myPars)
+                            # my_wH_mom = wH_moment(myPars, myShocks)
                             if(np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                                 and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                                 and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
-                                and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
-                                # calibrating phi_H
-                                if do_phi_H_calib:
-                                    # print("Calirating phi_H")
-                                    phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
-                                else:
-                                    my_phi_H_mom = phi_H_moment(myPars, sims["lab"], shocks)
+                                and(not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
+                                # and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
+                                # print("Calibrating alpha")
+                                alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
                                 my_w0_mu_mom = w0_mu_moment(myPars)
                                 my_w0_sigma_mom = w0_sigma_moment(myPars)
                                 my_w1_mom = w1_moment(myPars)
                                 my_w2_mom = w2_moment(myPars)
                                 my_wH_mom = wH_moment(myPars, myShocks)
-                                my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
+                                my_phi_H_mom = phi_H_moment(myPars, sims["lab"], shocks)
+                                # print(f"my_phi_H_mom after alpha calib = {my_phi_H_mom}")
+                                # # calibrating phi_H
+                                # if do_phi_H_calib:
+                                #     # print("Calirating phi_H")
+                                #     phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
+                                # else:
+                                #     my_phi_H_mom = phi_H_moment(myPars, sims["lab"], shocks)
+                                # my_w0_mu_mom = w0_mu_moment(myPars)
+                                # my_w0_sigma_mom = w0_sigma_moment(myPars)
+                                # my_w1_mom = w1_moment(myPars)
+                                # my_w2_mom = w2_moment(myPars)
+                                # my_wH_mom = wH_moment(myPars, myShocks)
+                                # my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
                                 if(np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                                     and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                                     and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
-                                    and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol
-                                    and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
-
+                                    and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol) 
+                                    and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
+                                    # and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
                                     print(f"Calibration converged after {i+1} iterations")
                                     if not do_wH_calib:
                                         print("********** wH calibration was skipped **********")

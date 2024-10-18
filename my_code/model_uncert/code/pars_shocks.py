@@ -86,7 +86,8 @@ class Pars() :
 
             # time costs and health costs
             phi_n = 1.125, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision was originally 1.125
-            phi_H = .02, # time cost to being in bad health, for now pretend there are only two states was originally 0.10
+        #     phi_n = 1.0, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision was originally 1.125
+            phi_H = .01, # time cost to being in bad health, for now pretend there are only two states was originally 0.10
 
             # interest rate and maybe taxes later
             r = 0.02, # interest rate on assets

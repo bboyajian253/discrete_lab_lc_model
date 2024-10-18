@@ -3,7 +3,6 @@ clear matrix
 clear mata
 set maxvar 30000
 
-pause on
 cd "$datadir"
 use UKHLS_merged, clear
 
@@ -11,9 +10,11 @@ use UKHLS_merged, clear
 ***rename some specific vars
 *UKHLS given date of survey/interview
 *Year
+
 rename istrtdaty date_year
 rename intdaty_dv date_year_dv
 rename date_year_dv year
+
 
 *Month
 rename istrtdatm date_month
@@ -296,12 +297,8 @@ replace job_hours_decimal = job_hours / 100 if job_hours < 100
 *generate log of weekly job_hours decimal
 gen log_hours_decimal = log(job_hours_decimal)
 sum log_hours_decimal
-pause on
-pause
 
-*drop duplicates by indiv_id and year
-duplicates report indiv_id year //report duplicates there should be none
-// duplicates drop indiv_id year, force //drp em just in case
+// duplicates report indiv_id year //report duplicates there should be none
 
 *************************************************   
 //  construct survey weights
