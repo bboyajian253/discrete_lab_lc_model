@@ -50,8 +50,9 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol:float, target:float, w0_mu_min
     # # define the lambda function to find the zero of
     get_w0_mean_diff = lambda new_mu: w0_mu_mom_giv_mu(myPars, new_mu) - target
     calibrated_mu = tb.bisection_search(get_w0_mean_diff, w0_mu_min, w0_mu_max, tol, myPars.max_iters, myPars.print_screen)
-    my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
-    calibrated_weights = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = calibrated_mu, state_grid = my_lab_fe_grid)[0] 
+    print(f"calibrated_mu = {calibrated_mu}")
+    print(f"current sigma = {myPars.lab_fe_tauch_sigma}")
+    calibrated_weights = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = calibrated_mu, state_grid = myPars.lab_fe_grid)[0] 
 
     #update the labor fixed effect weights
     myPars.lab_fe_weights = calibrated_weights
@@ -62,14 +63,14 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol:float, target:float, w0_mu_min
 
     if myPars.print_screen >= 1:
         print(f"w0_mean calibration exited: mean wage = {mean_wage}, target mean wage = {target}")
+        print(f"calibrated_mu = {calibrated_mu}")
         print(f"Calibrated weights = {calibrated_weights}")
 
     return calibrated_weights, mean_wage, state_sols, sim_lc
 
 def w0_mu_mom_giv_mu(myPars: Pars, new_mu:float)-> float:
     myPars.lab_fe_tauch_mu = new_mu 
-    my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
-    new_weights, tauch_state_grid = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = new_mu, state_grid = my_lab_fe_grid)
+    new_weights, tauch_state_grid = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = new_mu, state_grid = myPars.lab_fe_grid)
     myPars.lab_fe_weights = new_weights
     return w0_mu_moment(myPars)
 
@@ -77,8 +78,12 @@ def w0_mu_mom_giv_mu(myPars: Pars, new_mu:float)-> float:
 def w0_mu_moment(myPars: Pars)-> float:
     " get the weighted mean of wages for period 0"
     myShocks = Shocks(myPars)
-    first_per_weighted_wages = model.gen_weighted_wage_hist(myPars, myShocks)[:,:,:,0] 
-    mean_first_per_wage = np.sum(first_per_weighted_wages)
+
+    # first_per_weighted_wages = model.gen_weighted_wage_hist(myPars, myShocks)[:,:,:,0] 
+    # first_per_wlog_wages = model.gen_wlog_wage_hist(myPars, myShocks)[:,:,:,0]
+    # mean_first_per_wage = np.sum(first_per_wlog_wages)
+
+    mean_first_per_wage = w0_moments(myPars)[0]
     return mean_first_per_wage
 
 def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sigma_min:float, w0_sigma_max:float
@@ -98,10 +103,10 @@ def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sig
     sim_lc = {}
     # define the lambda function to find the zero of
     get_w0_sd_diff = lambda new_sigma: w0_sigma_mom_giv_sigma(myPars, new_sigma) - target
-    # calibrated_sigma = tb.bisection_search(get_w0_sd_diff, w0_sigma_min, w0_sigma_max, tol, myPars.max_iters, myPars.print_screen)
     calibrated_sigma = tb.bisection_search(get_w0_sd_diff, w0_sigma_min, w0_sigma_max, tol, myPars.max_iters, myPars.print_screen)
-    my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
-    calibrated_weights = tb.Taucheniid(calibrated_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = my_lab_fe_grid)[0]
+    print(f"calibrated_sigma = {calibrated_sigma}")
+    print(f"current mu = {myPars.lab_fe_tauch_mu}")
+    calibrated_weights = tb.Taucheniid(calibrated_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = myPars.lab_fe_grid)[0]
 
     #update the labor fixed effect weights
     myPars.lab_fe_weights = calibrated_weights
@@ -112,85 +117,29 @@ def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sig
 
     if myPars.print_screen >= 1:
         print(f"w0_sd calibration exited: sd wage = {sd_wage}, target sd wage = {target}")
-        print(f"Calibrated weights = {calibrated_weights}")
+        print(f"calibrated_sigma = {myPars.lab_fe_tauch_sigma}")
+        print(f"Calibrated weights = {myPars.lab_fe_weights}")
 
     return calibrated_weights, sd_wage, state_sols, sim_lc
 
 def w0_sigma_mom_giv_sigma(myPars: Pars, new_sigma:float)-> float:
     myPars.lab_fe_tauch_sigma = new_sigma
-    my_lab_fe_grid = np.exp(myPars.lab_fe_grid)
-    new_weights, tauch_state_grid = tb.Taucheniid(new_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = my_lab_fe_grid)
+    new_weights, tauch_state_grid = tb.Taucheniid(new_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = myPars.lab_fe_grid)
     myPars.lab_fe_weights = new_weights
     return w0_sigma_moment(myPars)
 
 @njit
 def w0_sigma_moment(myPars: Pars)-> float:
-    # " get the weighted standard deviation of wages for period 0"
-    # myShocks = Shocks(myPars)
-    # first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0]
-    # first_per_weighted_wages = model.gen_weighted_wage_hist(myPars, myShocks)[:,:,:,0] 
-    # mean_first_per_wage = np.sum(first_per_weighted_wages)
-
-    # # Calculate the weighted variance
-    # deviations =  first_per_wages - mean_first_per_wage
-    # squared_deviations = deviations ** 2
-    # # Apply the weights
-    # weighted_squared_deviations = squared_deviations * (1.0 / myPars.sim_draws)
-    # weighted_squared_deviations = weighted_squared_deviations * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis]
-    # weighted_squared_variance = np.sum(weighted_squared_deviations * myPars.lab_fe_weights[:, np.newaxis, np.newaxis])
-    # # Calculate the weighted standard deviation
-    # sd_first_per_wage = np.sqrt(weighted_squared_variance)
     sd_first_per_wage = w0_moments(myPars)[1]
-    # print(f"sd_first_per_wage = {sd_first_per_wage}")
     return sd_first_per_wage
-
-
-def calib_w0(myPars: Pars, main_path: str, mean_target:float, sd_target:float):
-    """
-    calibrates the wage fixed effect weights to match the target mean and standard deviation of wages
-    takes the following arguments:
-    myPars: the parameters of the model
-    main_path: the path to the main directory
-    mean_target: the target mean wage for period 0
-    sd_target: the target standard deviation of wages for period 0
-    returns a tuple with the calibrated weights, the mean_wage, the sd_wage, state_solutions and sim_lc
-    """
-    myShocks = Shocks(myPars)
-    io.print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_calib_params.csv")
-    mean_wage = -999.999
-    sd_wage = -999.999
-    sate_sols = {}
-    sim_lc = {}
-
-    first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0]
-    weighted_first_per_wages = first_per_wages * (1/myPars.sim_draws)
-    weighted_first_per_wages = weighted_first_per_wages * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis]
-    lab_fe_collapse_weight_wages = np.sum(first_per_wages, axis = tuple(range(1,first_per_wages.ndim)))
-    # print(f"lab_fe_collapse_weight_wages = {lab_fe_collapse_weight_wages}")
-    # print(f"myPars.wH_coeff = {myPars.wH_coeff}")
-
-    my_weights = tb.optimize_weights(lab_fe_collapse_weight_wages, mean_target, sd_target, myPars.lab_fe_grid_size, myPars.print_screen)
-
-    #update the labor fixed effect weights
-    myPars.lab_fe_weights = my_weights
-    shocks = Shocks(myPars)
-    state_sols = solver.solve_lc(myPars, main_path)
-    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    mean_wage, sd_wage = w0_moments(myPars)
-
-    if myPars.print_screen >= 1:
-        print(f"Calibration exited: mean wage = {mean_wage}, target mean wage = {mean_target}, sd wage = {sd_wage}, target sd wage = {sd_target}")
-        print(f"Calibrated weights = {my_weights}")
-
-    return my_weights, mean_wage, sd_wage, state_sols, sim_lc 
-
 
 @njit
 def w0_moments(myPars: Pars)-> Tuple[float, float]:
     " get the weighted mean and standard deviation of wages for period 0"
     myShocks = Shocks(myPars)
-    first_per_wages = model.gen_wage_hist(myPars, myShocks)[:,:,:,0]
-    first_per_weighted_wages = model.gen_weighted_wage_hist(myPars, myShocks)[:,:,:,0] 
+    first_per_wages = np.log(model.gen_wage_hist(myPars, myShocks)[:,:,:,0])
+    # first_per_weighted_wages = model.gen_weighted_wage_hist(myPars, myShocks)[:,:,:,0] 
+    first_per_weighted_wages = model.gen_wlog_wage_hist(myPars, myShocks)[:,:,:,0]
     mean_first_per_wage = np.sum(first_per_weighted_wages)
 
     # Calculate the weighted variance
@@ -199,7 +148,7 @@ def w0_moments(myPars: Pars)-> Tuple[float, float]:
     # Apply the weights
     weighted_squared_deviations = squared_deviations * (1.0 / myPars.sim_draws)
     weighted_squared_deviations = weighted_squared_deviations * myPars.H_type_perm_weights[np.newaxis, :, np.newaxis]
-    weighted_squared_variance = np.sum(weighted_squared_deviations * myPars.lab_fe_weights[:, np.newaxis, np.newaxis])
+    weighted_squared_variance = np.sum(weighted_squared_deviations * myPars.lab_fe_weights[:, np.newaxis, np.newaxis]) 
     # Calculate the weighted standard deviation
     sd_first_per_wage = np.sqrt(weighted_squared_variance)
     
@@ -209,7 +158,8 @@ def get_w0_mean_targ(myPars: Pars, target_folder_path: str)-> float:
     """ get the target mean wage for period 0 from myPars.path + '/input/wage_moments.csv' """
     # data_moments_path = myPars.path + '/input/wage_moments.csv'
     data_moments_path = target_folder_path + '/wage_moments.csv'
-    data_mom_col_ind = 1
+    # data_mom_col_ind = 1 # wage
+    data_mom_col_ind = 3 # log wage
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return mean_wage_by_age[0]
 
@@ -217,7 +167,8 @@ def get_w0_sd_targ(myPars: Pars, target_folder_path: str)-> float:
     """ get the target standard deviation of wages for period 0 from myPars.path + '/input/wage_moments.csv' """
     # data_moments_path = myPars.path + '/input/wage_moments.csv'
     data_moments_path = target_folder_path + '/wage_moments.csv'
-    data_mom_col_ind = 2
+    # data_mom_col_ind = 2 # wage
+    data_mom_col_ind = 4 # log wage
     sd_wage_col= tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return sd_wage_col[0]
 
@@ -605,10 +556,10 @@ def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float,
 def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H_calib: bool = True,  
         alpha_mom_targ:float = 0.40, w0_mu_mom_targ:float = 20.0, w0_sigma_mom_targ:float = 3.0, w1_mom_targ:float = 0.2, w2_mom_targ:float = 0.2, 
         wH_mom_targ:float = 0.2, phi_H_mom_targ:float = 0.02, 
-        w0_mu_min:float = 0.0, w0_mu_max:float = 100.0, w0_sigma_min:float = 0.001, w0_sigma_max = 50.0, 
+        w0_mu_min:float = 0.0, w0_mu_max:float = 30.0, w0_sigma_min:float = 0.001, w0_sigma_max = 1.0, 
         w1_min:float = 0.0, w1_max:float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
         phi_H_min:float = 0.00001, phi_H_max:float = 0.25,
-        alpha_tol:float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol:float = 0.0001, w1_tol:float = 0.001, w2_tol:float = 0.001, 
+        alpha_tol:float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol:float = 0.01, w1_tol:float = 0.001, w2_tol:float = 0.001, 
         wH_tol:float = 0.001, phi_H_tol:float = 1e-2,
         calib_path: str = None)-> (
         Tuple[float, np.ndarray, float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
@@ -629,17 +580,22 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
 
     for i in range(myPars.max_calib_iters):
         print(f"***** Calibration iteration {i} *****")
-        # print("Calibrating w0_mu")
+        print("Calibrating w0_mu")
         w0_weights, my_w0_mu_mom, state_sols, sims = calib_w0_mu(myPars, calib_path, w0_mu_tol, w0_mu_mom_targ, w0_mu_min, w0_mu_max)
-        # print(f"""Calibrated w0 weights = {w0_weights}, w0 mean = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ}""")
+        #for testing
+        my_w0_sigma_mom = w0_sigma_moment(myPars)
+        print(f"""Calibrated w0 weights = {w0_weights}, 
+                w0_mu = {myPars.lab_fe_tauch_mu}, w0_mu mom = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ},
+                w0_sigma = {myPars.lab_fe_tauch_sigma}, w0_sigma mom = {my_w0_sigma_mom}, w0_sigma targ = {w0_sigma_mom_targ}""")
         if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol):
-            # print("Calibrating w0_sigma")
+            print("Calibrating w0_sigma")
             w0_weights, my_w0_sigma_mom, state_sols, sims = calib_w0_sigma(myPars, calib_path, w0_sigma_tol, w0_sigma_mom_targ, w0_sigma_min, w0_sigma_max)
             my_w0_mu_mom = w0_mu_moment(myPars)
-            # print(f"""Calibrated w0 weights = {w0_weights}, w0 mean = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ},
-            #                                             w0_sigma = {my_w0_sigma_mom}, w0_sigma targ = {w0_sigma_mom_targ}""")
+            print(f"""Calibrated w0 weights = {w0_weights}, 
+                    w0_mu = {myPars.lab_fe_tauch_mu}, w0_mu mom = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ},
+                    w0_sigma = {myPars.lab_fe_tauch_sigma}, w0_sigma mom = {my_w0_sigma_mom}, w0_sigma targ = {w0_sigma_mom_targ}""")
             if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol):
-                # print("Calibrating w1")
+                print("Calibrating w1")
                 w1_calib, my_w1_mom, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
                 my_w0_mu_mom = w0_mu_moment(myPars)
                 my_w0_sigma_mom = w0_sigma_moment(myPars)
@@ -648,7 +604,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                 #                                         w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_mom}, w1 mom targ = {w1_mom_targ}""")
                 if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                     and np.abs(my_w1_mom - w1_mom_targ) < w1_tol):
-                    # print("Calibrating w2")
+                    print("Calibrating w2")
                     w2_calib, my_w2_mom, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
                     my_w0_mu_mom = w0_mu_moment(myPars)
                     my_w0_sigma_mom = w0_sigma_moment(myPars)
@@ -656,7 +612,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                     if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                         and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol):
                         if do_wH_calib:
-                            # print("Calibrating wH")
+                            print("Calibrating wH")
                             wH_calib, my_wH_mom, state_sols, sims = calib_wH(myPars, myShocks, calib_path, wH_tol, wH_mom_targ, wH_min, wH_max)                        
                         my_w0_mu_mom = w0_mu_moment(myPars)
                         my_w0_sigma_mom = w0_sigma_moment(myPars)
@@ -667,7 +623,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                             and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol)):
                             # calibrating phi_H
                             if do_phi_H_calib:
-                                # print("Calirating phi_H")
+                                print("Calirating phi_H")
                                 phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
                             else:
                                 shocks = Shocks(myPars) # this is inefficient we could calculate the shocks at an earlier calib step maybe
@@ -689,7 +645,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                                 and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
                                 and(not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
                                 # and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
-                                # print("Calibrating alpha")
+                                print("Calibrating alpha")
                                 alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
                                 my_w0_mu_mom = w0_mu_moment(myPars)
                                 my_w0_sigma_mom = w0_sigma_moment(myPars)

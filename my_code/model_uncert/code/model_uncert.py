@@ -14,9 +14,11 @@ import numpy as np
 import sys
 from interpolation import interp
 from numba import njit, guvectorize, prange 
+from math import log
 # My code
 from pars_shocks import Pars, Shocks
 import my_toolbox as tb
+
 
 @njit
 def leis_giv_lab(myPars: Pars, labor:float, health:float) -> float:
@@ -243,6 +245,28 @@ def gen_weighted_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
                     wage_weighted = wage_unweighted * type_pop_weight*sim_weight
                     wage_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = wage_weighted
     return wage_hist
+
+@njit
+def gen_wlog_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:
+    """
+    generate the fully weighted wage history this function weights 
+    by simulation draws, H_type_perm_weights, and lab_fe_weights
+    myPars.H_beg_pop_weights_by_H_type weights accounted for in myPars.H_hist 
+    """
+    sim_weight = 1/myPars.sim_draws
+    H_hist = myShocks.H_hist
+    lwage_hist = np.empty(H_hist.shape)
+    for lab_fe_ind in range(myPars.lab_fe_grid_size):
+        for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+            type_pop_weight = myPars.lab_fe_weights[lab_fe_ind] * myPars.H_type_perm_weights[H_type_perm_ind]
+            for sim_ind in range(myPars.sim_draws):
+                for j in range(myPars.J):
+                    my_H = H_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j]
+                    wage_unweighted = wage(myPars, j, lab_fe_ind, my_H)
+                    lwage_unweighted = log(wage_unweighted)
+                    lwage_weighted = lwage_unweighted * type_pop_weight*sim_weight
+                    lwage_hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = lwage_weighted
+    return lwage_hist
 
 @njit
 def gen_wage_hist(myPars: Pars, myShocks: Shocks) -> np.ndarray:

@@ -31,6 +31,8 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
     # Set wage coefficients
     if my_lab_fe_grid is None:
         my_lab_fe_grid = np.log(np.array([5.0, 10.0, 15.0, 20.0]))
+        # my_lab_fe_grid = np.log(np.array([1.0, 5.0, 10.0, 15.0, 20.0]))
+        # my_lab_fe_grid = np.arange(5.0, 21.0, 1.0)
     w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
@@ -80,6 +82,8 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
     if out_folder_name is not None:
         outpath = myPars.path + out_folder_name + '/'
 
+    # myPars.print_screen = 2
+
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib, do_phi_H_calib = do_phi_H_calib, sim_no_calib = False, 
                           get_targets = True, output_flag = output_flag, tex = True, output_path = outpath, 
                           data_moms_folder_path= myPars.path + '/input/50p_age_moms/')
@@ -97,7 +101,7 @@ if __name__ == "__main__":
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     trans_path = main_path + "input/50p_age_moms/MH_trans_by_MH_clust_age.csv"
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-    do_phi_H_calib = True
+    do_phi_H_calib = False
     myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib = do_phi_H_calib)
 
     tb.print_exec_time("Main.py executed in", start_time) 
