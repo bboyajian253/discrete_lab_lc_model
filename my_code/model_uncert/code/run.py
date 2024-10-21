@@ -16,7 +16,7 @@ from typing import List, Dict
 import os
 
 # My code
-import tables
+import my_tables as tables
 import my_toolbox as tb
 import solver
 import simulate as simulate
@@ -84,11 +84,11 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
             # calib_alpha, w0_weights, calib_w1, calib_w2, calib_wH, state_sols, sim_lc = calibration.calib_all_v2(myPars, myShocks, do_wH_calib = do_wH_calib)
 
         calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 
-                                'w0_mean': w0_mu_targ, 'w0_sd': w0_sigma_targ, 
+                                'w0_mu': w0_mu_targ, 'w0_sigma': w0_sigma_targ, 
                                 'w1': w1_targ, 'w2': w2_targ, 
                                 'wH': wH_targ, 'phi_H': phi_H_targ}
         calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
-                                    'w0_mean': calibration.w0_moments(myPars)[0], 'w0_sd': calibration.w0_moments(myPars)[1],
+                                    'w0_mu': calibration.w0_moments(myPars)[0], 'w0_sigma': calibration.w0_moments(myPars)[1],
                                     'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
                                     'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc["lab"], myShocks)}
 

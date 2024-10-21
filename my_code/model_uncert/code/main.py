@@ -30,12 +30,14 @@ def pars_factory(main_path: str, H_trans_path: str = None, H_type_pop_share_path
     """
     # Set wage coefficients
     if my_lab_fe_grid is None:
-        my_lab_fe_grid = np.log(np.array([5.0, 10.0, 15.0, 20.0]))
-        # my_lab_fe_grid = np.log(np.array([1.0, 5.0, 10.0, 15.0, 20.0]))
-        # my_lab_fe_grid = np.arange(5.0, 21.0, 1.0)
+        # my_lab_fe_grid = np.log(np.array([5.0, 10.0, 15.0, 20.0]))
+        my_grid = np.linspace(2.0, 20, 10) 
+        my_grid = np.log(my_grid)
+        my_lab_fe_grid = my_grid
+
     w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
     # Initialize parameters
-    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
+    myPars = Pars(main_path, J=51, a_grid_size=301, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
                 alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 25, sigma_util = 0.9999,
                 print_screen=0)
@@ -105,7 +107,8 @@ if __name__ == "__main__":
     my_grid = np.linspace(2.0, 20, 10) 
     my_grid = np.log(my_grid)
 
-    myPars = pars_factory(main_path = main_path, H_trans_path= trans_path, my_lab_fe_grid = my_grid)
-    myPars, myShocks, sols, sims = main_io(main_path, myPars = myPars, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib = do_phi_H_calib)
+    # myPars = pars_factory(main_path = main_path, H_trans_path= trans_path, my_lab_fe_grid = my_grid)
+    # myPars, myShocks, sols, sims = main_io(main_path, myPars = myPars, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib = do_phi_H_calib)
+    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_path = trans_path, do_phi_H_calib = do_phi_H_calib)
 
     tb.print_exec_time("Main.py executed in", start_time) 
