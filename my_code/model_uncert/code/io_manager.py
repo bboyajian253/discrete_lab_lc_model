@@ -1,9 +1,5 @@
 """
 io_manager.py
-This file contains code used to read in data and cluster it based on a history of mental health data.
-It also contains code to print parameters and transition matrices to LaTeX tables.
-And to print the results of the calibration to a LaTeX table.
-
 Created on 2024-08-12 14:47:07 
 
 by @author Ben Boyajian

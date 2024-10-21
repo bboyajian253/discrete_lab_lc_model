@@ -41,12 +41,12 @@ pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed e
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
                 ('H_trans', float64[:, :, :, :]), #matrix of health transition probabilities
+                ('delta_pi_BB', float64), #diff in prob of bad health persistence between the two types
+                ('delta_pi_GG', float64), #diff in prob of good health persistence between the two types
                 ('state_space_shape', UniTuple(int64, 5)), #the shape/dimensions of the full state space with time/age J
                 ('state_space_shape_no_j', UniTuple(int64, 4)),
                 ('state_space_no_j_size', int64), #size of the state space with out time/age J
                 ('state_space_shape_sims', UniTuple(int64, 4)), #the shape/dimensions of the period state space for simulations
-                # ('tuple_sim_ndim', UniTuple(int64, 4)), # tuple from 0 to ndim of a simulation state space
-                # ('len_state_space_shape_sims', int64), #size of the state space for simulations
                 ('lab_min', float64 ), #minimum possible choice for labor, cannot pick less than 0 hours
                 ('lab_max', float64), # max possible for labor choice
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
@@ -102,6 +102,8 @@ class Pars() :
             H_beg_pop_weights_by_H_type = np.array([[0.5, 0.5], [0.5, 0.5]]), #weights for the permanent health type grid
             H_grid = np.array([0.0,1.0]),
             H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
+            delta_pi_BB = 0.05, #diff in prob of bad health persistence between the two types
+            delta_pi_GG = 0.05, #diff in prob of good health persistence between the two types
 
             lab_min = 0.00,
             lab_max = 1.0,
@@ -147,7 +149,10 @@ class Pars() :
         self.H_type_perm_grid_size = len(H_type_perm_grid)
         self.H_type_perm_weights = H_type_perm_weights
         self.H_beg_pop_weights_by_H_type = H_beg_pop_weights_by_H_type
-        self.H_grid, self.H_trans = H_grid, H_trans
+        self.H_grid  = H_grid
+        self.H_trans = H_trans
+        self.delta_pi_BB = delta_pi_BB
+        self.delta_pi_GG = delta_pi_GG
         self.H_grid_size = len(H_grid)
 
         self.interp_eval_points = np.zeros(1)
