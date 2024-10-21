@@ -38,7 +38,7 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol:float, target:float, w0_mu_min
     target: the target mean wage
     returns a tuple with the calibrated weights, the mean_wage, the state solutions and the simulations
     """
-    myShocks = Shocks(myPars)
+    # myShocks = Shocks(myPars)
     io.print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_mean_calib_params.csv")
     mean_wage = -999.999
     sate_sols = {}
@@ -50,9 +50,9 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol:float, target:float, w0_mu_min
     # # define the lambda function to find the zero of
     get_w0_mean_diff = lambda new_mu: w0_mu_mom_giv_mu(myPars, new_mu) - target
     calibrated_mu = tb.bisection_search(get_w0_mean_diff, w0_mu_min, w0_mu_max, tol, myPars.max_iters, myPars.print_screen)
-    print(f"calibrated_mu = {calibrated_mu}")
-    print(f"current sigma = {myPars.lab_fe_tauch_sigma}")
-    calibrated_weights = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = calibrated_mu, state_grid = myPars.lab_fe_grid)[0] 
+    # print(f"calibrated_mu = {calibrated_mu}")
+    # print(f"current sigma = {myPars.lab_fe_tauch_sigma}")
+    calibrated_weights = tb.Taucheniid_numba(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = calibrated_mu, state_grid = myPars.lab_fe_grid)[0] 
 
     #update the labor fixed effect weights
     myPars.lab_fe_weights = calibrated_weights
@@ -68,17 +68,17 @@ def calib_w0_mu(myPars: Pars, main_path: str, tol:float, target:float, w0_mu_min
 
     return calibrated_weights, mean_wage, state_sols, sim_lc
 
+@njit
 def w0_mu_mom_giv_mu(myPars: Pars, new_mu:float)-> float:
     myPars.lab_fe_tauch_mu = new_mu 
-    new_weights, tauch_state_grid = tb.Taucheniid(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = new_mu, state_grid = myPars.lab_fe_grid)
+    new_weights, tauch_state_grid = tb.Taucheniid_numba(myPars.lab_fe_tauch_sigma, myPars.lab_fe_grid_size, mean = new_mu, state_grid = myPars.lab_fe_grid)
     myPars.lab_fe_weights = new_weights
     return w0_mu_moment(myPars)
 
 @njit
 def w0_mu_moment(myPars: Pars)-> float:
     " get the weighted mean of wages for period 0"
-    myShocks = Shocks(myPars)
-
+    # myShocks = Shocks(myPars)
     # first_per_weighted_wages = model.gen_weighted_wage_hist(myPars, myShocks)[:,:,:,0] 
     # first_per_wlog_wages = model.gen_wlog_wage_hist(myPars, myShocks)[:,:,:,0]
     # mean_first_per_wage = np.sum(first_per_wlog_wages)
@@ -96,7 +96,6 @@ def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sig
     sd_target: the target standard deviation of wages
     returns a tuple with the calibrated weights, the standard deviation of wages, the state solutions and the simulations
     """
-    myShocks = Shocks(myPars)
     io.print_params_to_csv(myPars, path = main_path, file_name = "pre_w0_sd_calib_params.csv")
     sd_wage = -999.999
     sate_sols = {}
@@ -104,9 +103,9 @@ def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sig
     # define the lambda function to find the zero of
     get_w0_sd_diff = lambda new_sigma: w0_sigma_mom_giv_sigma(myPars, new_sigma) - target
     calibrated_sigma = tb.bisection_search(get_w0_sd_diff, w0_sigma_min, w0_sigma_max, tol, myPars.max_iters, myPars.print_screen)
-    print(f"calibrated_sigma = {calibrated_sigma}")
-    print(f"current mu = {myPars.lab_fe_tauch_mu}")
-    calibrated_weights = tb.Taucheniid(calibrated_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = myPars.lab_fe_grid)[0]
+    # print(f"calibrated_sigma = {calibrated_sigma}")
+    # print(f"current mu = {myPars.lab_fe_tauch_mu}")
+    calibrated_weights = tb.Taucheniid_numba(calibrated_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = myPars.lab_fe_grid)[0]
 
     #update the labor fixed effect weights
     myPars.lab_fe_weights = calibrated_weights
@@ -122,9 +121,10 @@ def calib_w0_sigma(myPars: Pars, main_path: str, tol:float, target:float, w0_sig
 
     return calibrated_weights, sd_wage, state_sols, sim_lc
 
+@njit
 def w0_sigma_mom_giv_sigma(myPars: Pars, new_sigma:float)-> float:
     myPars.lab_fe_tauch_sigma = new_sigma
-    new_weights, tauch_state_grid = tb.Taucheniid(new_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = myPars.lab_fe_grid)
+    new_weights, tauch_state_grid = tb.Taucheniid_numba(new_sigma, myPars.lab_fe_grid_size, mean = myPars.lab_fe_tauch_mu, state_grid = myPars.lab_fe_grid)
     myPars.lab_fe_weights = new_weights
     return w0_sigma_moment(myPars)
 
@@ -218,39 +218,23 @@ def w1_moment_giv_w1(myPars: Pars, new_coeff:float)-> float:
 def w1_moment(myPars: Pars)-> float:
     """ calculates the wage growth given the model parameters """
     myShocks = Shocks(myPars)
-    wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
-    # mean_axis = myPars.tuple_sim_ndim[:-1]
-    # mean_axis = tuple(range(wage_sims.ndim - 1))
-    # mean_axis = tb.range_tuple_numba(wage_sims.ndim - 1)
-    # mean_axis = tuple(range(myPars.len_state_space_shape_sims - 1))
-    # mean_wage_by_age = np.sum(wage_sims, axis = mean_axis)
-    # mean_wage_by_age =tb.sum_axis_numba(wage_sims, mean_axis)
+    # wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
+    wage_sims = model.gen_wlog_wage_hist(myPars, myShocks)
     mean_wage_by_age = tb.sum_last_axis_numba(wage_sims)
 
-    wage_diff = log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[0])
-    # mean_axis = tuple(range(myPars.len_state_space_shape_sims - 1))
-    # wage_diff = w1_moment_numba(myPars, mean_axis)
+    wage_diff = np.max(mean_wage_by_age) - mean_wage_by_age[0]
     return wage_diff
-
-@njit
-def w1_moment_numba(myPars: Pars, sum_axis: Tuple[int])-> float:
-    """ calculates the wage growth given the model parameters """
-    myShocks = Shocks(myPars)
-    wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
-    mean_wage_by_age = np.sum(wage_sims, axis = sum_axis)
-    wage_diff = log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[0])
-    return wage_diff 
 
 def get_w1_targ(myPars: Pars, target_folder_path: str)-> float:
     """ gets the target wage growth until age '60' from myPars.path + '/input/wage_moments.csv' """
     # data_moments_path = myPars.path + '/input/wage_moments.csv'
     data_moments_path = target_folder_path + '/wage_moments.csv'
-    data_mom_col_ind = 1
+    data_mom_col_ind = 3 # log wage
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     # want to get wages before age 60
     age_60_ind = 60 - myPars.start_age
     my_max = np.max(mean_wage_by_age[:age_60_ind])
-    return log(my_max)- log(mean_wage_by_age[0])
+    return my_max - mean_wage_by_age[0]
 
 def calib_w2(myPars: Pars, main_path: str, tol:float, target:float, w2_min:float, w2_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
@@ -289,9 +273,6 @@ def calib_w2(myPars: Pars, main_path: str, tol:float, target:float, w2_min:float
 @njit
 def w2_moment_giv_w2(myPars: Pars, new_coeff:float)-> float:
     """ updates the wage_coeff_grid skipping the first row coefficient and returns the new wage decay """
-    # for i in range(1, myPars.lab_fe_grid_size):
-    # for i in range(myPars.lab_fe_grid_size):
-    #     myPars.wage_coeff_grid[i, 2] = new_coeff
     myPars.set_w2(new_coeff)
     return w2_moment(myPars)
 
@@ -299,28 +280,22 @@ def w2_moment_giv_w2(myPars: Pars, new_coeff:float)-> float:
 def w2_moment(myPars: Pars)-> float:
     """ calculates the wage decay given the model parameters """
     myShocks = Shocks(myPars)
-    wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
+    # wage_sims = model.gen_weighted_wage_hist(myPars, myShocks)
+    wage_sims = model.gen_wlog_wage_hist(myPars, myShocks)
     mean_wage_by_age = tb.sum_last_axis_numba(wage_sims)
-    # mean_wage_by_age = np.sum(wage_sims, axis = tuple(range(wage_sims.ndim - 1)))
-    # mean_wage = np.sum(wage_sims, axis=tuple(range(wage_sims.ndim - 1)))
-    # if np.all(mean_wage > 0):
-    #     wage_diff = log(np.max(mean_wage)) - log(mean_wage[myPars.J-1])
-    # else:
-    #     print("Invalid values in mean_wage for log operation")
-    #     print(f"mean_wage = {mean_wage}")
-    #     # return
-    wage_diff = log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[myPars.J-1])
+    wage_diff = np.max(mean_wage_by_age) - mean_wage_by_age[myPars.J-1]
+    # wage_diff = log(np.max(mean_wage_by_age)) - log(mean_wage_by_age[myPars.J-1])
     return wage_diff
 
 def get_w2_targ(myPars: Pars, target_folder_path: str)-> float:
-    """ gets the target wage decay starting at age 60 from myPars.path + '/input/wage_moments.csv' """
-    # data_moments_path = myPars.path + '/input/wage_moments.csv'
+    """ gets the target wage decay starting at age 60 'wage_moments.csv' """
     data_moments_path =   target_folder_path + '/wage_moments.csv'
-    data_mom_col_ind = 1
+    # data_mom_col_ind = 1
+    data_mom_col_ind = 3 # log wage
     mean_wage_by_age = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     age_60_ind = 60 - myPars.start_age
     my_max = np.max(mean_wage_by_age[:age_60_ind])
-    return log(my_max) - log(mean_wage_by_age[-1])
+    return my_max - mean_wage_by_age[-1]
 
 def calib_wH(myPars: Pars, myShocks: Shocks, main_path: str, tol:float, target:float, wH_min:float, wH_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """ 
@@ -355,32 +330,42 @@ def calib_wH(myPars: Pars, myShocks: Shocks, main_path: str, tol:float, target:f
 
     return calibrated_wH, wH_moment, state_sols, sim_lc
 
-# @njit
+@njit
 def wH_moment_giv_wH(myPars: Pars, myShocks: Shocks, new_coeff:float)-> float:
     myPars.wH_coeff = new_coeff
     return wH_moment(myPars, myShocks)
 
-# @njit
+# we probably have a way to jit this at this point
+@njit
 def wH_moment(myPars: Pars, myShocks: Shocks)-> float:
     """returns the wage premium given the model parameters"""
-    wage_sims = model.gen_wage_hist(myPars, myShocks) 
-    H_hist = myShocks.H_hist
-    # healthy wage is the wage when the health state is 1
-    healthy_wage_sims = wage_sims * H_hist[:, :, :, :myPars.J]
-    mean_healthy_wage = np.mean(healthy_wage_sims[healthy_wage_sims > 0])
-    # mean_healthy_wage = tb.mean_nonzero_numba(healthy_wage_sims)
-    unhealthy_wage_sims = wage_sims * (1 - H_hist[:, :, :, :myPars.J])
-    mean_unhealthy_wage = np.mean(unhealthy_wage_sims[unhealthy_wage_sims > 0])
-    # mean_unhealthy_wage = tb.mean_nonzero_numba(unhealthy_wage_sims)
+    # wage_sims = model.gen_wage_hist(myPars, myShocks) 
+    # wage_sims = model.gen_wlog_wage_hist(myPars, myShocks)
+    # H_hist = myShocks.H_hist
+    # # healthy wage is the wage when the health state is 1
+    # healthy_wage_sims = wage_sims * H_hist[:, :, :, :myPars.J]
+    # mean_healthy_wage = np.mean(healthy_wage_sims[healthy_wage_sims > 0])
+    # # mean_healthy_wage = tb.mean_nonzero_numba(healthy_wage_sims)
+    # unhealthy_wage_sims = wage_sims * (1 - H_hist[:, :, :, :myPars.J])
+    # mean_unhealthy_wage = np.mean(unhealthy_wage_sims[unhealthy_wage_sims > 0])
+    # # mean_unhealthy_wage = tb.mean_nonzero_numba(unhealthy_wage_sims)
+    wage_sims = np.log(model.gen_wage_hist(myPars, myShocks)[:,:,:,:myPars.J])
+    H_hist = myShocks.H_hist[:,:,:,:myPars.J]
+    healthy_wage_sims = wage_sims * (H_hist==1)
+    unhealthy_wage_sims = wage_sims * (H_hist==0)
 
-    wage_prem = log(mean_healthy_wage) - log(mean_unhealthy_wage)
+    healthy_mean_wage = model.wmean_non_zero(myPars, healthy_wage_sims)
+    unhealthy_mean_wage = model.wmean_non_zero(myPars, unhealthy_wage_sims)
+    wage_prem = healthy_mean_wage - unhealthy_mean_wage
+
     return wage_prem
 
 def get_wH_targ(myPars: Pars, target_folder_path: str)-> float:
     """ get the target wage premium from myPars.path + '/input/MH_wage_moments.csv' """
     # data_moments_path = myPars.path + '/input/MH_wage_moments.csv'
     data_moments_path = target_folder_path + '/MH_wage_moments.csv'
-    data_mom_col_ind = 0
+    # data_mom_col_ind = 0 # mean diff in log wage
+    data_mom_col_ind = 1 # coeff on log wage
     mean_wage_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     return mean_wage_diff[0]
 
@@ -423,10 +408,12 @@ def alpha_moment_giv_alpha(myPars : Pars,  new_alpha:float, main_path : str = No
     shocks = Shocks(myPars)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    mean_lab = alpha_moment_giv_sims(myPars, sim_lc) 
+    lab_sim_lc = sim_lc['lab']
+    mean_lab = alpha_moment_giv_lab_sim(myPars, lab_sim_lc) 
     return mean_lab, state_sols, sim_lc, shocks
 
-def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
+
+def alpha_moment_giv_lab_sim(myPars: Pars, lab_sim_lc: np.ndarray)-> float:
     """
     calculates the mean labor worked given the simulations
     takes the following arguments:
@@ -434,17 +421,19 @@ def alpha_moment_giv_sims(myPars: Pars, sims: Dict[str, np.ndarray])-> float:
     sims: the simulations of the model
     returns the mean labor worked
     """
-    labor_sims = sims['lab'][:, :, :, :myPars.J]
+    labor_sims = lab_sim_lc[:, :, :, :myPars.J]
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims) 
-    mean_lab_by_age = np.sum(weighted_labor_sims, axis = tuple(range(weighted_labor_sims.ndim-1)))
+    mean_lab_by_age = tb.sum_last_axis_numba(weighted_labor_sims)
     mean_lab = np.mean(mean_lab_by_age)
     return mean_lab
+
+def alpha_moment_giv_sims(myPars: Pars, sim_lc: Dict[str, np.ndarray])-> float:
+    return alpha_moment_giv_lab_sim(myPars, sim_lc['lab'])
 
 def get_alpha_targ(myPars: Pars, target_folder_path: str) -> float:
     """
     reads alpha target moment from myPars.path + '/input/labor_moments.csv'
     """
-    # data_moments_path = myPars.path + '/input/labor_moments.csv'
     data_moments_path = target_folder_path + '/alpha_mom_targ.csv'
     # data_mom_col_ind = 1
     data_mom_col_ind = 0
@@ -580,22 +569,24 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
 
     for i in range(myPars.max_calib_iters):
         print(f"***** Calibration iteration {i} *****")
-        print("Calibrating w0_mu")
+        # print("Calibrating w0_mu")
         w0_weights, my_w0_mu_mom, state_sols, sims = calib_w0_mu(myPars, calib_path, w0_mu_tol, w0_mu_mom_targ, w0_mu_min, w0_mu_max)
         #for testing
         my_w0_sigma_mom = w0_sigma_moment(myPars)
-        print(f"""Calibrated w0 weights = {w0_weights}, 
-                w0_mu = {myPars.lab_fe_tauch_mu}, w0_mu mom = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ},
-                w0_sigma = {myPars.lab_fe_tauch_sigma}, w0_sigma mom = {my_w0_sigma_mom}, w0_sigma targ = {w0_sigma_mom_targ}""")
+        # print(f"""Calibrated w0 weights = {w0_weights}, 
+        # print(f"""
+        #         w0_mu = {myPars.lab_fe_tauch_mu}, w0_mu mom = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ},
+        #         w0_sigma = {myPars.lab_fe_tauch_sigma}, w0_sigma mom = {my_w0_sigma_mom}, w0_sigma targ = {w0_sigma_mom_targ}""")
         if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol):
-            print("Calibrating w0_sigma")
+            # print("Calibrating w0_sigma")
             w0_weights, my_w0_sigma_mom, state_sols, sims = calib_w0_sigma(myPars, calib_path, w0_sigma_tol, w0_sigma_mom_targ, w0_sigma_min, w0_sigma_max)
             my_w0_mu_mom = w0_mu_moment(myPars)
-            print(f"""Calibrated w0 weights = {w0_weights}, 
-                    w0_mu = {myPars.lab_fe_tauch_mu}, w0_mu mom = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ},
-                    w0_sigma = {myPars.lab_fe_tauch_sigma}, w0_sigma mom = {my_w0_sigma_mom}, w0_sigma targ = {w0_sigma_mom_targ}""")
+            # print(f"""Calibrated w0 weights = {w0_weights}, 
+            # print(f"""
+            #         w0_mu = {myPars.lab_fe_tauch_mu}, w0_mu mom = {my_w0_mu_mom}, w0 mean targ = {w0_mu_mom_targ},
+            #         w0_sigma = {myPars.lab_fe_tauch_sigma}, w0_sigma mom = {my_w0_sigma_mom}, w0_sigma targ = {w0_sigma_mom_targ}""")
             if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol):
-                print("Calibrating w1")
+                # print("Calibrating w1")
                 w1_calib, my_w1_mom, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
                 my_w0_mu_mom = w0_mu_moment(myPars)
                 my_w0_sigma_mom = w0_sigma_moment(myPars)
@@ -604,7 +595,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                 #                                         w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_mom}, w1 mom targ = {w1_mom_targ}""")
                 if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                     and np.abs(my_w1_mom - w1_mom_targ) < w1_tol):
-                    print("Calibrating w2")
+                    # print("Calibrating w2")
                     w2_calib, my_w2_mom, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
                     my_w0_mu_mom = w0_mu_moment(myPars)
                     my_w0_sigma_mom = w0_sigma_moment(myPars)
@@ -612,7 +603,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                     if (np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                         and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol):
                         if do_wH_calib:
-                            print("Calibrating wH")
+                            # print("Calibrating wH")
                             wH_calib, my_wH_mom, state_sols, sims = calib_wH(myPars, myShocks, calib_path, wH_tol, wH_mom_targ, wH_min, wH_max)                        
                         my_w0_mu_mom = w0_mu_moment(myPars)
                         my_w0_sigma_mom = w0_sigma_moment(myPars)
@@ -623,7 +614,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                             and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol)):
                             # calibrating phi_H
                             if do_phi_H_calib:
-                                print("Calirating phi_H")
+                                # print("Calirating phi_H")
                                 phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
                             else:
                                 shocks = Shocks(myPars) # this is inefficient we could calculate the shocks at an earlier calib step maybe
@@ -645,7 +636,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_phi_H
                                 and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
                                 and(not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
                                 # and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
-                                print("Calibrating alpha")
+                                # print("Calibrating alpha")
                                 alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
                                 my_w0_mu_mom = w0_mu_moment(myPars)
                                 my_w0_sigma_mom = w0_sigma_moment(myPars)

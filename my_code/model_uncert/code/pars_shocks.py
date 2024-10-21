@@ -182,10 +182,14 @@ class Pars() :
         self.max_calib_iters = max_calib_iters
 
     def set_w1(self, w1):
-        self.wage_coeff_grid[:,1] = w1
+        # self.wage_coeff_grid[:,1] = w1
+        for i in range(self.lab_fe_grid_size):
+            self.wage_coeff_grid[i,1] = w1
     
     def set_w2(self, w2):
-        self.wage_coeff_grid[:,2] = w2
+        # self.wage_coeff_grid[:,2] = w2
+        for i in range(self.lab_fe_grid_size):
+            self.wage_coeff_grid[i,2] = w2
 
 # def copy_pars_instance(myPars: Pars) -> Pars:
 #     # Create a new instance of the Pars class with the same path as myPars
