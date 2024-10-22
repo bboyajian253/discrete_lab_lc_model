@@ -22,6 +22,50 @@ import subprocess
 from scipy.optimize import minimize, differential_evolution
 from math import erf, sqrt, exp, pi
 
+# i need to find a way to make this work with numba
+def lagged_corr(data: np.ndarray, max_lag=10) -> np.ndarray:
+    """
+    Calculate Pearson correlation coefficient for each lag (0 to max_lag) 
+    for a flattened 2D array (individuals, time).
+    
+    Parameters:
+    data (np.array): Input data with shape (4, 2, 1000, 52).
+    max_lag (int): Maximum lag to calculate correlations for. Default is 10.
+    
+    Returns:
+    np.array: Correlation coefficients for lags from 0 to max_lag.
+    """
+    # Step 1: Flatten the data to (8000, 52)
+    flattened_data = data.reshape(-1, data.shape[-1])  # Shape (8000, 52)
+
+    # Step 2: Initialize an array to store correlation coefficients
+    correlations = np.zeros(max_lag + 1)
+
+    # Step 3: Loop through each lag (from 0 to max_lag)
+    for lag in range(max_lag + 1):
+        if lag > 0:
+            # Create lagged version of the data by shifting along the time dimension
+            lagged_data = np.roll(flattened_data, shift=-lag, axis=-1)
+
+            # Truncate both original and lagged data to avoid comparing rolled values
+            original_truncated = flattened_data[:, :-lag]
+            lagged_truncated = lagged_data[:, :-lag]
+
+            #Flatten both to single row
+            original_truncated = original_truncated.flatten()
+            lagged_truncated = lagged_truncated.flatten()
+
+            # Calculate Pearson correlation across all individuals for this lag
+            corr_matrix = np.corrcoef(original_truncated, lagged_truncated)
+            # print(f"corr_matrix for lag {lag}", corr_matrix)
+            correlations[lag] = corr_matrix[0, 1]  # Get the correlation coefficient
+        else:
+            #Flatten data to single row
+            row_data = flattened_data.flatten()
+            # Calculate correlation for lag 0 directly
+            correlations[lag] = np.corrcoef(row_data)
+
+    return correlations
 
 @njit
 def wmean_non_zero(arr_with_zeros: np.ndarray, weights_new_axis: np.ndarray) -> float:

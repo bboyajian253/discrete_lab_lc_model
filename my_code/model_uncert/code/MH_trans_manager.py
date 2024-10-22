@@ -22,7 +22,7 @@ def MH_trans_to_np(myPars: Pars, trans_path: str) -> np.ndarray:
     designed for MH_trans_uncond_age.csv dimensionality
     """
     raw_mat = tb.read_matrix_from_csv(trans_path)
-    reshaped_mat = raw_mat.reshape(myPars.J+1, myPars.H_grid_size, myPars.H_grid_size) # Ensure mat is a 3D array
+    reshaped_mat = raw_mat.reshape(myPars.J, myPars.H_grid_size, myPars.H_grid_size) # Ensure mat is a 3D array
     return reshaped_mat
 
 @njit
@@ -30,7 +30,7 @@ def calc_full_MH_trans(myPars: Pars, trans_reshaped: np.ndarray) -> np.ndarray:
     """
     Calculate full health transition matrix from reshaped matrix with shape (J+1, H_grid_size, H_grid_size)
     """
-    ret_mat = np.zeros((myPars.H_type_perm_grid_size, myPars.J+1, myPars.H_grid_size, myPars.H_grid_size))
+    ret_mat = np.zeros((myPars.H_type_perm_grid_size, myPars.J, myPars.H_grid_size, myPars.H_grid_size))
     mat_BB = trans_reshaped[:, 0, 0]
     mat_GG = trans_reshaped[:, 1, 1]
 

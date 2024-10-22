@@ -191,6 +191,7 @@ def lab_star(myPars: Pars, a_prime:float, a:float, health:float, wage:float)-> f
     """
     lab =  ((myPars.alpha/myPars.phi_n)*(1 - myPars.phi_H*(1-health))
             + ((myPars.alpha - 1)/wage)*((1 + myPars.r)*a - a_prime))
+
     lab = min(myPars.lab_max, lab)
     return max(myPars.lab_min, lab)
 

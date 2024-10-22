@@ -40,6 +40,7 @@ pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed e
                 ('H_beg_pop_weights_by_H_type', float64[:, :]), #weights for the permanent health type grid
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
+                ('H_trans_uncond', float64[:, :, :]), #matrix of unconditional health transition probabilities
                 ('H_trans', float64[:, :, :, :]), #matrix of health transition probabilities
                 ('delta_pi_BB', float64), #diff in prob of bad health persistence between the two types
                 ('delta_pi_GG', float64), #diff in prob of good health persistence between the two types
@@ -101,7 +102,8 @@ class Pars() :
             H_type_perm_weights = np.array([0.5,0.5]), #weights for the permanent health type grid
             H_beg_pop_weights_by_H_type = np.array([[0.5, 0.5], [0.5, 0.5]]), #weights for the permanent health type grid
             H_grid = np.array([0.0,1.0]),
-            H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
+            H_trans_uncond = np.repeat(np.array([[0.9, 0.1], [0.7, 0.3]])[np.newaxis, :, :], 51, axis=0).reshape(51,2,2),
+            # H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
             delta_pi_BB = 0.05, #diff in prob of bad health persistence between the two types
             delta_pi_GG = 0.05, #diff in prob of good health persistence between the two types
 
@@ -150,10 +152,15 @@ class Pars() :
         self.H_type_perm_weights = H_type_perm_weights
         self.H_beg_pop_weights_by_H_type = H_beg_pop_weights_by_H_type
         self.H_grid  = H_grid
-        self.H_trans = H_trans
+        self.H_grid_size = len(H_grid)
+
+        self.J = J
+
+        self.H_trans_uncond = H_trans_uncond
         self.delta_pi_BB = delta_pi_BB
         self.delta_pi_GG = delta_pi_GG
-        self.H_grid_size = len(H_grid)
+
+        self.H_trans = gen_MH_trans(H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.delta_pi_BB, self.delta_pi_GG)
 
         self.interp_eval_points = np.zeros(1)
 
@@ -163,8 +170,6 @@ class Pars() :
 
         self.lab_min = lab_min
         self.lab_max = leis_max / self.phi_n
-
-        self.J = J
 
         self.start_age = start_age
         self.end_age = start_age + J + 1
@@ -186,28 +191,62 @@ class Pars() :
         self.max_iters = max_iters
         self.max_calib_iters = max_calib_iters
 
-    def set_w1(self, w1):
+    def set_w1(self, w1: float):
         # self.wage_coeff_grid[:,1] = w1
         for i in range(self.lab_fe_grid_size):
             self.wage_coeff_grid[i,1] = w1
     
-    def set_w2(self, w2):
+    def set_w2(self, w2: float):
         # self.wage_coeff_grid[:,2] = w2
         for i in range(self.lab_fe_grid_size):
             self.wage_coeff_grid[i,2] = w2
 
-# def copy_pars_instance(myPars: Pars) -> Pars:
-#     # Create a new instance of the Pars class with the same path as myPars
-#     newPars = Pars(path=myPars.path)
+    def update_H_trans(self)-> np.ndarray:
+        self.H_trans = gen_MH_trans(self.H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.delta_pi_BB, self.delta_pi_GG)
+        return self.H_trans
+
+    def set_delta_pi_BB(self, delta_pi_BB: float):
+        self.delta_pi_BB = delta_pi_BB
+        self.update_H_trans()
     
-#     # Iterate over all elements in pars_spec (i.e., the attributes of Pars)
-#     for attr_name, _ in pars_spec:
-#         # Use deepcopy to copy the attribute from myPars to newPars
-#         setattr(newPars, attr_name, copy.deepcopy(getattr(myPars, attr_name)))
+    def set_delta_pi_GG(self, delta_pi_GG: float):
+        self.delta_pi_GG = delta_pi_GG
+        self.update_H_trans()
+    
+    def set_H_trans_uncond(self, H_trans_uncond: np.ndarray):
+        self.H_trans_uncond = H_trans_uncond
+        self.update_H_trans()
 
-#     # Return the newly created instance
-#     return newPars
 
+
+
+
+@njit
+def gen_MH_trans(MH_trans_uncond:np.ndarray, H_type_perm_grid_size:int, J:int, H_grid_size: int, delta_pi_BB:float, delta_pi_GG:float) -> np.ndarray:
+    """
+    Calculate full health transition matrix from reshaped matrix with shape (J, H_grid_size, H_grid_size)
+    """
+    ret_mat = np.zeros((H_type_perm_grid_size, J, H_grid_size, H_grid_size))
+    mat_BB = MH_trans_uncond[:, 0, 0]
+    mat_GG = MH_trans_uncond[:, 1, 1]
+
+    # it would be straightforward to change this to mat_BB*(1+delta) and mat_GG*(1+delta) if we wanted to
+    mat_BB_low_typ = mat_BB + delta_pi_BB
+    mat_GG_low_typ = mat_GG - delta_pi_GG
+    mat_BB_high_typ = mat_BB - delta_pi_BB
+    mat_GG_high_typ = mat_GG + delta_pi_GG
+
+    ret_mat[0, :, 0, 0] = mat_BB_low_typ
+    ret_mat[0, :, 0, 1] = 1 - mat_BB_low_typ 
+    ret_mat[0, :, 1, 0] = 1 - mat_GG_low_typ 
+    ret_mat[0, :, 1, 1] = mat_GG_low_typ
+
+    ret_mat[1, :, 0, 0] = mat_BB_high_typ
+    ret_mat[1, :, 0, 1] = 1 - mat_BB_high_typ
+    ret_mat[1, :, 1, 0] = 1 - mat_GG_high_typ
+    ret_mat[1, :, 1, 1] = mat_GG_high_typ
+
+    return ret_mat
 
 @njit
 def gen_default_wage_coeffs(lab_fe_grid: np.ndarray, num_wage_terms = 4)-> np.ndarray:
@@ -224,6 +263,7 @@ def gen_default_wage_coeffs(lab_fe_grid: np.ndarray, num_wage_terms = 4)-> np.nd
         w_coeff_grid[lab_fe_index, :] = [lab_fe_grid[lab_fe_index], 1.0, -0.02, 0.0] 
     return w_coeff_grid
 
+# def copy_pars_instance(myPars: Pars) -> Pars:
 
 shock_spec = [
         ('myPars', Pars.class_type.instance_type),
@@ -247,45 +287,42 @@ class Shocks:
 
 @njit
 def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
-        hist = np.zeros(myPars.state_space_shape_sims, dtype=np.int64)
-        for lab_fe_ind in range(myPars.lab_fe_grid_size):
-                # for start_H_ind in range(myPars.H_grid_size):
-                for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
-                        for sim_ind in range(myPars.sim_draws):
-                                for j in range(myPars.J+1):
-                                        if j == 0:
-                                                if sim_ind / myPars.sim_draws < myPars.H_beg_pop_weights_by_H_type[H_type_perm_ind, 1]:
-                                                        hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
-                                        else:
-                                                prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
-                                                good_health_state_ind = 1
-                                                health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, good_health_state_ind]
-                                                shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
-                                                if shock <= health_recovery_prob:
-                                                        hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
-        return hist
+    hist = np.zeros(myPars.state_space_shape_sims, dtype=np.int64)
+    for lab_fe_ind in range(myPars.lab_fe_grid_size):
+        # for start_H_ind in range(myPars.H_grid_size):
+        for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+            for sim_ind in range(myPars.sim_draws):
+                for j in range(myPars.J+1):
+                    if j == 0:
+                        if sim_ind / myPars.sim_draws < myPars.H_beg_pop_weights_by_H_type[H_type_perm_ind, 1]:
+                            hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
+                    else:
+                        prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
+                        good_health_state_ind = 1
+                        health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, good_health_state_ind]
+                        shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
+                        if shock <= health_recovery_prob:
+                                hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
+    return hist
 
 if __name__ == "__main__":
-        print("Running pars_shocks_and_wages.py")
-        start_time = time.time()
-        path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
-        myPars = Pars(path, J = 51, sim_draws = 1000)
-        # print(myPars.H_trans)
-        input_path = path + "/input/50p_age_moms/"
-        full_trans_path = input_path + "MH_trans_by_MH_clust_age.csv"
-        pop_share_path = input_path + "MH_clust_50p_age_pop_shares.csv"
-        # myPars.H_trans = 
+    print("Running pars_shocks.py")
+    start_time = time.time()
 
-        myShocks = Shocks(myPars)
-        H_hist = myShocks.H_hist
-        beg = H_hist [:,:,:,0]
-        share_good_H_beg = np.mean(beg)
-        share_bad_H_beg = 1 - share_good_H_beg
+    path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    input_path = path + "/input/50p_age_moms/"
+    trans_path = input_path + "MH_trans_uncond_age.csv"
+    
+    myPars = Pars(path, J = 51, sim_draws = 1000)
+    H_trans = myPars.H_trans
+    print(H_trans.shape)
+    print(H_trans[:,0,:,:])
+    myShocks = Shocks(myPars)
+    H_hist = myShocks.H_hist
+    print(H_hist.shape)
+    print(H_hist[:,:,0,0])
 
-        print("share_good_H_beg:", share_good_H_beg, "share_bad_H_beg:", share_bad_H_beg)
-        
-		
-        end_time = time.time()
-        execution_time = end_time - start_time
-        # print(myPars.len_state_space_shape_sims)
-        print("Execution time:", execution_time, "seconds")
+    
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Execution time:", execution_time, "seconds")
