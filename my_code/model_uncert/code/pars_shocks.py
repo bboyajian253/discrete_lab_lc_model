@@ -104,8 +104,10 @@ class Pars() :
             H_grid = np.array([0.0,1.0]),
             H_trans_uncond = np.repeat(np.array([[0.9, 0.1], [0.7, 0.3]])[np.newaxis, :, :], 51, axis=0).reshape(51,2,2),
             # H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
-            delta_pi_BB = 0.05, #diff in prob of bad health persistence between the two types
-            delta_pi_GG = 0.05, #diff in prob of good health persistence between the two types
+            # delta_pi_BB = 0.05, #diff in prob of bad health persistence between the two types
+            delta_pi_BB = 0.0, #diff in prob of bad health persistence between the two types
+            # delta_pi_GG = 0.10, #diff in prob of good health persistence between the two types
+            delta_pi_GG = 0.00, #diff in prob of good health persistence between the two types
 
             lab_min = 0.00,
             lab_max = 1.0,
@@ -230,17 +232,18 @@ def gen_MH_trans(MH_trans_uncond:np.ndarray, H_type_perm_grid_size:int, J:int, H
     mat_BB = MH_trans_uncond[:, 0, 0]
     mat_GG = MH_trans_uncond[:, 1, 1]
 
-    # it would be straightforward to change this to mat_BB*(1+delta) and mat_GG*(1+delta) if we wanted to
-    mat_BB_low_typ = mat_BB + delta_pi_BB
-    mat_GG_low_typ = mat_GG - delta_pi_GG
-    mat_BB_high_typ = mat_BB - delta_pi_BB
-    mat_GG_high_typ = mat_GG + delta_pi_GG
+    mat_BB_low_typ = mat_BB * (1 + delta_pi_BB) # *xb_j
+    mat_BB_high_typ = mat_BB * (1 - delta_pi_BB) # *xb_j
+    mat_GG_low_typ = mat_GG * (1 - delta_pi_GG) # *xg_j
+    mat_GG_high_typ = mat_GG * (1 + delta_pi_GG) # *xg_j
 
+    # low type
     ret_mat[0, :, 0, 0] = mat_BB_low_typ
     ret_mat[0, :, 0, 1] = 1 - mat_BB_low_typ 
     ret_mat[0, :, 1, 0] = 1 - mat_GG_low_typ 
     ret_mat[0, :, 1, 1] = mat_GG_low_typ
 
+    # high type
     ret_mat[1, :, 0, 0] = mat_BB_high_typ
     ret_mat[1, :, 0, 1] = 1 - mat_BB_high_typ
     ret_mat[1, :, 1, 0] = 1 - mat_GG_high_typ
@@ -287,23 +290,112 @@ class Shocks:
 
 @njit
 def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
+    BAD = 0
+    GOOD = 1
     hist = np.zeros(myPars.state_space_shape_sims, dtype=np.int64)
-    for lab_fe_ind in range(myPars.lab_fe_grid_size):
-        # for start_H_ind in range(myPars.H_grid_size):
-        for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
-            for sim_ind in range(myPars.sim_draws):
-                for j in range(myPars.J+1):
-                    if j == 0:
-                        if sim_ind / myPars.sim_draws < myPars.H_beg_pop_weights_by_H_type[H_type_perm_ind, 1]:
-                            hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
-                    else:
-                        prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
-                        good_health_state_ind = 1
-                        health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, good_health_state_ind]
+    for j in range(myPars.J+1):
+        if j > 0:
+            hist_j = hist[:, :, :, j-1]
+            # hist_j = hist[:, :, :, j]
+            # xbj = gen_x_j(myPars, hist_j, BAD)
+            x_gg_j = gen_x_gg_j(myPars, hist_j)
+            x_bg_j = gen_x_bg_j(myPars, hist_j, j-1)
+        for lab_fe_ind in range(myPars.lab_fe_grid_size):
+            # for start_H_ind in range(myPars.H_grid_size):
+            for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
+                for sim_ind in range(myPars.sim_draws):
+                    if j > 0:
                         shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
+                        prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
+                        if prev_health_state_ind == GOOD:
+                            health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                            # health_recovery_prob = xgj*myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                            # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                        else:
+                            health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                            # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                            # health_recovery_prob =  1 - xbj*myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, BAD]
                         if shock <= health_recovery_prob:
-                                hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = 1
+                                hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = GOOD
+                    else:
+                        if sim_ind / myPars.sim_draws < myPars.H_beg_pop_weights_by_H_type[H_type_perm_ind, GOOD]:
+                            hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = GOOD
     return hist
+
+@njit
+def gen_x_gg_j(myPars: Pars, H_hist_j: np.ndarray)-> float:
+    BAD, LOW = 0, 0
+    GOOD, HIGH = 1, 1
+    omega_g = gen_omega_j(myPars, H_hist_j, GOOD)
+    delta = myPars.delta_pi_GG
+
+    denom = omega_g*(1+delta) + (1-omega_g)*(1-delta)
+    return 1/denom
+
+@njit
+def gen_x_bg_j(myPars: Pars, H_hist_j: np.ndarray, j: int)-> float:
+    BAD, LOW = 0, 0
+    GOOD, HIGH = 1, 1
+    omega_b = gen_omega_j(myPars, H_hist_j, BAD)
+    H_trans_uncond = myPars.H_trans_uncond
+    H_trans = myPars.H_trans
+    pi_bg = H_trans_uncond[j, BAD, GOOD]
+    pi_bgH = H_trans[HIGH, j, BAD, GOOD]
+    pi_bgL = H_trans[LOW, j, BAD, GOOD]
+    denom = omega_b * pi_bgH + (1 - omega_b) * pi_bgL
+    return pi_bg / denom
+    
+
+@njit
+def gen_x_j(myPars: Pars, H_hist_j: np.ndarray, state: int)-> float:
+    BAD = 0
+    GOOD = 1
+    omega = gen_omega_j(myPars, H_hist_j, state)
+    if state == BAD:
+        delta = myPars.delta_pi_BB
+        denom = omega*(1-delta) + (1-omega)*(1+delta)
+        return 1/denom
+    elif state == GOOD:
+        delta = myPars.delta_pi_GG 
+        denom = omega*(1+delta) + (1-omega)*(1-delta)
+        return 1/denom
+
+    print("state must be 0 or 1")
+    return -999
+
+    
+@njit
+def gen_omega_j(myPars:Pars, H_hist_j:np.ndarray, state:int) -> float:
+    BAD = 0
+    GOOD = 1
+    LOW = 0
+    HIGH = 1
+
+    # # Get the dimensions
+    # n_lab_fe_weights = myPars.lab_fe_weights.shape[0]
+    # n_H_type_perm_weights = myPars.H_type_perm_weights.shape[0]
+    # n_sim_draws = myPars.sim_draws
+    # weights = np.ones((n_lab_fe_weights, n_H_type_perm_weights, n_sim_draws))
+    # # Manually construct weights to avoid broadcasting
+    # for i in range(n_lab_fe_weights):
+    #     for j in range(n_H_type_perm_weights):
+    #         weights[i, j, :] = myPars.lab_fe_weights[i] * myPars.H_type_perm_weights[j]
+
+    if state == GOOD:
+        # w_gMH_hist_j = H_hist_j * weights
+        w_gMH_hist_j = H_hist_j 
+        num_gMH = np.sum(w_gMH_hist_j)
+        num_gMH_htype = np.sum(w_gMH_hist_j[:, HIGH, :])
+        return num_gMH_htype / num_gMH if num_gMH > 0 else 0.0
+    elif state == BAD:
+        # w_bMH_hist_j = (1 - H_hist_j) * weights
+        w_bMH_hist_j = (1 - H_hist_j) 
+        num_bMH = np.sum(w_bMH_hist_j)
+        num_bMH_htype = np.sum(w_bMH_hist_j[:, HIGH, :])
+        return num_bMH_htype / num_bMH if num_bMH > 0 else 0.0
+    
+    print("State must be 0 (BAD) or 1 (GOOD)")
+    return -999
 
 if __name__ == "__main__":
     print("Running pars_shocks.py")

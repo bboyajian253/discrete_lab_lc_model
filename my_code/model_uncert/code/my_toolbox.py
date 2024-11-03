@@ -22,6 +22,77 @@ import subprocess
 from scipy.optimize import minimize, differential_evolution
 from math import erf, sqrt, exp, pi
 
+@njit
+def flat_D4_to_indiv_age(D4: np.ndarray) -> np.ndarray:
+    """
+    flattens a 4D array to a 2D array
+    """
+    n1, n2, n3, n4 = D4.shape
+    n_indivs = n1 * n2 * n3
+    n_time = n4
+    flat_data = np.empty((n_indivs, n_time), dtype=D4.dtype)
+    index = 0
+    for i in range(n1):
+        for j in range(n2):
+            for k in range(n3):
+                flat_data[index, :] = D4[i, j, k, :]
+                index += 1
+    return flat_data
+
+
+
+@njit
+def pearson_corr_jit(x: np.ndarray, y: np.ndarray) -> float:
+    """Calculate the Pearson correlation coefficient between two arrays x and y."""
+    n = len(x)
+    mean_x = np.mean(x)
+    mean_y = np.mean(y)
+    numer = np.sum((x - mean_x) * (y - mean_y))
+    denom = np.sqrt(np.sum((x - mean_x)**2) * np.sum((y - mean_y)**2))
+
+    if denom == 0:
+        return 0.0
+
+    return numer / denom
+
+@njit
+def lagged_corr_jit(data: np.ndarray, max_lag=10) -> np.ndarray:
+    """
+    Calculate Pearson correlation coefficient for each lag (0 to max_lag) 
+    for a flattened 2D array (individuals, time).
+    
+    Parameters:
+    data (np.array): Input data with shape (4, 2, 1000, 52).
+    max_lag (int): Maximum lag to calculate correlations for. Default is 10.
+    
+    Returns:
+    np.array: Correlation coefficients for lags from 0 to max_lag.
+    """
+    # Step 1: Flatten the data to (8000, 52)
+    # flattened_data = data.reshape(-1, data.shape[-1])  # Shape (8000, 52)
+    flattened_data = flat_D4_to_indiv_age(data)
+
+    # Step 2: Initialize an array to store correlation coefficients
+    correlations = np.zeros(max_lag + 1)
+
+    # Step 3: Loop through each lag (from 0 to max_lag)
+    num_samples = flattened_data.shape[0]
+    for lag in range(max_lag + 1):
+        if lag > 0:
+            # Create lagged version of the data manually
+            original_truncated = flattened_data[:, :-lag]
+            lagged_truncated = flattened_data[:, lag:]
+
+            # Calculate Pearson correlation across all individuals for this lag
+            correlations[lag] = pearson_corr_jit(original_truncated.flatten(), lagged_truncated.flatten())
+        else:
+            # Calculate correlation for lag 0 directly
+            row_data = flattened_data.flatten()
+            correlations[lag] = pearson_corr_jit(row_data, row_data)
+
+    return correlations
+
+
 # i need to find a way to make this work with numba
 def lagged_corr(data: np.ndarray, max_lag=10) -> np.ndarray:
     """
@@ -1135,7 +1206,7 @@ def make_lagged_pairs(x, lag=1):
 def plot_histogram(partition,
                    data1, mult1=100, lbl1='Model', ymax=65, ylabel='Share (%)',
                    data2=None, mult2=100, lbl2='Data', ymax2=None, ylabel2='Share (%)',
-                   mn1=np.NaN, sd1=np.NaN, mn2=np.NaN, sd2=np.NaN,
+                   mn1=np.nan, sd1=np.nan, mn2=np.nan, sd2=np.nan,
                    xtic=1,
                    vlabel='', vlbl='', path=''):
     """

@@ -24,7 +24,7 @@ import pandas as pd
 import MH_trans_manager as trans_manager
 
 # move to factory class?
-def pars_factory(main_path: str, H_trans_uncond_path: str = None, H_type_pop_share_path: str = None, my_lab_fe_grid: np.ndarray = None
+def pars_factory(main_path: str, H_trans_uncond_path: str = None, H_type_pop_share_path: str = None, my_lab_fe_grid: np.ndarray = None, num_sims: int = 1000, 
                  ) -> Pars:
     """
     create and returh a pars object with default parameters
@@ -39,7 +39,7 @@ def pars_factory(main_path: str, H_trans_uncond_path: str = None, H_type_pop_sha
     w_coeff_grid = pars_shocks.gen_default_wage_coeffs(my_lab_fe_grid)
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=301, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
-                alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
+                alpha = 0.45, sim_draws=num_sims, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
                 wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
                 print_screen=0)
     myPars.H_type_perm_weights = np.array([0.5, 0.5])
@@ -59,7 +59,8 @@ def pars_factory(main_path: str, H_trans_uncond_path: str = None, H_type_pop_sha
     return myPars
     
 def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_folder_name: str = None, H_trans_uncond_path: str = None, H_type_pop_share_path: str = None, 
-            my_lab_fe_grid: np.ndarray = None, output_flag: bool = True, do_wH_calib: bool = True) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+            my_lab_fe_grid: np.ndarray = None, output_flag: bool = True, num_sims: int = 1000, 
+            do_wH_calib: bool = True, do_dpi_calib: bool = True) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     run the model with the given parameters and return myPars, myShocks, sols, sims
     """
@@ -70,7 +71,7 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
     else:
         print(f"*****Running main_io with default out_folder_name*****")
     if myPars is None:
-        myPars = pars_factory(main_path = main_path, H_trans_uncond_path= H_trans_uncond_path, H_type_pop_share_path = H_type_pop_share_path, my_lab_fe_grid = my_lab_fe_grid)
+        myPars = pars_factory(main_path = main_path, H_trans_uncond_path= H_trans_uncond_path, H_type_pop_share_path = H_type_pop_share_path, my_lab_fe_grid = my_lab_fe_grid, num_sims = num_sims)
     if myShocks is None:
         myShocks = Shocks(myPars)
     outpath = None
@@ -79,9 +80,11 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
 
     # myPars.print_screen = 2
 
-    sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib, sim_no_calib = False, 
-                          get_targets = True, output_flag = output_flag, tex = True, output_path = outpath, 
-                          data_moms_folder_path= myPars.path + '/input/50p_age_moms/')
+    sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, do_wH_calib = do_wH_calib,  do_dpi_claib=do_dpi_calib,
+                            sim_no_calib = False, 
+                            get_targets = True, output_flag = output_flag, tex = True, output_path = outpath, 
+                            data_moms_folder_path= myPars.path + '/input/50p_age_moms/')
+    myShocks = Shocks(myPars)
     return myPars, myShocks, sols, sims
 
 # run if main condition
@@ -91,12 +94,13 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     print("Running main")
 
-    # ***** may want to change how trans is generated its redundant in do file.
     of_name = None
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
     trans_path = main_path + "input/50p_age_moms/MH_trans_uncond_age.csv"
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_uncond_path = trans_path)
+    # do_dpi_calib = False
+    do_dpi_calib = True
+    myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_uncond_path = trans_path, do_dpi_calib = do_dpi_calib)
 
     tb.print_exec_time("Main.py executed in", start_time) 

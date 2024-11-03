@@ -35,8 +35,6 @@ duplicates report indiv_id age
 duplicates report indiv_id year
 duplicates report indiv_id year age
 
-pause on
-pause
 duplicates drop indiv_id age, force
 
 // // DROP AFTER DUPLICATE BY indiv_id and age appears 

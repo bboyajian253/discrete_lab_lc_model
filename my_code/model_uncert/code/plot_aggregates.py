@@ -34,19 +34,22 @@ def plot_wage_aggs_and_moms(myPars: Pars, data_moms_path: str = None, outpath: s
     # calcualte weighted mean wages by age
     weighted_wages = model.gen_weighted_wage_hist(myPars, Shocks(myPars)) 
     mean_weighted_wages = np.sum(weighted_wages, axis=tuple(range(weighted_wages.ndim - 1)))
+    log_wages = model.gen_wlog_wage_hist(myPars, Shocks(myPars))
+    mean_wlog_wages = np.sum(log_wages, axis=tuple(range(log_wages.ndim - 1)))
     
     # plot that shit
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
-    values = mean_weighted_wages
-    values = values[:j_last]
+    values = mean_weighted_wages[:j_last]
+    log_values = mean_wlog_wages[:j_last]
     sim_y_label = "Average Wage (Weighted)"
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
-    log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
+    # log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
     data_moments_col_ind = 1
     data_moments = tb.read_specific_column_from_csv(data_moms_path, data_moments_col_ind) # 1 means read the second column
-    log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
+    log_moments_col_ind = 3
+    log_moments = tb.read_specific_column_from_csv(data_moms_path, log_moments_col_ind)
     for modifier in ['','log']:
         if myPars.print_screen >= 2:
                 print(modifier,sim_y_label)

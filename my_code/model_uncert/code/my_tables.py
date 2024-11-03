@@ -12,6 +12,9 @@ import numpy as np
 from pars_shocks import Pars
 import my_toolbox as tb
 
+def print_lifetime_earnings_to_tex(myPars: Pars, path: str = None)-> None:
+    ''' this creates a LaTeX table of the lifetime earnings moments and compiles it to a PDF.''' 
+    pass
 
 def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], model_moments: Dict[str, float], path: str = None) -> None:
     '''This generates a LaTeX table of the parameters and compiles it to a PDF.'''
@@ -27,6 +30,10 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
     w0_mu_mod_val = model_moments['w0_mu']
     w0_sigma_targ_val = targ_moments['w0_sigma']
     w0_sigma_mod_val = model_moments['w0_sigma']
+    dpi_BB_targ_val = targ_moments['dpi_BB']
+    dpi_BB_mod_val = model_moments['dpi_BB']
+    dpi_GG_targ_val = targ_moments['dpi_GG']
+    dpi_GG_mod_val = model_moments['dpi_GG']
 
     tab = [
         "\\documentclass[border=3mm,preview]{standalone}",
@@ -36,6 +43,8 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
         "\\hline \n",
         "Parameter & Description & Par. Value & Target Moment & Target Value & Model Value \\\\ \n", 
         "\\hline \n",   
+        f"$\\Delta_{{\\pi_{{BB}}}}$ & Bad MH trans shift  & {round(myPars.delta_pi_BB, 4)} & Autocorr. MH lag=1 & {round(dpi_BB_targ_val, 2)} & {round(dpi_BB_mod_val, 2)} \\\\ \n",
+        f"$\\Delta_{{\\pi_{{GG}}}}$ & Good MH trans shift & {round(myPars.delta_pi_GG, 4)} & Autocorr. MH lag=10 & {round(dpi_GG_targ_val, 2)} & {round(dpi_GG_mod_val, 2)} \\\\ \n",
         f"$\\alpha$ & $c$ utility weight & {round(myPars.alpha, 4)} & Mean hours worked & {round(alpha_targ_val,2)} & {round(alpha_mod_val, 2)} \\\\ \n", 
         f"$\\mu_{{w_{{0}}}}$ & FE wage mean & {round(myPars.lab_fe_tauch_mu, 4)} & Mean wage, $j=0$ & {round(w0_mu_targ_val,4)} & {round(w0_mu_mod_val,4)} \\\\ \n",
         f"$\\sigma_{{w_{{0}}}}$ & FE wage SD & {round(myPars.lab_fe_tauch_sigma, 4)} & SD wage, $j=0$ & {round(w0_sigma_targ_val,4)} & {round(w0_sigma_mod_val,4)} \\\\ \n",
