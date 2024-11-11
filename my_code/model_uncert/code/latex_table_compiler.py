@@ -96,20 +96,44 @@ def add_end_table(old_file_path: str, new_file_path: str = None) -> None:
     # close the files
     old_file.close()
     new_file.close()
-            
+
 
 if __name__ == "__main__":
     quant_out_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/do_files/UKHLS_quants_output/"
     
-    # qreg_tex_path = quant_out_path + "reg_results_Q5_specEd.tex"
-    # new_qreg_tex_path = quant_out_path + "reg_results_Q5_specEd_standalone.tex"
-    # make_standalone_tex(qreg_tex_path, new_qreg_tex_path)
-    # tb.tex_to_pdf(quant_out_path, "reg_results_Q5_specEd_standalone.tex")
+    old_name = "reg_results_specEdMH.tex"
+    new_name = "reg_results_specEdMH_standalone.tex"
+    qreg_tex_path = quant_out_path + old_name
+    new_qreg_tex_path = quant_out_path + new_name
+    make_standalone_tex_lscape(qreg_tex_path, new_qreg_tex_path)
+    tb.tex_to_pdf(quant_out_path, new_name)
 
-    qreg_tex_path = quant_out_path + "reg_results_Q5_specEd_both.tex"
-    new_qreg_tex_path = quant_out_path + "reg_results_Q5_specEd_both_standalone.tex"
+    old_name = "reg_results_Q5_specEd.tex"
+    new_name = "reg_results_Q5_specEd_standalone.tex"
+    qreg_tex_path = quant_out_path + old_name
+    new_qreg_tex_path = quant_out_path + new_name
+    make_standalone_tex_lscape(qreg_tex_path, new_qreg_tex_path)
+    tb.tex_to_pdf(quant_out_path, new_name)
+
+    old_name = "reg_results_specCont.tex"
+    new_name = "reg_results_specCont_standalone.tex"
+    qreg_tex_path = quant_out_path + old_name
+    new_qreg_tex_path = quant_out_path + new_name
+    make_standalone_tex_lscape(qreg_tex_path, new_qreg_tex_path)
+    tb.tex_to_pdf(quant_out_path, new_name)
+
+    # old_name = "reg_results_specCont_both.tex"
+    # new_name = "reg_results_specCont_both_standalone.tex"
+    # qreg_tex_path = quant_out_path + old_name
+    # new_qreg_tex_path = quant_out_path + new_name
     # make_standalone_tex_lscape(qreg_tex_path, new_qreg_tex_path)
-    tb.tex_to_pdf(quant_out_path, "reg_results_Q5_specEd_both_standalone.tex")
+    # tb.tex_to_pdf(quant_out_path, new_name)
 
-    # compile_all_tex_in(quant_out_path)
+
+    # old_name = "reg_results_Q5_specEd_both.tex"
+    # new_name = "reg_results_Q5_specEd_both_test.tex"
+    # qreg_tex_path = quant_out_path + old_name
+    # new_qreg_tex_path = quant_out_path + new_name
+    # make_standalone_tex_lscape(qreg_tex_path, new_qreg_tex_path)
+    # tb.tex_to_pdf(quant_out_path, new_name)
 

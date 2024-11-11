@@ -35,8 +35,6 @@ gen median_ph = (physical_health > r(p50))
 sum median*
 
 //make physical and mental health quantiles for some quantile q
-// local quants = "2 3 4 5 8 10"
-// local quants = "2 3 4 5"
 local quants = "5"
 foreach q in `quants'{
 	sort physical_health
@@ -57,26 +55,13 @@ label define mh_q5lab 1 "Poor Mental Health" 2 "Fair Mental Health" 3 "Good Ment
 label values mh_Q5 mh_q5lab
 label define ph_q5lab 1 "Poor Physical Health" 2 "Fair Physical Health" 3 "Good Physical Health" 4 "Very Good PH" 5 "Excellent Physical Health"
 label values ph_Q5 ph_q5lab
-// * Label the values of mh_Q4
-// label define mh_q4lab 1 "poor mh" 2 "fair mh" 3 "good mh" 4 "very good mh"
-// label values mh_Q4 mh_q4lab
-// label define ph_q4lab 1 "poor ph" 2 "fair ph" 3 "good ph" 4 "very good ph" 
-// label values ph_Q4 ph_q4lab
-// * Label the values of mh_Q3
-// label define mh_q3lab 1 "poor mh" 2 "fair mh" 3 "good mh" 
-// label values mh_Q3 mh_q3lab
-// label define ph_q3lab 1 "poor ph" 2 "fair ph" 3 "good ph" 
-// label values ph_Q3 ph_q3lab
-// * Label the values of mh_Q2
-// label define mh_q2lab 1 "poor mh" 2 "fair mh" 
-// label values mh_Q2 mh_q2lab
-// label define ph_q2lab 1 "poor ph" 2 "fair ph" 
-// label values ph_Q2 ph_q2lab
-// *svyset psu [pweight=long_weights], strata(strata)
 	
+*****************************
+*** MH and PH regressions ***
+*****************************
+// regress deps on MH and PH 
 
 cd "`savedir'"
-// regress deps on MH and PH 
 local deps "log_lab_earn log_wage log_hours"
 
 local FE1 "year"
@@ -84,14 +69,18 @@ local FE2 "year indiv_id"
 local myFEs "FE1 FE2"
 
 // label variable mental_health "Mental Health"
-label variable MH "MH State"
-label variable PH "PH State"
+label variable MH "Good MH"
+label variable PH "Good PH"
+capture drop MHxPH
+gen MHxPH = PH*MH
+label variable MHxPH "MH $\times$ PH"
 
-local specEdMH "i.MH i.PH i.MH#i.PH i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
-// can add more specs here later
+// local specEdMH "i.MH i.PH i.MH#i.PH i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
+local specEdMH "i.MH i.PH MHxPH i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
 local spec "`specEdMH'"
 local spec_name "specEdMH"
-local myKeepMH  "1.MH 1.PH 2.sex 1.educ"
+// local myKeepMH  "1.MH 1.PH 1.MH#1.PH"
+local myKeepMH  "1.MH 1.PH MHxPH"
 
 foreach FE in `myFEs'{
 
@@ -120,22 +109,23 @@ foreach FE in `myFEs'{
 
 di "***** ran MH and PH regressions *****"
 
+local footnote "With controls for year, race, marital status, urban location, sex, education and an age cubic."
 
+// store and export regressions on MH and PH 
 esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
 Reg_emp_year_id  Reg_log_lab_earn_year_id Reg_log_wage_year_id Reg_log_hours_year_id ///
 using reg_results_`spec_name'_both.tex, booktabs replace cells(b(star fmt(3)) se(par fmt(3))) ///
-	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
-	label /// width(\textwidth) 
+	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square") fmt(0 3 3)) ///
+	label /// 
 	prehead(`"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
 			`"\begin{table}"' ///
-			`"\center\caption{Mental and Physical Health State Effects and Labor Outcomes}"' ///
+			`"\center\caption*{Mental and Physical Health States and Labor Outcomes}"' ///
 			`"\footnotesize"' ///
 			`"\begin{tabular}{l*{@M}{c}}"' ) ///
-	postfoot(`"\hline"' ///
-			`"\multicolumn{9}{l}{\small{All models control for race, marital status, urban location, and an age cubic.}} \\"' ///
+	postfoot(`"\bottomrule"' ///
+			`"\multicolumn{9}{l}{\footnotesize{All models control for race, marital status, urban location, sex, education and an age cubic.}} \\"' ///
 			`"\end{tabular}"' ///
 			`"\end{table}"' ) ///
-	substitute(\midrule \hline) ///
 	keep(`myKeepMH') /// Exclude all coeffecients excepet quintiles
 	mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) ///
 	mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)" "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none)  
@@ -145,15 +135,15 @@ di "***** saved the first table *****"
 ***Combine and export the stored results to a LaTeX .tex file***
 esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
 using reg_results_`spec_name'.tex, booktabs replace cells(b(star fmt(3)) se(par fmt(3))) ///
-	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
-	label /// width(\textwidth) 
+	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square") fmt(0 3 3)) ///
+	label /// 
 	prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
 			`"\begin{table}"' ///
-			`"\center\caption{Mental and Physical Health State Effects and Labor Outcomes}"' ///
-			`"\footnotesize"' ///
+			`"\center\caption*{\large{\underline{Mental and Physical Health States and Labor Outcomes}}}"' ///
+			`"\vspace{0.2cm}"' ///
 			`"\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth) 
-	postfoot(	`"\hline"' ///
-				`"\multicolumn{5}{l}{\small{All models control for race, marital status, urban location, an age cubic, and year.}} \\"' ///
+	postfoot(	`"\bottomrule"' ///
+				`"\multicolumn{5}{l}{\scriptsize{`footnote'}} \\"' ///
 				`"\end{tabular}"' ///
 				`"\end{table}"' ) ///
 	keep(`myKeepMH') /// Exclude all coeffecients excepet quintiles
@@ -177,8 +167,8 @@ foreach q in `quants'{
 	local myKeepPH`q' ""
 	local i = 2
 	while `i'<=`q'{
-		local myKeepMP`q' "`myKeepMP`q'' `i'.mh_Q`qq' `i'.ph_Q`pq' 2.sex 1.educ" 
-		// local myKeepMP`q' "`myKeepMP`q'' `i'.mh_Q`qq' `i'.ph_Q`pq' 2.sex " //1.educ
+		// local myKeepMP`q' "`myKeepMP`q'' `i'.mh_Q`qq' `i'.ph_Q`pq' 2.sex 1.educ" 
+		local myKeepMP`q' "`myKeepMP`q'' `i'.mh_Q`qq' `i'.ph_Q`pq'" 
 		local myKeepMH`q' "`myKeepMH`q'' `i'.mh_Q`qq'"
 		local myKeepPH`q' "`myKeepPH`q'' `i'.mh_Q`pq'"
 		local ++i
@@ -225,39 +215,20 @@ foreach q in `quants'{
 		***Combine and export the stored results to a text file***
 		*CHANGE TO THE SAVE LOCATION
 		cd "`savedir'"
-		
-		*if `qq' >= 5{
-			*2.mh_Q`qq' 3.mh_Q`qq' 4.mh_Q`qq' 5.mh_Q`qq' 2.ph_Q`pq' 3.ph_Q`pq' 4.ph_Q`pq' 5.ph_Q`pq'
-
-			// ***Combine and export the stored results to a text file***
-			// esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
-			// Reg_emp_year_id Reg_log_lab_earn_year_id Reg_log_wage_year_id Reg_log_hours_year_id ///
-			// using reg_results_Q`q'_`spec'.txt, replace cells(b(star fmt(3)) se(par fmt(3))) ///
-			// 	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
-			// 	label title("Regression Results with Year Fixed Effects") ///
-			// 	keep(`myKeepMP`q'') /// Exclude all coeffecients excepet quintiles
-			// 	mgroups("Year FE" "Indiv & Year", pattern(1 0 0 0 1 0 0 0)) ///
-			// 	mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)"  "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)")  ///
-			// 	varwidth(20)
-			// 	*title("Regression Results with Interacations and Year Fixed Effects") 
-
-			// ***Combine and export the stored results to a LaTeX .tex file***
-			
 		esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
 		Reg_emp_year_id  Reg_log_lab_earn_year_id Reg_log_wage_year_id Reg_log_hours_year_id ///
 		using reg_results_Q`q'_`spec'_both.tex, booktabs replace cells(b(star fmt(3)) se(par fmt(3))) ///
-			stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
+			stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square") fmt(0 3 3)) ///
 			label /// width(\textwidth) 
 			prehead(`"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
 					`"\begin{table}"' ///
-					`"\center\caption{Mental and Physical Health Quintile Effects and Labor Outcomes}"' ///
+					`"\center\caption*{Mental and Physical Health Quintiles and Labor Outcomes}"' ///
 					`"\footnotesize"' ///
 					`"\begin{tabular}{l*{@M}{c}}"' ) ///
-			postfoot(`"\hline"' ///
+			postfoot(`"\bottomrule"' ///
 					`"\multicolumn{9}{l}{\small{All models control for race, marital status, urban location, and an age cubic.}} \\"' ///
 					`"\end{tabular}"' ///
 					`"\end{table}"' ) ///
-			substitute(\midrule \hline) ///
 			keep(`myKeepMP`q'') /// Exclude all coeffecients excepet quintiles
 			mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) ///
 			mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)" "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none)  
@@ -265,20 +236,19 @@ foreach q in `quants'{
 		***Combine and export the stored results to a LaTeX .tex file***
 		esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
 		using reg_results_Q`q'_`spec'.tex, booktabs replace cells(b(star fmt(3)) se(par fmt(3))) ///
-			stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
+			stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square") fmt(0 3 3)) ///
 			label /// width(\textwidth) 
 			prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
 					`"\begin{table}"' ///
-					`"\center\caption{Mental and Physical Health Quintile Effects and Labor Outcomes}"' ///
-					`"\footnotesize"' ///
+					`"\center\caption*{\large{\underline{Mental and Physical Health Quintiles  and Labor Outcomes}}}"' ///
+					`"\vspace{0.2cm}"' ///
 					`"\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth) 
-			postfoot(	`"\hline"' ///
-						`"\multicolumn{5}{l}{\small{All models control for race, marital status, urban location, an age cubic, and year.}} \\"' ///
+			postfoot(	`"\bottomrule"' ///
+						`"\multicolumn{5}{l}{\scriptsize{`footnote'}} \\"' ///
 						`"\end{tabular}"' ///
 						`"\end{table}"' ) ///
 			keep(`myKeepMP`q'') /// Exclude all coeffecients excepet quintiles
 			mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none)  
-				// substitute(\midrule \hline) ///
 	} 
 	***end of specs****
 }	
@@ -289,6 +259,7 @@ foreach q in `quants'{
 ********************************
 label variable mental_health "Mental Health"
 label variable physical_health "Physical Health"
+capture drop MHxPH
 gen MHxPH = physical_health*mental_health
 label variable MHxPH "MH $\times$ PH"
 
@@ -301,7 +272,7 @@ foreach myFE in `myFEs'{
 	*c.mental_health#c.physical_health
 	// local specCont "mental_health physical_health MHxPH i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
 	local specCont "mental_health physical_health MHxPH i.urban i.race age age2 age3 i.mar_stat i.sex i.educ [pweight=wght]"
-	local myKeepCont "mental_health physical_health MHxPH 2.sex 1.educ"
+	local myKeepCont "mental_health physical_health MHxPH"
 	*eventually I can put a loop here if needed
 	local spec specCont
 	
@@ -333,37 +304,38 @@ foreach myFE in `myFEs'{
 }
 
 //end fe loop
-***for table format testing
 esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year ///
 	Reg_emp_year_id Reg_log_lab_earn_year_id Reg_log_wage_year_id Reg_log_hours_year_id ///
 	using reg_results_`spec'_both.tex, booktabs replace cells(b(star fmt(5)) se(par fmt(3))) ///
-	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
-	label /// width(\textwidth)
-	prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
-	`"\center\caption{Mental and Physical Health Index Effects and Labor Outcomes}"' ///
-	`"\tiny\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth)
-	substitute(\midrule \hline) ///
-	postfoot(`"\tabnotes{9}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}"' ) ///
-	keep(`myKeepCont') /// Exclude all coeffecients excepet quintiles
-	mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) ///
-		mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)" "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none) //
-	*title("Mental and Physical Health Effects on Labor Outcomes")
-	*`"\tiny"' ///
-	*span erepeat(\cmidrule(lr){@span}
+		stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square") fmt(0 3 3)) ///
+		label /// 
+		prehead(`"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
+				`"\begin{table}"' ///
+				`"\center\caption*{Mental and Physical Health Indices and Labor Outcomes}"' ///
+				`"\footnotesize"' ///
+				`"\begin{tabular}{l*{@M}{c}}"' ) ///
+		postfoot(`"\bottomrule"' ///
+				`"\multicolumn{9}{l}{\small{All models control for race, marital status, urban location, and an age cubic.}} \\"' ///
+				`"\end{tabular}"' ///
+				`"\end{table}"' ) ///
+		keep(`myKeepCont') /// Exclude all coeffecients except the one of interest
+		mgroups("Year FE" "Individ and Year FE", pattern(1 0 0 0 1 0 0 0) prefix(\multicolumn{@span}{c}{\underline{) suffix(}}) span erepeat(\cmidrule(lr){@span})) ///
+		mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)" "Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none) 
 	
-esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year using reg_results_`spec'.tex, booktabs replace cells(b(star fmt(5)) se(par fmt(3))) ///
-	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square")) ///
-	label /// width(\textwidth)
+esttab Reg_emp_year Reg_log_lab_earn_year Reg_log_wage_year Reg_log_hours_year using reg_results_`spec'.tex, booktabs replace cells(b(star fmt(5)) se(par fmt(4))) ///
+	stats(N r2 r2_a, labels("Observations" "R-Square" "Adj. R-Square") fmt(0 3 3)) ///
+	label /// 
 	prehead( `"\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}"' ///
-	`"\center\caption{Mental and Physical Health Index Effects and Labor Outcomes}"' ///
-	`"\tiny\begin{tabular}{l*{@M}{c}}"' ) /// varwidth(20) width(\textwidth)
-	substitute(\midrule \hline) ///
-	postfoot(`"\tabnotes{5}{All models also control for sex, a cubic in age, race, marital status, urban location and year.}"') ///
-	keep(`myKeepCont') /// Exclude all coeffecients excepet quintiles
+			`"\begin{table}"' ///
+			`"\center\caption*{\large{\underline{Mental and Physical Health Indices and Labor Outcomes}}}"' ///
+			`"\vspace{0.2cm}"' ///
+			`"\begin{tabular}{l*{@M}{c}}"' ) /// 
+	postfoot(	`"\bottomrule"' ///
+				`"\multicolumn{5}{l}{\scriptsize{`footnote'}} \\"' ///
+				`"\end{tabular}"' ///
+				`"\end{table}"' ) ///
+	keep(`myKeepCont') /// 
 	mtitles("Employment" "ln(Earnings)" "ln(Wage)" "ln(Hours)") nonumbers collabels(none) //
-	*title("Mental and Physical Health Effects on Labor Outcomes")
-	*`"\tiny"' ///
-	*span erepeat(\cmidrule(lr){@span}
 
 cd "`dir'"
 

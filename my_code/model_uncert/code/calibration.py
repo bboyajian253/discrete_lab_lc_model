@@ -877,7 +877,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
         #     print("Calibrating delta_pi_BB")
         #     calib_dpi_BB, my_dpi_BB_mom, state_sols, sims = calib_delta_pi_BB(myPars, calib_path, dpi_BB_tol, dpi_BB_mom_targ, dpi_BB_min, dpi_BB_max)
 
-        print(f"my_dpi_BB_mom: {my_dpi_BB_mom}, my_dpi_GG_mom: {my_dpi_GG_mom}")
+        if do_dpi_calib:
+            print(f"my_dpi_BB_mom: {my_dpi_BB_mom}, my_dpi_GG_mom: {my_dpi_GG_mom}")
         if (not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol)):
         # if (not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol)):
         # if (not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol)):

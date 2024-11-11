@@ -38,7 +38,7 @@ label values MH3 MH3lab
 * define current mental health 2 types
 gen MH = mh_Q5
 recode MH (1/2=0) (3/5=1) 
-label define MHlab 0 "poor" 1 "good" 
+label define MHlab 0 "Bad MH" 1 "Good MH" 
 label values MH MHlab
 
 gen badMH = .
@@ -65,7 +65,7 @@ label values PH3 PH3lab
 * define current physical health 2 types
 gen PH = ph_Q5
 recode PH (1/2=0) (3/5=1) 
-label define PHlab 0 "poor" 1 "good" 
+label define PHlab 0 "Bad PH" 1 "Good PH" 
 label values PH PHlab
 
 gen badPH = .

@@ -1,11 +1,11 @@
 \def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
 \begin{table}
-\center\caption{Mental and Physical Health Quintile Effects and Labor Outcomes}
+\center\caption*{Mental and Physical Health Quintiles and Labor Outcomes}
 \footnotesize
 \begin{tabular}{l*{8}{c}}
                     &\multicolumn{4}{c}{\underline{Year FE}}                                                &\multicolumn{4}{c}{\underline{Individ and Year FE}}                                    \\\cmidrule(lr){2-5}\cmidrule(lr){6-9}
                     &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}&\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
-\hline
+\midrule
 Fair Mental Health  &       0.200\sym{***}&       0.007         &       0.014         &      -0.007         &       0.034\sym{***}&      -0.004         &       0.012         &      -0.015\sym{*}  \\
                     &     (0.008)         &     (0.018)         &     (0.013)         &     (0.013)         &     (0.005)         &     (0.010)         &     (0.009)         &     (0.008)         \\
 Good Mental Health  &       0.269\sym{***}&       0.036         &       0.036\sym{*}  &       0.000         &       0.046\sym{***}&      -0.005         &       0.015         &      -0.020\sym{*}  \\
@@ -22,15 +22,11 @@ Very Good PH        &       0.351\sym{***}&       0.099\sym{***}&       0.080\sy
                     &     (0.013)         &     (0.019)         &     (0.015)         &     (0.013)         &     (0.010)         &     (0.011)         &     (0.010)         &     (0.009)         \\
 Excellent Physical Health&       0.398\sym{***}&       0.169\sym{***}&       0.144\sym{***}&       0.024\sym{*}  &       0.062\sym{***}&      -0.001         &       0.021\sym{**} &      -0.022\sym{**} \\
                     &     (0.008)         &     (0.015)         &     (0.011)         &     (0.011)         &     (0.007)         &     (0.009)         &     (0.008)         &     (0.007)         \\
-female              &      -0.090\sym{***}&      -0.416\sym{***}&      -0.150\sym{***}&      -0.266\sym{***}&       0.001         &       0.210\sym{*}  &       0.107\sym{*}  &       0.103         \\
-                    &     (0.002)         &     (0.004)         &     (0.003)         &     (0.002)         &     (0.050)         &     (0.082)         &     (0.052)         &     (0.061)         \\
-College             &       0.070\sym{***}&       0.359\sym{***}&       0.307\sym{***}&       0.051\sym{***}&       0.091\sym{***}&       0.064\sym{**} &       0.019         &       0.045\sym{**} \\
-                    &     (0.003)         &     (0.004)         &     (0.003)         &     (0.002)         &     (0.019)         &     (0.021)         &     (0.018)         &     (0.015)         \\
-\hline
-Observations        &  142051.000         &   76849.000         &   76849.000         &   76849.000         &  136648.000         &   73068.000         &   73068.000         &   73068.000         \\
+\midrule
+Observations        &      142051         &       76849         &       76849         &       76849         &      136648         &       73068         &       73068         &       73068         \\
 R-Square            &       0.403         &       0.319         &       0.266         &       0.199         &       0.810         &       0.882         &       0.825         &       0.791         \\
 Adj. R-Square       &       0.402         &       0.319         &       0.265         &       0.199         &       0.774         &       0.857         &       0.788         &       0.747         \\
-\hline
+\bottomrule
 \multicolumn{9}{l}{\small{All models control for race, marital status, urban location, and an age cubic.}} \\
 \end{tabular}
 \end{table}

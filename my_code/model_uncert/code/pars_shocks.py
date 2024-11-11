@@ -236,6 +236,10 @@ def gen_MH_trans(MH_trans_uncond:np.ndarray, H_type_perm_grid_size:int, J:int, H
     mat_BB_high_typ = mat_BB * (1 - delta_pi_BB) # *xb_j
     mat_GG_low_typ = mat_GG * (1 - delta_pi_GG) # *xg_j
     mat_GG_high_typ = mat_GG * (1 + delta_pi_GG) # *xg_j
+    # mat_BB_low_typ = mat_BB + delta_pi_BB # *xb_j
+    # mat_BB_high_typ = mat_BB - delta_pi_BB # *xb_j
+    # mat_GG_low_typ = mat_GG - delta_pi_GG # *xg_j
+    # mat_GG_high_typ = mat_GG + delta_pi_GG # *xg_j
 
     # low type
     ret_mat[0, :, 0, 0] = mat_BB_low_typ
@@ -260,8 +264,6 @@ def gen_default_wage_coeffs(lab_fe_grid: np.ndarray, num_wage_terms = 4)-> np.nd
     """
     num_lab_fe = lab_fe_grid.shape[0] # ensures numba compatibility to use shape instead of len 
     w_coeff_grid = np.zeros((num_lab_fe, num_wage_terms)) 
-#     w_coeff_grid[0, :] = [lab_fe_grid[0], 0.0, 0.0, 0.0]
-#     for lab_fe_index in range(1,len(lab_fe_grid)):
     for lab_fe_index in range(num_lab_fe):
         w_coeff_grid[lab_fe_index, :] = [lab_fe_grid[lab_fe_index], 1.0, -0.02, 0.0] 
     return w_coeff_grid
@@ -296,10 +298,7 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
     for j in range(myPars.J+1):
         if j > 0:
             hist_j = hist[:, :, :, j-1]
-            # hist_j = hist[:, :, :, j]
-            # xbj = gen_x_j(myPars, hist_j, BAD)
-            x_gg_j = gen_x_gg_j(myPars, hist_j)
-            x_bg_j = gen_x_bg_j(myPars, hist_j, j-1)
+            xgg_j_old = gen_x_gg_j_old(myPars, hist_j)
         for lab_fe_ind in range(myPars.lab_fe_grid_size):
             # for start_H_ind in range(myPars.H_grid_size):
             for H_type_perm_ind in range(myPars.H_type_perm_grid_size):
@@ -309,12 +308,9 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
                         prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
                         if prev_health_state_ind == GOOD:
                             health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
-                            # health_recovery_prob = xgj*myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
-                            # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                            # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] * xgg_j_old
                         else:
                             health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
-                            # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
-                            # health_recovery_prob =  1 - xbj*myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, BAD]
                         if shock <= health_recovery_prob:
                                 hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = GOOD
                     else:
@@ -323,20 +319,20 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
     return hist
 
 @njit
-def gen_x_gg_j(myPars: Pars, H_hist_j: np.ndarray)-> float:
+def gen_x_gg_j_old(myPars: Pars, H_hist_j: np.ndarray)-> float:
     BAD, LOW = 0, 0
     GOOD, HIGH = 1, 1
-    omega_g = gen_omega_j(myPars, H_hist_j, GOOD)
+    omega_g = gen_omega_j_old(myPars, H_hist_j, GOOD)
     delta = myPars.delta_pi_GG
 
     denom = omega_g*(1+delta) + (1-omega_g)*(1-delta)
     return 1/denom
 
 @njit
-def gen_x_bg_j(myPars: Pars, H_hist_j: np.ndarray, j: int)-> float:
+def gen_x_bg_j_old(myPars: Pars, H_hist_j: np.ndarray, j: int)-> float:
     BAD, LOW = 0, 0
     GOOD, HIGH = 1, 1
-    omega_b = gen_omega_j(myPars, H_hist_j, BAD)
+    omega_b = gen_omega_j_old(myPars, H_hist_j, BAD)
     H_trans_uncond = myPars.H_trans_uncond
     H_trans = myPars.H_trans
     pi_bg = H_trans_uncond[j, BAD, GOOD]
@@ -347,10 +343,10 @@ def gen_x_bg_j(myPars: Pars, H_hist_j: np.ndarray, j: int)-> float:
     
 
 @njit
-def gen_x_j(myPars: Pars, H_hist_j: np.ndarray, state: int)-> float:
+def gen_x_j_old(myPars: Pars, H_hist_j: np.ndarray, state: int)-> float:
     BAD = 0
     GOOD = 1
-    omega = gen_omega_j(myPars, H_hist_j, state)
+    omega = gen_omega_j_old(myPars, H_hist_j, state)
     if state == BAD:
         delta = myPars.delta_pi_BB
         denom = omega*(1-delta) + (1-omega)*(1+delta)
@@ -365,7 +361,7 @@ def gen_x_j(myPars: Pars, H_hist_j: np.ndarray, state: int)-> float:
 
     
 @njit
-def gen_omega_j(myPars:Pars, H_hist_j:np.ndarray, state:int) -> float:
+def gen_omega_j_old(myPars:Pars, H_hist_j:np.ndarray, state:int) -> float:
     BAD = 0
     GOOD = 1
     LOW = 0

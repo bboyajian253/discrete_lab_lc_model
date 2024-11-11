@@ -99,8 +99,7 @@ if __name__ == "__main__":
     trans_path = main_path + "input/50p_age_moms/MH_trans_uncond_age.csv"
     main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
 
-    # do_dpi_calib = False
-    do_dpi_calib = True
+    do_dpi_calib = False
     myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, H_trans_uncond_path = trans_path, do_dpi_calib = do_dpi_calib)
 
     tb.print_exec_time("Main.py executed in", start_time) 

@@ -1,0 +1,35 @@
+\documentclass[border=3mm,preview]{standalone} 
+\usepackage{booktabs} 
+\usepackage{caption} 
+\usepackage{pdflscape} 
+\begin{document}
+\begin{landscape}
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{table}
+\center\caption*{Mental and Physical Health Indices and Labor Outcomes}
+\footnotesize
+\begin{tabular}{l*{8}{c}}
+                    &\multicolumn{4}{c}{\underline{Year FE}}                                                &\multicolumn{4}{c}{\underline{Individ and Year FE}}                                    \\\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+                    &\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}&\multicolumn{1}{c}{Employment}&\multicolumn{1}{c}{ln(Earnings)}&\multicolumn{1}{c}{ln(Wage)}&\multicolumn{1}{c}{ln(Hours)}\\
+\toprule
+Mental Health       &     0.01677\sym{***}&     0.00212         &     0.00263\sym{**} &    -0.00050         &     0.00338\sym{***}&    -0.00090         &     0.00111         &    -0.00201\sym{***}\\
+                    &     (0.000)         &     (0.001)         &     (0.001)         &     (0.001)         &     (0.000)         &     (0.001)         &     (0.001)         &     (0.001)         \\
+Physical Health     &     0.01923\sym{***}&     0.00630\sym{***}&     0.00584\sym{***}&     0.00046         &     0.00387\sym{***}&    -0.00080         &     0.00094         &    -0.00175\sym{**} \\
+                    &     (0.000)         &     (0.001)         &     (0.001)         &     (0.001)         &     (0.000)         &     (0.001)         &     (0.001)         &     (0.001)         \\
+MH $\times$ PH      &    -0.00023\sym{***}&     0.00001         &    -0.00001         &     0.00002         &    -0.00004\sym{***}&     0.00001         &    -0.00001         &     0.00003\sym{**} \\
+                    &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         &     (0.000)         \\
+\midrule
+female              &    -0.08798\sym{***}&    -0.41398\sym{***}&    -0.14776\sym{***}&    -0.26622\sym{***}&     0.00214         &     0.20999\sym{*}  &     0.10675\sym{*}  &     0.10324         \\
+                    &     (0.002)         &     (0.004)         &     (0.003)         &     (0.002)         &     (0.050)         &     (0.082)         &     (0.052)         &     (0.062)         \\
+College             &     0.06733\sym{***}&     0.36049\sym{***}&     0.30941\sym{***}&     0.05108\sym{***}&     0.09178\sym{***}&     0.06414\sym{**} &     0.01899         &     0.04514\sym{**} \\
+                    &     (0.002)         &     (0.004)         &     (0.003)         &     (0.002)         &     (0.019)         &     (0.021)         &     (0.018)         &     (0.015)         \\
+\bottomrule
+Observations        &     142,051         &     76,849          &     76,849          &     76,849          &     136,648          &     73,068         &     73,068          &     73,068         \\
+R-Square            &     0.40755         &     0.31907         &     0.26407         &     0.19929         &     0.80956         &     0.88147         &     0.82475         &     0.79041         \\
+Adj. R-Square       &     0.40737         &     0.31869         &     0.26366         &     0.19884         &     0.77397         &     0.85690         &     0.78843         &     0.74698         \\
+\bottomrule
+\multicolumn{9}{l}{\small{All models control for race, marital status, urban location, and an age cubic.}} \\
+\end{tabular}
+\end{table}
+\end{landscape}
+\end{document}

@@ -1,0 +1,15 @@
+time_cost_calib
+
+[After the intro, data, and model sections are done] 
+For the purposes of the presentation, would it be possible to do a calibration/counterfactual where you have a time-cost role 
+for mental health, but set this so that you are matching the overall hours differences (including zeros) in the data by mental health. 
+You would not need to show all of the fit pictures again and re-explain the calibration. 
+Just something to show people that you might get big effects. Is this clear / feasible?
+ 
+ 
+Do you mean to set the time cost parameter so that I match the difference in hours Unconditional on employment? 
+I think this is feasible. I would just need to think about my sample a bit. 
+Currently I drop everyone who says they are employed but works less than 10 hours. 
+Maybe I want to include those people when I calculate the difference in hours by mental health status unconditional on employment 
+in the data.
+

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  15 OCT 2024 09:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  10 NOV 2024 12:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -108,6 +108,28 @@ Package caption Info: Standard document class detected.
 \c@caption@flags=\count199
 \c@continuedfloat=\count266
 )
+(c:/texlive/2021/texmf-dist/tex/latex/pdflscape/pdflscape.sty
+Package: pdflscape 2019/12/05 v0.12 Display of landscape pages in PDF (HO)
+
+(c:/texlive/2021/texmf-dist/tex/latex/graphics/lscape.sty
+Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
+
+(c:/texlive/2021/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2021/03/04 v1.4d Standard LaTeX Graphics (DPC,SPQR)
+
+(c:/texlive/2021/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
+)
+(c:/texlive/2021/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 107.
+
+(c:/texlive/2021/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2020/10/05 v1.2a Graphics/color driver for pdftex
+)))
+Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
+)
 (c:/texlive/2021/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2021-10-18 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count267
@@ -117,56 +139,82 @@ File: l3backend-pdftex.def 2021-10-18 L3 backend support: PDF output (pdfTeX)
 files/UKHLS_quants_output//reg_results_Q5_specEd_standalone.aux)
 \openout1 = `reg_results_Q5_specEd_standalone.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 1.
-LaTeX Font Info:    ... okay on input line 1.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 1.
-LaTeX Font Info:    ... okay on input line 1.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 1.
-LaTeX Font Info:    ... okay on input line 1.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 1.
-LaTeX Font Info:    ... okay on input line 1.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 1.
-LaTeX Font Info:    ... okay on input line 1.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 1.
-LaTeX Font Info:    ... okay on input line 1.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 1.
-LaTeX Font Info:    ... okay on input line 1.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
 
 Preview: Fontsize 10pt
 Preview: PDFoutput 1
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 6.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 6.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 6.
+(c:/texlive/2021/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count268
+\scratchdimen=\dimen160
+\scratchbox=\box52
+\nofMPsegments=\count269
+\nofMParguments=\count270
+\everyMPshowfont=\toks19
+\MPscratchCnt=\count271
+\MPscratchDim=\dimen161
+\MPnumerator=\count272
+\makeMPintoPDFobject=\count273
+\everyMPtoPDFconversion=\toks20
+) (c:/texlive/2021/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
 
-Overfull \hbox (1.06024pt too wide) in paragraph at lines 6--34
- [] 
- []
+(c:/texlive/2021/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 11.
 
 Preview: Tightpage -559403 -559403 559403 559403
-[1{c:/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+[1
+
+{c:/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+
+]
 (C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/do_
 files/UKHLS_quants_output//reg_results_Q5_specEd_standalone.aux) ) 
 Here is how much of TeX's memory you used:
- 2530 strings out of 478371
- 49228 string characters out of 5852527
+ 3315 strings out of 478371
+ 61374 string characters out of 5852527
  357221 words of memory out of 5000000
- 20659 multiletter control sequences out of 15000+600000
- 405552 words of font info for 34 fonts, out of 8000000 for 9000
+ 21409 multiletter control sequences out of 15000+600000
+ 406166 words of font info for 36 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 69i,9n,117p,455b,308s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 70i,9n,117p,374b,403s stack positions out of 5000i,500n,10000p,200000b,80000s
 <c:/texlive/2
 021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/texlive/2021/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><c:/texlive/2021/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmr9.pfb><c:/texlive/2021/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy6.pfb>
+dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/texlive/2021/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmr7.pfb><c:/texlive/2021/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmsy7.pfb>
 Output written on "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My
  Code/MH_Model/do_files/UKHLS_quants_output//reg_results_Q5_specEd_standalone.p
-df" (1 page, 55678 bytes).
+df" (1 page, 54438 bytes).
 PDF statistics:
  28 PDF objects out of 1000 (max. 8388607)
  16 compressed objects within 1 object stream
