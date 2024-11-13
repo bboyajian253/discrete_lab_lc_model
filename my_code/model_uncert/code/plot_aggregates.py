@@ -42,7 +42,6 @@ def plot_wage_aggs_and_moms(myPars: Pars, data_moms_path: str = None, outpath: s
     age_grid = myPars.age_grid[:j_last]
     values = mean_weighted_wages[:j_last]
     log_values = mean_wlog_wages[:j_last]
-    sim_y_label = "Average Wage (Weighted)"
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     # log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
@@ -51,21 +50,23 @@ def plot_wage_aggs_and_moms(myPars: Pars, data_moms_path: str = None, outpath: s
     log_moments_col_ind = 3
     log_moments = tb.read_specific_column_from_csv(data_moms_path, log_moments_col_ind)
     for modifier in ['','log']:
-        if myPars.print_screen >= 2:
-                print(modifier,sim_y_label)
         if modifier == 'log':
-             sim_values = log_values
-             mom_values = log_moments
+            sim_values = log_values
+            mom_values = log_moments
+            sim_y_label = "Average Log Wage (Weighted)"
         else:
-             sim_values = values
-             mom_values = data_moments
+            sim_values = values
+            mom_values = data_moments
+            sim_y_label = "Average Wage (Weighted)"
+        if myPars.print_screen >= 2:
+                print(sim_y_label)
         fig, ax = plt.subplots()
         ax.plot(age_grid, sim_values, label = sim_key_label)
         ax.plot(age_grid, mom_values, label = data_moments_label)
         # specify axis and labels
         ax.set_xlabel('Age')
         ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2]) 
-        ax.set_ylabel(modifier + ' ' + sim_y_label)
+        ax.set_ylabel(sim_y_label)
         ax.legend()
 
         short_name = 'wage'
@@ -99,7 +100,6 @@ def plot_earnings_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], dat
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
     values = avg_earn_age
-    sim_y_label = "Average Earnings (Weighted)"
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
@@ -107,14 +107,16 @@ def plot_earnings_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], dat
     data_moments = tb.read_specific_column_from_csv(data_moms_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
     for modifier in ['','log']:
-        if myPars.print_screen >= 2:
-            print(modifier,sim_y_label)
         if modifier == 'log':
             sim_values = log_values
             mom_values = log_moments
+            sim_y_label = "Average Log Earnings (Weighted)"
         else:
             sim_values = values
             mom_values = data_moments
+            sim_y_label = "Average Earnings (Weighted)"
+        if myPars.print_screen >= 2:
+            print(sim_y_label)
         
         fig, ax = plt.subplots()
         ax.plot(age_grid, sim_values, label = sim_key_label)
@@ -122,7 +124,7 @@ def plot_earnings_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], dat
         # specify axis and labels
         ax.set_xlabel('Age')
         ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
-        ax.set_ylabel(modifier + ' ' + sim_y_label)
+        ax.set_ylabel(sim_y_label)
         ax.legend()
 
         short_name = 'earnings'
@@ -157,7 +159,6 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_mom
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
     values = avg_lab
-    sim_y_label = "Average Labor (Weighted)"
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
@@ -165,14 +166,16 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_mom
     data_moments = tb.read_specific_column_from_csv(data_moms_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
     for modifier in ['','log']:
-        if myPars.print_screen >= 2:
-            print(modifier,sim_y_label)
         if modifier == 'log':
             sim_values = log_values
             mom_values = log_moments
+            sim_y_label = "Average Log Labor (Weighted)"
         else:
             sim_values = values
             mom_values = data_moments
+            sim_y_label = "Average Labor (Weighted)"
+        if myPars.print_screen >= 2:
+            print(sim_y_label)
         
         fig, ax = plt.subplots()
         ax.plot(age_grid, sim_values, label = sim_key_label)
@@ -180,7 +183,7 @@ def plot_lab_aggs_and_moms(myPars: Pars, sim_lc: Dict[str, np.ndarray], data_mom
         # specify axis and labels
         ax.set_xlabel('Age')
         ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
-        ax.set_ylabel(modifier + ' ' + sim_y_label)
+        ax.set_ylabel(sim_y_label)
         ax.legend()
 
         short_name = 'lab'
@@ -214,7 +217,6 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], data_mo
     j_last = myPars.J
     age_grid = myPars.age_grid[:j_last]
     values = avg_emp
-    sim_y_label = "Average Employment Rate (Weighted)"
     sim_key_label = "Simulated"
     data_moments_label = 'From the data'
     log_values = np.log(np.where(values > 0, values, 1e-3)) # log these results replace negatives with a very small number
@@ -222,14 +224,16 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], data_mo
     data_moments = tb.read_specific_column_from_csv(data_moms_path, data_moments_col_ind) # 1 means read the second column
     log_moments = np.log(np.where(data_moments > 0, data_moments, 1e-3))
     for modifier in ['','log']:
-        if myPars.print_screen >= 2:
-            print(modifier,sim_y_label)
         if modifier == 'log':
             sim_values = log_values
             mom_values = log_moments
+            sim_y_label = "Average Log Employment Rate (Weighted)"
         else:
             sim_values = values
             mom_values = data_moments
+            sim_y_label = "Average Employment Rate (Weighted)"
+        if myPars.print_screen >= 2:
+            print(sim_y_label)
         
         fig, ax = plt.subplots()
         ax.plot(age_grid, sim_values, label = sim_key_label)
@@ -237,7 +241,7 @@ def plot_emp_aggs_and_moms(myPars : Pars, sim_lc: Dict[str, np.ndarray], data_mo
         # specify axis and labels
         ax.set_xlabel('Age')
         ax.set_xlim([age_grid[0] - 2, age_grid[-1] + 2])
-        ax.set_ylabel(modifier + ' ' + sim_y_label)
+        ax.set_ylabel(sim_y_label)
         ax.legend()
 
         short_name = 'emp_rate'
@@ -397,10 +401,10 @@ def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str =
                 
                 trans = values[0,:,curr_H_state,fut_H_state] 
                 if curr_H_state == 0:
-                    lab = f"From Bad MH to Good MH"
+                    lab = f"MH Recovery: Bad to Good"
                     color = 'g'
                 else:
-                    lab = f"From Good MH to Bad MH"
+                    lab = f"MH Decline: Good to Bad"
                     color = 'r'
                 ax.plot(age_grid, trans, label = lab, color = color)
                 #save the data

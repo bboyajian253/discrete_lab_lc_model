@@ -6,13 +6,6 @@ global dodir    "$curdir/My Code/MH_Model/do_files" /*do file folder directory *
 global master_outdir   "$curdir/My Code/MH_Model/my_code/model_uncert/input" /*output file folder directory */
 global datadir  "$curdir/data" //"C:\Users\Ben\3YP_Data_Work\Data"
 
-// for the health transition moments
-// global outdir "$master_outdir/MH_trans"
-
-// do "$dodir/MH_trans_2_types.do" //generate the mental health transition probabilities for the model
-
-// do "$dodir/validate_H_types.do" //validate the health types generated in the model by regression
-
 // for the other moments
 global outdir "$master_outdir/time_cost_counter"
 
