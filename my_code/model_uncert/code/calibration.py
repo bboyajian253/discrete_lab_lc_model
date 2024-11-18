@@ -470,12 +470,12 @@ def phi_H_moment_giv_phi_H(myPars: Pars, new_phi_H:float)-> Tuple[float, Dict[st
     state_sols = solver.solve_lc(myPars)
     sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
     lab_sim_lc = sim_lc['lab']
-    return phi_H_moment(myPars, lab_sim_lc, shocks), state_sols, sim_lc
+    return phi_H_moment(myPars, lab_sim_lc), state_sols, sim_lc
 
 # def phi_H_moment(myPars: Pars, sims: Dict[str, np.ndarray], shocks: Shocks)-> float:
 
 @njit
-def phi_H_moment(myPars: Pars, lab_sims: np.ndarray, shocks: Shocks)-> float:
+def phi_H_moment(myPars: Pars, lab_sims: np.ndarray)-> float:
     '''
     returns the difference in mean log hours worked between the bad MH and good MH states 
     '''
@@ -483,25 +483,27 @@ def phi_H_moment(myPars: Pars, lab_sims: np.ndarray, shocks: Shocks)-> float:
     # pre_retirement_age_ind = np.where(myPars.age_grid == pre_retirement_age)[0][0]
     # lab_sims = lab_sims[:, :, :, :pre_retirement_age_ind]
     # H_hist: np.ndarray = shocks.H_hist[:, :, :, :pre_retirement_age_ind]
+    shocks = Shocks(myPars)
     lab_sims = lab_sims[:, :, :, :myPars.J]
     H_hist: np.ndarray = shocks.H_hist[:, :, :, :myPars.J]
 
-    # take the log where hours are positive
-    for i in range(lab_sims.size):
-        if lab_sims.flat[i] <= 0:
-            lab_sims.flat[i] = 1e-10
-    log_lab_sims = np.log(lab_sims)
+    # # take the log where hours are positive
+    # for i in range(lab_sims.size):
+    #     if lab_sims.flat[i] <= 0:
+    #         lab_sims.flat[i] = 1e-10
+    # log_lab_sims = np.log(lab_sims)
 
-    bad_MH_log_lab_sims = log_lab_sims * (H_hist == 0)
-    good_MH_log_lab_sims = log_lab_sims * (H_hist == 1)
+    # bad_MH_log_lab_sims = log_lab_sims * (H_hist == 0)
+    # good_MH_log_lab_sims = log_lab_sims * (H_hist == 1)
+    bad_MH_sims = lab_sims * (H_hist == 0)
+    good_MH_sims = lab_sims * (H_hist == 1)
 
-    bad_MH_log_lab_mean = model.wmean_non_zero(myPars, bad_MH_log_lab_sims)
-    good_MH_log_lab_mean = model.wmean_non_zero(myPars, good_MH_log_lab_sims)
-    # bad_MH_log_lab_mean = np.mean(bad_MH_log_lab_sims, where = bad_MH_log_lab_sims != 0)
-    # good_MH_log_lab_mean = np.mean(good_MH_log_lab_sims, where = good_MH_log_lab_sims != 0)
-    diff = good_MH_log_lab_mean - bad_MH_log_lab_mean   
-
-    # print(f"good_MH_log_lab_mean: {good_MH_log_lab_mean} - bad_MH_log_lab_mean: {bad_MH_log_lab_mean} = diff: {diff}")
+    # bad_MH_log_lab_mean = model.wmean_non_zero(myPars, bad_MH_log_lab_sims)
+    # good_MH_log_lab_mean = model.wmean_non_zero(myPars, good_MH_log_lab_sims)
+    # diff = good_MH_log_lab_mean - bad_MH_log_lab_mean   
+    bad_MH_lab_mean = model.wmean_non_zero(myPars, bad_MH_sims)
+    good_MH_lab_mean = model.wmean_non_zero(myPars, good_MH_sims)
+    diff = good_MH_lab_mean - bad_MH_lab_mean
 
     return diff
     
@@ -510,10 +512,14 @@ def get_phi_H_targ(myPars: Pars, target_folder_path: str)-> float:
     reads phi_H target moment from myPars.path + '/input/MH_hours_moments.csv'
     '''
     # data_moments_path = myPars.path + '/input/MH_labor_moments.csv'
-    data_moments_path = target_folder_path + '/MH_hours_moments.csv'
+    tc_calib_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/input/time_cost_counter/"
+    # data_moments_path = target_folder_path + '/MH_hours_moments.csv'
+    data_moments_path = tc_calib_path + 'MH_hours_moments.csv'
     data_mom_col_ind = 0
-    mean_log_lab_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
-    return mean_log_lab_diff[0]
+    # mean_log_lab_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    mean_lab_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
+    # return mean_log_lab_diff[0]
+    return mean_lab_diff[0]/100
 
 def calib_delta_pi_BB(myPars: Pars, main_path: str, tol:float, target:float, dpi_BB_min:float, dpi_BB_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     '''
@@ -650,79 +656,6 @@ def calib_all_delta_pi(myPars: Pars,  main_path:str, dpi_BB_tol:float, dpi_GG_to
      Calibrates the delta_pi_BB and delta_pi_GG parameters simulatenously (i.e.fully nested bisection search)
      like most of the calibration functions, myPars is updated excessively, could be optimized
     """
-
-    # if not dpi_BB_max_iter:
-    #     # dpi_BB_max_iter = myPars.max_iters
-    #     dpi_BB_max_iter = 30
-    # if not dpi_GG_max_iter:
-    #     # dpi_GG_max_iter = myPars.max_calib_iters
-    #     dpi_GG_max_iter = 30
-
-    # dpi_BB_mom = -999
-    # dpi_GG_mom = -999
-                  
-    # dpi_BB_err = lambda new_dpi_BB: dpi_BB_mom_giv_dpi_BB(myPars, new_dpi_BB) - dpi_BB_target
-    # dpi_GG_err = lambda new_dpi_GG: dpi_GG_mom_giv_dpi_GG(myPars, new_dpi_GG) - dpi_GG_target
-
-    # # # GG_min = dpi_GG_min
-    # # GG_max = dpi_GG_max
-    # # GG_iters = 0
-    # # GG_err = 1 + dpi_GG_tol
-    # BB_min = dpi_BB_min
-    # BB_max = dpi_BB_max
-    # BB_iters = 0
-    # BB_err = 1 + dpi_BB_tol
-    # # while (abs(GG_err) > dpi_GG_tol or abs(dpi_BB_err(myPars.delta_pi_BB)) > dpi_BB_tol) and GG_iters < dpi_GG_max_iter:
-    # while (abs(dpi_GG_err(myPars.delta_pi_GG)) > dpi_GG_tol or abs(dpi_BB_err(myPars.delta_pi_BB)) > dpi_BB_tol) and BB_iters < dpi_BB_max_iter:
-    #     # BB_min = dpi_BB_min
-    #     # BB_max = dpi_BB_max
-    #     # BB_iters = 0
-    #     # BB_err = 1 + dpi_BB_tol
-    #     GG_min = dpi_GG_min
-    #     GG_max = dpi_GG_max
-    #     GG_iters = 0
-    #     GG_err = 1 + dpi_GG_tol
-    #     # while abs(BB_err) > dpi_BB_tol and BB_iters < dpi_BB_max_iter:
-    #     while abs(GG_err) > dpi_GG_tol and GG_iters < dpi_GG_max_iter:
-    #         GG_mid_pt = (GG_max + GG_min) / 2
-    #         GG_err = dpi_GG_err(GG_mid_pt)
-    #         # print(f"Current delta_pi_GG: {GG_mid_pt}, model dpi_GG_mom: {dpi_GG_moment(myPars)}, dpi_GG_targ: {dpi_GG_target}, error: {GG_err}")
-    #         if GG_err > 0:
-    #             GG_max = GG_mid_pt
-    #         else:
-    #             GG_min = GG_mid_pt
-    #         GG_iters += 1
-    #         # BB_mid_pt = (BB_max + BB_min) / 2
-    #         # BB_err = dpi_BB_err(BB_mid_pt)
-    #         # # print(f"Current delta_pi_BB: {BB_mid_pt}, model dpi_BB_mom: {dpi_BB_moment(myPars)}, dpi_BB_targ: {dpi_BB_target}, error: {BB_err}")
-    #         # if BB_err > 0:
-    #         #     BB_max = BB_mid_pt
-    #         # else:
-    #         #     BB_min = BB_mid_pt
-    #         # BB_iters += 1
-        
-    #     BB_mid_pt = (BB_max + BB_min) / 2
-    #     BB_err = dpi_BB_err(BB_mid_pt)
-    #     # print(f"Current delta_pi_BB: {BB_mid_pt}, model dpi_BB_mom: {dpi_BB_moment(myPars)}, dpi_BB_targ: {dpi_BB_target}, error: {BB_err}")
-    #     if BB_err > 0:
-    #         BB_max = BB_mid_pt
-    #     else:
-    #         BB_min = BB_mid_pt
-    #     BB_iters += 1
-    #     # GG_mid_pt = (GG_max + GG_min) / 2
-    #     # GG_err = dpi_GG_err(GG_mid_pt)
-    #     # # print(f"Current delta_pi_GG: {GG_mid_pt}, model dpi_GG_mom: {dpi_GG_moment(myPars)}, dpi_GG_targ: {dpi_GG_target}, error: {GG_err}")
-    #     # if GG_err > 0:
-    #     #     GG_max = GG_mid_pt
-    #     # else:
-    #     #     GG_min = GG_mid_pt
-    #     # GG_iters += 1
-    # if myPars.print_screen > 0:
-    #     # print(f"After {GG_iters} iterations")
-    #     print(f"After {BB_iters} iterations")  
-    #     print(f"Calibrated delta_pi_BB: {myPars.delta_pi_BB}, model dpi_BB_mom: {dpi_BB_moment(myPars)}, dpi_BB_targ: {dpi_BB_target}")
-    #     print(f"Calibrated delta_pi_GG: {myPars.delta_pi_GG}, model dpi_GG_mom: {dpi_GG_moment(myPars)}, dpi_GG_targ: {dpi_GG_target}")
-
     # shocks = Shocks(myPars)
     myPars, shocks = calib_all_dpi_jit(myPars, main_path, dpi_BB_tol, dpi_GG_tol, dpi_BB_target, dpi_GG_target, 
                                        dpi_BB_min, dpi_BB_max, dpi_GG_min, dpi_GG_max, dpi_GG_max_iter, dpi_BB_max_iter)
@@ -754,69 +687,36 @@ def calib_all_dpi_jit(myPars: Pars,  main_path:str, dpi_BB_tol:float, dpi_GG_tol
     dpi_BB_err = lambda new_dpi_BB: dpi_BB_mom_giv_dpi_BB(myPars, new_dpi_BB) - dpi_BB_target
     dpi_GG_err = lambda new_dpi_GG: dpi_GG_mom_giv_dpi_GG(myPars, new_dpi_GG) - dpi_GG_target
 
-    # # GG_min = dpi_GG_min
-    # GG_max = dpi_GG_max
-    # GG_iters = 0
-    # GG_err = 1 + dpi_GG_tol
     BB_min = dpi_BB_min
     BB_max = dpi_BB_max
     BB_iters = 0
     BB_err = 1 + dpi_BB_tol
-    # while (abs(GG_err) > dpi_GG_tol or abs(dpi_BB_err(myPars.delta_pi_BB)) > dpi_BB_tol) and GG_iters < dpi_GG_max_iter:
     while (abs(dpi_GG_err(myPars.delta_pi_GG)) > dpi_GG_tol or abs(dpi_BB_err(myPars.delta_pi_BB)) > dpi_BB_tol) and BB_iters < dpi_BB_max_iter:
-        # BB_min = dpi_BB_min
-        # BB_max = dpi_BB_max
-        # BB_iters = 0
-        # BB_err = 1 + dpi_BB_tol
         GG_min = dpi_GG_min
         GG_max = dpi_GG_max
         GG_iters = 0
         GG_err = 1 + dpi_GG_tol
-        # while abs(BB_err) > dpi_BB_tol and BB_iters < dpi_BB_max_iter:
         while abs(GG_err) > dpi_GG_tol and GG_iters < dpi_GG_max_iter:
             GG_mid_pt = (GG_max + GG_min) / 2
             GG_err = dpi_GG_err(GG_mid_pt)
-            # print(f"Current delta_pi_GG: {GG_mid_pt}, model dpi_GG_mom: {dpi_GG_moment(myPars)}, dpi_GG_targ: {dpi_GG_target}, error: {GG_err}")
             if GG_err > 0:
                 GG_max = GG_mid_pt
             else:
                 GG_min = GG_mid_pt
             GG_iters += 1
-            # BB_mid_pt = (BB_max + BB_min) / 2
-            # BB_err = dpi_BB_err(BB_mid_pt)
-            # # print(f"Current delta_pi_BB: {BB_mid_pt}, model dpi_BB_mom: {dpi_BB_moment(myPars)}, dpi_BB_targ: {dpi_BB_target}, error: {BB_err}")
-            # if BB_err > 0:
-            #     BB_max = BB_mid_pt
-            # else:
-            #     BB_min = BB_mid_pt
-            # BB_iters += 1
         
         BB_mid_pt = (BB_max + BB_min) / 2
         BB_err = dpi_BB_err(BB_mid_pt)
-        # print(f"Current delta_pi_BB: {BB_mid_pt}, model dpi_BB_mom: {dpi_BB_moment(myPars)}, dpi_BB_targ: {dpi_BB_target}, error: {BB_err}")
         if BB_err > 0:
             BB_max = BB_mid_pt
         else:
             BB_min = BB_mid_pt
         BB_iters += 1
-        # GG_mid_pt = (GG_max + GG_min) / 2
-        # GG_err = dpi_GG_err(GG_mid_pt)
-        # # print(f"Current delta_pi_GG: {GG_mid_pt}, model dpi_GG_mom: {dpi_GG_moment(myPars)}, dpi_GG_targ: {dpi_GG_target}, error: {GG_err}")
-        # if GG_err > 0:
-        #     GG_max = GG_mid_pt
-        # else:
-        #     GG_min = GG_mid_pt
-        # GG_iters += 1
-    # if myPars.print_screen > 0:
-    #     # print(f"After {GG_iters} iterations")
-    #     print(f"After {BB_iters} iterations")  
-    #     print(f"Calibrated delta_pi_BB: {myPars.delta_pi_BB}, model dpi_BB_mom: {dpi_BB_moment(myPars)}, dpi_BB_targ: {dpi_BB_target}")
-    #     print(f"Calibrated delta_pi_GG: {myPars.delta_pi_GG}, model dpi_GG_mom: {dpi_GG_moment(myPars)}, dpi_GG_targ: {dpi_GG_target}")
 
     shocks = Shocks(myPars)
     return myPars, shocks
 
-def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float, float, float, float, float, float, float, float]:
+def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float, float, float, float, float, float, float, float, float]:
     """
     gets all the targets from the input folder, assumes the target .csv files are in the folder located at target_folder_path
     returns alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ
@@ -829,20 +729,22 @@ def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float,
     w1_targ = get_w1_targ(myPars, target_folder_path)
     w2_targ = get_w2_targ(myPars, target_folder_path)
     wH_targ = get_wH_targ(myPars, target_folder_path)
+    phi_H_targ = get_phi_H_targ(myPars, target_folder_path)
     dpi_BB_targ = get_delta_pi_BB_targ(myPars, target_folder_path)
     dpi_GG_targ = get_delta_pi_GG_targ(myPars, target_folder_path)
-    return alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ, dpi_BB_targ, dpi_GG_targ
+    return alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ, phi_H_targ, dpi_BB_targ, dpi_GG_targ
 
-def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_calib: bool = True,  
+def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_calib: bool = True, do_phi_H_calib: bool = False,  
         alpha_mom_targ:float = 0.40, w0_mu_mom_targ:float = 20.0, w0_sigma_mom_targ:float = 3.0, w1_mom_targ:float = 0.2, w2_mom_targ:float = 0.2, 
-        wH_mom_targ:float = 0.2, dpi_BB_mom_targ:float = 0.5, dpi_GG_mom_targ:float = 0.3,
+        wH_mom_targ:float = 0.2, dpi_BB_mom_targ:float = 0.5, dpi_GG_mom_targ:float = 0.3, phi_H_mom_targ:float = 0.1,
         w0_mu_min:float = 0.0, w0_mu_max:float = 30.0, w0_sigma_min:float = 0.001, w0_sigma_max = 1.0, 
         w1_min:float = 0.0, w1_max:float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
         dpi_BB_min:float = -0.0, dpi_BB_max:float = 2.0, dpi_GG_min:float = 0.0, dpi_GG_max:float = 1.0,
+        phi_H_min: float = 0.0, phi_H_max: float = 20.0,
         alpha_tol:float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol:float = 0.001, w1_tol:float = 0.001, w2_tol:float = 0.001, 
-        wH_tol:float = 0.001, dpi_BB_tol:float = 0.001, dpi_GG_tol:float = 0.001, 
+        wH_tol:float = 0.001, dpi_BB_tol:float = 0.001, dpi_GG_tol:float = 0.001, phi_H_tol:float = 0.001,
         calib_path: str = None)-> (
-        Tuple[float, np.ndarray, float, float, float, float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
+        Tuple[Pars, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
     """
     calibrates all the parameters of the model
     takes arguments that represent the targets and tolerances for the calibration
@@ -949,17 +851,42 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
                                 my_w1_mom = w1_moment(myPars)
                                 my_w2_mom = w2_moment(myPars)
                                 my_wH_mom = wH_moment(myPars)
+
                                 if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
                                 # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
                                 # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
                                     and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                                     and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                                     and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
+                                    if do_phi_H_calib:
+                                        print("Calibrating phi_H")
+                                        phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
+                                    else:
+                                        lab_sims = sims['lab']
+                                        my_phi_H_mom = phi_H_moment(myPars, lab_sims)
+                                    my_dpi_BB_mom = dpi_BB_moment(myPars)
+                                    my_dpi_GG_mom = dpi_GG_moment(myPars)
+                                    my_w0_mu_mom = w0_mu_moment(myPars)
+                                    my_w0_sigma_mom = w0_sigma_moment(myPars)
+                                    my_w1_mom = w1_moment(myPars)
+                                    my_w2_mom = w2_moment(myPars)
+                                    my_wH_mom = wH_moment(myPars)
+                                    my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
+                                
+                                if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+                                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
+                                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+                                    and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
+                                    and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
+                                    and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol
+                                    and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
                                     print(f"Calibration converged after {i+1} iterations")
                                     if not do_dpi_calib:
                                         print("********** delta_pi_BB and delta_pi_GG calibration was skipped **********")
                                     if not do_wH_calib:
                                         print("********** wH calibration was skipped **********")
+                                    if not do_phi_H_calib:
+                                        print("********** phi_H calibration was skipped **********")
                                     print(f"delta_pi_BB = {myPars.delta_pi_BB}, delta_pi_BB mom = {my_dpi_BB_mom}, delta_pi_BB mom targ = {dpi_BB_mom_targ}")
                                     print(f"delta_pi_GG = {myPars.delta_pi_GG}, delta_pi_GG mom = {my_dpi_GG_mom}, delta_pi_GG mom targ = {dpi_GG_mom_targ}")
                                     print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mu_mom}, w0_mean_targ = {w0_mu_mom_targ}") 
@@ -967,15 +894,17 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
                                     print(f"w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_mom}, w1 mom targ = {w1_mom_targ}")
                                     print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
                                     print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
+                                    print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
                                     print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
-                                    return myPars.alpha, myPars.lab_fe_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, myPars.delta_pi_BB, myPars.delta_pi_GG, state_sols, sims
-
+                                    return myPars, state_sols, sims
     # calibration does not converge
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
     if not do_dpi_calib:
         print("********** delta_pi_BB and delta_pi_GG calibration was skipped **********")
     if not do_wH_calib:
         print("********** wH calibration was skipped **********")
+    if not do_phi_H_calib:
+        print("********** phi_H calibration was skipped **********")
     print(f"delta_pi_BB = {myPars.delta_pi_BB}, delta_pi_BB mom = {my_dpi_BB_mom}, delta_pi_BB mom targ = {dpi_BB_mom_targ}")
     print(f"delta_pi_GG = {myPars.delta_pi_GG}, delta_pi_GG mom = {my_dpi_GG_mom}, delta_pi_GG mom targ = {dpi_GG_mom_targ}")
     print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mu_mom}, w0_mean_targ = {w0_mu_mom_targ}") 
@@ -983,8 +912,9 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
     print(f"w1 = {myPars.wage_coeff_grid[1,1]}, w1 moment = {my_w1_mom}, w1 mom targ = {w1_mom_targ}")
     print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
     print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
+    print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
     print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
-    return myPars.alpha, myPars.lab_fe_weights, myPars.wage_coeff_grid[1,1], myPars.wage_coeff_grid[1,2], myPars.wH_coeff, myPars.delta_pi_BB, myPars.delta_pi_GG, state_sols, sims
+    return myPars, state_sols, sims
 
 if __name__ == "__main__":
     start_time = time.perf_counter()

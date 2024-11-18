@@ -87,7 +87,6 @@ class Pars() :
 
             # time costs and health costs
             phi_n = 1.125, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision was originally 1.125
-        #     phi_n = 1.0, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision was originally 1.125
             phi_H = 0.0, # time cost to being in bad health, for now pretend there are only two states was originally 0.10
 
             # interest rate and maybe taxes later
@@ -103,11 +102,9 @@ class Pars() :
             H_beg_pop_weights_by_H_type = np.array([[0.5, 0.5], [0.5, 0.5]]), #weights for the permanent health type grid
             H_grid = np.array([0.0,1.0]),
             H_trans_uncond = np.repeat(np.array([[0.9, 0.1], [0.7, 0.3]])[np.newaxis, :, :], 51, axis=0).reshape(51,2,2),
-            # H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
-            # delta_pi_BB = 0.05, #diff in prob of bad health persistence between the two types
+            H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
             delta_pi_BB = 0.0, #diff in prob of bad health persistence between the two types
-            # delta_pi_GG = 0.10, #diff in prob of good health persistence between the two types
-            delta_pi_GG = 0.00, #diff in prob of good health persistence between the two types
+            delta_pi_GG = 0.0, #diff in prob of good health persistence between the two types
 
             lab_min = 0.00,
             lab_max = 1.0,
@@ -162,7 +159,10 @@ class Pars() :
         self.delta_pi_BB = delta_pi_BB
         self.delta_pi_GG = delta_pi_GG
 
-        self.H_trans = gen_MH_trans(H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.delta_pi_BB, self.delta_pi_GG)
+        if delta_pi_BB > 0.0 or delta_pi_GG > 0.0:
+            self.H_trans = gen_MH_trans(H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.delta_pi_BB, self.delta_pi_GG)
+        else: 
+            self.H_trans = H_trans
 
         self.interp_eval_points = np.zeros(1)
 
@@ -306,11 +306,13 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
                     if j > 0:
                         shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
                         prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
-                        if prev_health_state_ind == GOOD:
-                            health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
-                            # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] * xgg_j_old
-                        else:
-                            health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                        health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                        # leave this here in case get dpi stuff to work later
+                        # if prev_health_state_ind == GOOD:
+                        #     health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                        #     # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] * xgg_j_old 
+                        # else:
+                        #     health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
                         if shock <= health_recovery_prob:
                                 hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = GOOD
                     else:

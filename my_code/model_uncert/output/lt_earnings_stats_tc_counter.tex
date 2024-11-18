@@ -1,0 +1,25 @@
+\documentclass[border=3mm,preview]{standalone}\usepackage{booktabs} 
+\usepackage{caption} 
+\usepackage{pdflscape} 
+\begin{document}
+\begin{landscape}
+\small
+\begin{table} 
+\center\caption*{Annualized Lifetime Earnings Statistics (1000s GBP)} 
+\begin{tabular}{l | l l l | l l l l l | l l l} 
+\toprule 
+ & \multicolumn{3}{c}{Summary} & \multicolumn{5}{c}{Percentiles} & \multicolumn{3}{c}{Ratios} \\ 
+Source & Mean & Var. & SD & 10th & 25th & 50th & 75th & 90th & 90/10 & 90/50 & 50/10 \\ 
+\midrule 
+Baseline Model & 19.38 & 35443 & 5.95 & 
+        13.26 & 17.76 & 18.01 & 35.46 & 40.24 &
+        3.03 & 2.23 & 1.36 \\ 
+$H = Good$ & 19.61 & 33061 & 5.75 & 
+        13.54 & 20.23 & 18.45 & 39.65 & 46.29 &
+        3.42 & 2.51 
+        & 1.36 \\ 
+\bottomrule 
+\end{tabular}
+\end{table}
+\end{landscape}
+\end{document}

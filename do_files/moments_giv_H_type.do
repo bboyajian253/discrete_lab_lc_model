@@ -299,6 +299,7 @@ use "`dir'/UKHLS_sample_trans", clear
 * For a given clustering method
 // local MH_clust MH_clust_k2
 local MH_clust MH_clust_50p_age
+// local MH_clust MH_clust_k2_age
 
 mata: M = J(1, 0, .)
 
@@ -487,7 +488,7 @@ matrix colname M = "MH0_P2P" "MH0_P2G" "MH0_G2P" "MH0_G2G" "MH1_P2P" "MH1_P2G" "
 preserve
 clear
 svmat M, names(col)
-export delimited using "$outdir/MH_trans_by_MH_clust.csv", replace
+export delimited using "$outdir/MH_trans_by_`MH_clust'.csv", replace
 restore
 
 * By age and K Means MH index cluster
@@ -549,7 +550,7 @@ forvalues i = 1/2{
 * Merge and store
 preserve
 clear 
-local outfile "$outdir/MH_trans_by_MH_clust_age.csv"
+local outfile "$outdir/MH_trans_by_`MH_clust'_age.csv"
 use `tempfile_0_P2G'
 merge 1:1 age using `tempfile_0_G2P'
 drop _merge

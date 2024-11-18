@@ -16,13 +16,13 @@ global datadir  "$curdir/data" //"C:\Users\Ben\3YP_Data_Work\Data"
 // for the other moments
 global outdir "$master_outdir/50p_age_moms"
 
-do "$dodir/lt_earn_stats.do"  
+// do "$dodir/lt_earn_stats.do"  
 
-// do "$dodir/moments_giv_H_type.do" //generate the moments for the model with given binary permanent health types
+do "$dodir/moments_giv_H_type.do" //generate the moments for the model with given binary permanent health types
 
 // do "$dodir/MP_health_age.do"  
 
-do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
+// do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
 
 // do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
 

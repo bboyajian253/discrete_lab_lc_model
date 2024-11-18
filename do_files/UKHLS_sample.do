@@ -52,7 +52,7 @@ duplicates report indiv_id year age
 
 // do "$dodir/health_states_types.do"
 do "$dodir/gen_MH_PH.do"
-do "$dodir/type_by_age.do"
+do "$dodir/type_by_age_v2.do"
 
 save UKHLS_sample, replace
 

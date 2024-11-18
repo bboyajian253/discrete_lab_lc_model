@@ -21,7 +21,7 @@ do "$dodir/UKHLS_sample.do"  /* choose my sample */
 
 // do "$dodir/sample_tc_counter.do"  /* choose my sample for the time cost counterfactual */
 
-do "$dodir/UKHLS_trans.do" /*calculate some PH and MH transiton probabilities, do some persistance stuff*/
+// do "$dodir/UKHLS_trans.do" /*calculate some PH and MH transiton probabilities, do some persistance stuff*/
 
 // do "$dodir/UKHLS_quants.do" /* investigate the quantiles of my continuous mh variable and run some regressions*/
 

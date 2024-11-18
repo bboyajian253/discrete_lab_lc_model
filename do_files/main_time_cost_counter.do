@@ -9,16 +9,17 @@ global datadir  "$curdir/data" //"C:\Users\Ben\3YP_Data_Work\Data"
 // for the other moments
 global outdir "$master_outdir/time_cost_counter"
 
-do "$dodir/lt_earn_stats.do"  
+// do "$dodir/lt_earn_stats.do"  
 
-do "$dodir/moments_giv_H_type.do" //generate the moments for the model with given binary permanent health types
+// do "$dodir/moments_giv_H_type.do" //generate the moments for the model with given binary permanent health types
+do "$dodir/tc_count_moms.do" //generate the moments for the model with given binary permanent health types
 
-do "$dodir/MP_health_age.do"  
+// do "$dodir/MP_health_age.do"  
 
-do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
+// do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
 
-do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
+// do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
 
-do "$dodir/earnings_and_health.do" //generate the earnings by health moments
+// do "$dodir/earnings_and_health.do" //generate the earnings by health moments
 
 di "*****got to the end of main_time_cost_counter.do*****"

@@ -2,20 +2,10 @@
 // preserve
 capture drop MH_age_dec
 egen MH_age_dec = xtile(mental_health), by(age) nq(10)
-// local age_list "25 35 45 55 65 75"
-local age_list "25 45 65"
-levelsof MH_age_dec, local(dec_levels)
-foreach age of local age_list {
-    foreach dec of local dec_levels {
-        sum mental_health if MH_age_dec == `dec' & age == `age'
-    }
-}
 
-// xtset indiv_id age
-// tab age MH_age_dec
 capture drop MH_clust_50p_age_flag
 gen MH_clust_50p_age_flag = 0
-replace MH_clust_50p_age_flag = 1 if MH_age_dec >= 6
+replace MH_clust_50p_age_flag = 1 if MH_age_dec > 5
 
 // store the mean of the flag
 capture drop MH_clust_50p_age_mean
@@ -38,4 +28,36 @@ capture drop MH_clust_50p_age
 gen MH_clust_50p_age = 0
 replace MH_clust_50p_age = 1 if MH_clust_50p_age_mean > 0.5 
 
-// restore
+* K Means cluster
+preserve
+sort MH_clust_50p_age_mean
+collapse (mean) MH_clust_50p_age_mean, by(indiv_id)
+cluster kmeans MH_clust_50p_age_mean, k(2)
+rename _clus_1 MH_clust_k2_age
+tempfile clusterdata
+save `clusterdata'
+restore
+
+merge m:1 indiv_id using `clusterdata'
+tab _merge
+drop _merge
+pause
+pause on
+pause
+
+sum MH_clust_50p_age_mean if MH_clust_k2_age == 1
+local mean_MH_1 = r(mean)
+di `mean_MH_1'
+sum MH_clust_50p_age_mean if MH_clust_k2_age == 2
+local mean_MH_2 = r(mean)
+di `mean_MH_2'
+
+if `mean_MH_1' >= `mean_MH_2'{
+	replace MH_clust_k2_age = 0 if MH_clust_k2_age == 2
+} 
+else {
+	replace MH_clust_k2_age = 0 if MH_clust_k2_age == 1
+	replace MH_clust_k2_age = 1 if MH_clust_k2_age == 2
+}
+
+di "*****got to the end of type_by_age.do*****"
