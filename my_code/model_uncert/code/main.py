@@ -71,7 +71,7 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
             H_trans_uncond_path: str = None, H_trans_path:str = None, H_type_pop_share_path: str = None, 
             data_moms_path: str = None,
             my_lab_fe_grid: np.ndarray = None, output_flag: bool = True, num_sims: int = 1000, 
-            do_wH_calib: bool = True, do_dpi_calib: bool = False, do_phi_H_calib: bool = False
+            do_wH_calib: bool = True, do_dpi_calib: bool = False, do_phi_H_calib: bool = False, do_eps_gg_calib: bool = False
             ) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     run the model with the given parameters and return myPars, myShocks, sols, sims
@@ -98,9 +98,9 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
 
     # myPars.print_screen = 2
 
-    sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False, 
+    sols, sims =run.run_model(myPars, myShocks, solve = True, calib = True, sim_no_calib = False,  
                                 get_targets = True, output_flag = output_flag, tex = True,  
-                                do_wH_calib = do_wH_calib,  do_dpi_calib=do_dpi_calib, do_phi_H_calib = do_phi_H_calib, 
+                                do_wH_calib = do_wH_calib,  do_dpi_calib=do_dpi_calib, do_phi_H_calib = do_phi_H_calib, do_eps_gg_calib = do_eps_gg_calib,
                                 output_path = outpath, data_moms_folder_path = data_moms_path)
     myShocks = Shocks(myPars)
     return myPars, myShocks, sols, sims

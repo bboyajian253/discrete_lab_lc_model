@@ -27,7 +27,7 @@ import plot_aggregates as plot_aggregates
 import io_manager as io
 
 # Run the model
-def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, do_wH_calib: bool = True, do_dpi_calib: bool = True,
+def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, do_wH_calib: bool = True, do_dpi_calib: bool = True, do_eps_gg_calib: bool = False,
               do_phi_H_calib: bool = False, get_targets: bool = True, sim_no_calib  : bool = False, 
               output_flag: bool = True, tex: bool = True, output_path: str = None, data_moms_folder_path: str = None)-> List[Dict[str, np.ndarray]]:
     """
@@ -68,26 +68,27 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         if get_targets: 
-            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ, phi_H_targ, dpi_BB_targ, dpi_GG_targ = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
+            alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ, phi_H_targ, dpi_BB_targ, dpi_GG_targ, eps_gg_targ = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
             print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mu_targ}, w0_sd_targ = {w0_sigma_targ}, 
                                         w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}, phi_H_targ = {phi_H_targ},
-                                        dpi_BB_targ = {dpi_BB_targ}, dpi_GG_targ = {dpi_GG_targ}""")
-            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, 
+                                        dpi_BB_targ = {dpi_BB_targ}, dpi_GG_targ = {dpi_GG_targ}, eps_gg_targ = {eps_gg_targ}""")
+            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, do_eps_gg_calib=do_eps_gg_calib,
                                                                                                     alpha_mom_targ = alpha_lab_targ, w0_mu_mom_targ = w0_mu_targ, w0_sigma_mom_targ = w0_sigma_targ, 
-                                                                                                    w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, phi_H_mom_targ=phi_H_targ, 
-                                                                                                    wH_mom_targ = wH_targ, dpi_BB_mom_targ= dpi_BB_targ, dpi_GG_mom_targ = dpi_GG_targ)
+                                                                                                    w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, phi_H_mom_targ=phi_H_targ, wH_mom_targ = wH_targ, 
+                                                                                                    dpi_BB_mom_targ= dpi_BB_targ, dpi_GG_mom_targ = dpi_GG_targ, eps_gg_mom_targ = eps_gg_targ)
         else: # otherwise use default argument targets
-            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib)
+            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, do_eps_gg_calib=do_eps_gg_calib)
 
         calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 
                                 'w0_mu': w0_mu_targ, 'w0_sigma': w0_sigma_targ, 
                                 'w1': w1_targ, 'w2': w2_targ, 'wH': wH_targ,
-                                'dpi_BB': dpi_BB_targ, 'dpi_GG': dpi_GG_targ}
+                                'dpi_BB': dpi_BB_targ, 'dpi_GG': dpi_GG_targ, 'eps_gg': eps_gg_targ}
         calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
                                     'w0_mu': calibration.w0_moments(myPars)[0], 'w0_sigma': calibration.w0_moments(myPars)[1],
                                     'w1': calibration.w1_moment(myPars), 'w2': calibration.w2_moment(myPars),
                                     'wH': calibration.wH_moment(myPars), 'phi_H': calibration.phi_H_moment(myPars, sim_lc['lab']),
-                                    'dpi_BB': calibration.dpi_BB_moment(myPars), 'dpi_GG': calibration.dpi_GG_moment(myPars)}
+                                    'dpi_BB': calibration.dpi_BB_moment(myPars), 'dpi_GG': calibration.dpi_GG_moment(myPars),
+                                    'eps_gg': calibration.eps_gg_moment(myPars)}
 
         for label in sim_lc.keys():
             np.save(output_path + f'sim{label}.npy', sim_lc[label])

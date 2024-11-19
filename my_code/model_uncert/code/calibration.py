@@ -716,7 +716,47 @@ def calib_all_dpi_jit(myPars: Pars,  main_path:str, dpi_BB_tol:float, dpi_GG_tol
     shocks = Shocks(myPars)
     return myPars, shocks
 
-def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float, float, float, float, float, float, float, float, float]:
+def calib_eps_gg(myPars: Pars, main_path:str, tol:float, target:float, eps_gg_min:float, eps_gg_max:float)-> Tuple[float, float, Dict[str, np.array], Dict[str, np.array]]:
+    eps_gg_moment = -999
+    state_sols = {}
+    sim_lc = {}
+
+    # define the objective function
+    get_eps_diff = lambda new_eps: eps_gg_mom_giv_eps(myPars, new_eps) - target
+    calibrated_eps = tb.bisection_search(get_eps_diff, eps_gg_min, eps_gg_max, tol, myPars.max_iters, myPars.print_screen)
+    myPars.epsilon_gg = calibrated_eps
+
+    # solve, simulate model for the calibrated epsilon_gg
+    eps_moment = eps_gg_mom_giv_eps(myPars, calibrated_eps)
+    shocks = Shocks(myPars)
+    state_sols = solver.solve_lc(myPars, main_path)
+    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
+    if myPars.print_screen > 0:
+        print(f"calibrated epsilon_gg = {calibrated_eps}, epsilon_gg moment = {eps_moment}, target = {target}")
+
+    return calibrated_eps, eps_moment, state_sols, sim_lc
+
+def eps_gg_mom_giv_eps(myPars: Pars, new_eps: float)->float:
+    myPars.epsilon_gg = new_eps
+    return eps_gg_moment(myPars)
+
+def eps_gg_moment(myPars: Pars)->float:
+    shocks = Shocks(myPars)
+    H_hist = shocks.H_hist
+    weighted_H_hist = model.gen_weighted_sim(myPars, H_hist) 
+    good_MH_age_sim = np.sum(weighted_H_hist, tuple(range(H_hist.ndim - 1)))
+    bad_MH_age_sim = 1 - good_MH_age_sim
+    return np.mean(bad_MH_age_sim)
+
+def get_eps_gg_targ(myPars: Pars, target_folder_path)->float:
+    file_path = target_folder_path + "mean_bad_MH_by_age.csv"
+    bad_MH_age_data = pd.read_csv(file_path)
+    # rename the columns
+    bad_MH_age_data.columns = ['age', 'mean_badMH']
+    bad_MH_age_data = bad_MH_age_data['mean_badMH'].to_numpy()
+    return np.mean(bad_MH_age_data)
+
+def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float, float, float, float, float, float, float, float, float, float]:
     """
     gets all the targets from the input folder, assumes the target .csv files are in the folder located at target_folder_path
     returns alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ
@@ -732,17 +772,18 @@ def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float,
     phi_H_targ = get_phi_H_targ(myPars, target_folder_path)
     dpi_BB_targ = get_delta_pi_BB_targ(myPars, target_folder_path)
     dpi_GG_targ = get_delta_pi_GG_targ(myPars, target_folder_path)
-    return alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ, phi_H_targ, dpi_BB_targ, dpi_GG_targ
+    eps_gg_targ = get_eps_gg_targ(myPars, target_folder_path)
+    return alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ, phi_H_targ, dpi_BB_targ, dpi_GG_targ, eps_gg_targ
 
-def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_calib: bool = True, do_phi_H_calib: bool = False,  
+def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_calib: bool = True, do_phi_H_calib: bool = False, do_eps_gg_calib: bool = False,  
         alpha_mom_targ:float = 0.40, w0_mu_mom_targ:float = 20.0, w0_sigma_mom_targ:float = 3.0, w1_mom_targ:float = 0.2, w2_mom_targ:float = 0.2, 
-        wH_mom_targ:float = 0.2, dpi_BB_mom_targ:float = 0.5, dpi_GG_mom_targ:float = 0.3, phi_H_mom_targ:float = 0.1,
+        wH_mom_targ:float = 0.2, dpi_BB_mom_targ:float = 0.5, dpi_GG_mom_targ:float = 0.3, phi_H_mom_targ:float = 0.1, eps_gg_mom_targ:float = 0.4,
         w0_mu_min:float = 0.0, w0_mu_max:float = 30.0, w0_sigma_min:float = 0.001, w0_sigma_max = 1.0, 
         w1_min:float = 0.0, w1_max:float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
         dpi_BB_min:float = -0.0, dpi_BB_max:float = 2.0, dpi_GG_min:float = 0.0, dpi_GG_max:float = 1.0,
-        phi_H_min: float = 0.0, phi_H_max: float = 20.0,
+        phi_H_min: float = 0.0, phi_H_max: float = 20.0, eps_gg_min: float = 0.0, eps_gg_max: float = 0.2,
         alpha_tol:float = 0.001, w0_mu_tol:float = 0.001, w0_sigma_tol:float = 0.001, w1_tol:float = 0.001, w2_tol:float = 0.001, 
-        wH_tol:float = 0.001, dpi_BB_tol:float = 0.001, dpi_GG_tol:float = 0.001, phi_H_tol:float = 0.001,
+        wH_tol:float = 0.001, dpi_BB_tol:float = 0.001, dpi_GG_tol:float = 0.001, phi_H_tol:float = 0.001, eps_gg_tol:float = 0.001,
         calib_path: str = None)-> (
         Tuple[Pars, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
     """
@@ -872,6 +913,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
                                     my_w2_mom = w2_moment(myPars)
                                     my_wH_mom = wH_moment(myPars)
                                     my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
+                                    my_eps_gg_mom = eps_gg_moment(myPars)
                                 
                                 if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
                                 # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
@@ -887,6 +929,9 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
                                         print("********** wH calibration was skipped **********")
                                     if not do_phi_H_calib:
                                         print("********** phi_H calibration was skipped **********")
+                                    if not do_eps_gg_calib:
+                                        print("********** epsilon_gg calibration was skipped ********")
+                                    print(f"epsilon_gg = {myPars.epsilon_gg}, epsilon_gg mom = {my_eps_gg_mom}, epsilon_gg mom targ = {eps_gg_mom_targ}")
                                     print(f"delta_pi_BB = {myPars.delta_pi_BB}, delta_pi_BB mom = {my_dpi_BB_mom}, delta_pi_BB mom targ = {dpi_BB_mom_targ}")
                                     print(f"delta_pi_GG = {myPars.delta_pi_GG}, delta_pi_GG mom = {my_dpi_GG_mom}, delta_pi_GG mom targ = {dpi_GG_mom_targ}")
                                     print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mu_mom}, w0_mean_targ = {w0_mu_mom_targ}") 
@@ -905,6 +950,9 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
         print("********** wH calibration was skipped **********")
     if not do_phi_H_calib:
         print("********** phi_H calibration was skipped **********")
+    if not do_eps_gg_calib:
+        print("********** epsilon_gg calibration was skipped ********")
+    print(f"epsilon_gg = {myPars.epsilon_gg}, epsilon_gg mom = {my_eps_gg_mom}, epsilon_gg mom targ = {eps_gg_mom_targ}")
     print(f"delta_pi_BB = {myPars.delta_pi_BB}, delta_pi_BB mom = {my_dpi_BB_mom}, delta_pi_BB mom targ = {dpi_BB_mom_targ}")
     print(f"delta_pi_GG = {myPars.delta_pi_GG}, delta_pi_GG mom = {my_dpi_GG_mom}, delta_pi_GG mom targ = {dpi_GG_mom_targ}")
     print(f"w0_weights = {w0_weights}, w0_mean = {my_w0_mu_mom}, w0_mean_targ = {w0_mu_mom_targ}") 
