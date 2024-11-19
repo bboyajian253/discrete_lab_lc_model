@@ -27,7 +27,8 @@ import plot_aggregates as plot_aggregates
 import io_manager as io
 
 # Run the model
-def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool = True, do_wH_calib: bool = True, do_dpi_calib: bool = True, do_eps_gg_calib: bool = False,
+def run_model(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, solve: bool = True,
+              calib : bool = True, do_wH_calib: bool = True, do_dpi_calib: bool = True, do_eps_gg_calib: bool = True,
               do_phi_H_calib: bool = False, get_targets: bool = True, sim_no_calib  : bool = False, 
               output_flag: bool = True, tex: bool = True, output_path: str = None, data_moms_folder_path: str = None)-> List[Dict[str, np.ndarray]]:
     """
@@ -72,12 +73,14 @@ def run_model(myPars: Pars, myShocks: Shocks, solve: bool = True, calib : bool =
             print(f"""Calibrating with alpha_lab_targ = {alpha_lab_targ}, w0_mean_targ = {w0_mu_targ}, w0_sd_targ = {w0_sigma_targ}, 
                                         w1_targ = {w1_targ}, w2_targ = {w2_targ}, wH_targ = {wH_targ}, phi_H_targ = {phi_H_targ},
                                         dpi_BB_targ = {dpi_BB_targ}, dpi_GG_targ = {dpi_GG_targ}, eps_gg_targ = {eps_gg_targ}""")
-            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, do_eps_gg_calib=do_eps_gg_calib,
-                                                                                                    alpha_mom_targ = alpha_lab_targ, w0_mu_mom_targ = w0_mu_targ, w0_sigma_mom_targ = w0_sigma_targ, 
-                                                                                                    w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, phi_H_mom_targ=phi_H_targ, wH_mom_targ = wH_targ, 
-                                                                                                    dpi_BB_mom_targ= dpi_BB_targ, dpi_GG_mom_targ = dpi_GG_targ, eps_gg_mom_targ = eps_gg_targ)
+            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks, 
+                                                                do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, do_eps_gg_calib=do_eps_gg_calib,
+                                                                alpha_mom_targ = alpha_lab_targ, w0_mu_mom_targ = w0_mu_targ, w0_sigma_mom_targ = w0_sigma_targ, 
+                                                                w1_mom_targ = w1_targ, w2_mom_targ = w2_targ, phi_H_mom_targ=phi_H_targ, wH_mom_targ = wH_targ, 
+                                                                dpi_BB_mom_targ= dpi_BB_targ, dpi_GG_mom_targ = dpi_GG_targ, eps_gg_mom_targ = eps_gg_targ)
         else: # otherwise use default argument targets
-            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, do_eps_gg_calib=do_eps_gg_calib)
+            myPars, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks,
+                                                               do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, do_eps_gg_calib=do_eps_gg_calib)
 
         calib_targ_vals_dict = { 'alpha': alpha_lab_targ, 
                                 'w0_mu': w0_mu_targ, 'w0_sigma': w0_sigma_targ, 

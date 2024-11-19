@@ -716,7 +716,7 @@ def calib_all_dpi_jit(myPars: Pars,  main_path:str, dpi_BB_tol:float, dpi_GG_tol
     shocks = Shocks(myPars)
     return myPars, shocks
 
-def calib_eps_gg(myPars: Pars, main_path:str, tol:float, target:float, eps_gg_min:float, eps_gg_max:float)-> Tuple[float, float, Dict[str, np.array], Dict[str, np.array]]:
+def calib_epsilon_gg(myPars: Pars, main_path:str, tol:float, target:float, eps_gg_min:float, eps_gg_max:float)-> Tuple[float, float, Dict[str, np.array], Dict[str, np.array]]:
     eps_gg_moment = -999
     state_sols = {}
     sim_lc = {}
@@ -775,7 +775,8 @@ def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Tuple[float,
     eps_gg_targ = get_eps_gg_targ(myPars, target_folder_path)
     return alpha_targ, w0_mean_targ, w0_sd_targ, w1_targ, w2_targ, wH_targ, phi_H_targ, dpi_BB_targ, dpi_GG_targ, eps_gg_targ
 
-def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_calib: bool = True, do_phi_H_calib: bool = False, do_eps_gg_calib: bool = False,  
+def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, 
+        do_wH_calib: bool = True, do_dpi_calib: bool = True, do_phi_H_calib: bool = False, do_eps_gg_calib: bool = True,  
         alpha_mom_targ:float = 0.40, w0_mu_mom_targ:float = 20.0, w0_sigma_mom_targ:float = 3.0, w1_mom_targ:float = 0.2, w2_mom_targ:float = 0.2, 
         wH_mom_targ:float = 0.2, dpi_BB_mom_targ:float = 0.5, dpi_GG_mom_targ:float = 0.3, phi_H_mom_targ:float = 0.1, eps_gg_mom_targ:float = 0.4,
         w0_mu_min:float = 0.0, w0_mu_max:float = 30.0, w0_sigma_min:float = 0.001, w0_sigma_max = 1.0, 
@@ -803,88 +804,73 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
 
     for i in range(myPars.max_calib_iters):
         print(f"***** Calibration iteration {i} *****")
-        my_dpi_BB_mom = dpi_BB_moment(myPars)
-        my_dpi_GG_mom = dpi_GG_moment(myPars)
+        my_eps_gg_mom = eps_gg_moment(myPars)
+        if do_eps_gg_calib and not (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol):
+            print("Calibrating epsilon_gg")
+            calib_eps_gg, my_eps_gg_mom, state_sols, sims = calib_epsilon_gg(myPars, calib_path, eps_gg_tol, eps_gg_mom_targ, eps_gg_min, eps_gg_max)
+            print(f"my_eps_gg_mom: {my_eps_gg_mom}")
 
-        # if do_dpi_calib and not (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol):
-        #     print("Calibrating delta_pi_BB and delta_pi_GG")
-        #     dpi_BB_calib, dpi_GG_calib, my_dpi_BB_mom, my_dpi_GG_mom, state_sols, sims = calib_all_delta_pi(myPars, calib_path, dpi_BB_tol, dpi_GG_tol, 
-        #                                                                                                     dpi_BB_mom_targ, dpi_GG_mom_targ, 
-        #                                                                                                     dpi_BB_min, dpi_BB_max, dpi_GG_min, dpi_GG_max)
-
-        if do_dpi_calib and not (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol):
-            print("Calibrating delta_pi_GG")
-            calib_dpi_GG, my_dpi_GG_mom, state_sols, sims = calib_delta_pi_GG(myPars, calib_path, dpi_GG_tol, dpi_GG_mom_targ, dpi_GG_min, dpi_GG_max)
-
-        # if do_dpi_calib and not (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol):
-        #     print("Calibrating delta_pi_BB")
-        #     calib_dpi_BB, my_dpi_BB_mom, state_sols, sims = calib_delta_pi_BB(myPars, calib_path, dpi_BB_tol, dpi_BB_mom_targ, dpi_BB_min, dpi_BB_max)
-
-        if do_dpi_calib:
-            print(f"my_dpi_BB_mom: {my_dpi_BB_mom}, my_dpi_GG_mom: {my_dpi_GG_mom}")
-        if (not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol)):
-        # if (not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol)):
-        # if (not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol)):
+        # rest of calibration starts 
+        # if (not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol)):
+        if (not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol)):
             print("Calibrating w0_mu")
             w0_weights, my_w0_mu_mom, state_sols, sims = calib_w0_mu(myPars, calib_path, w0_mu_tol, w0_mu_mom_targ, w0_mu_min, w0_mu_max)
+            my_eps_gg_mom = eps_gg_moment(myPars)
             my_dpi_BB_mom = dpi_BB_moment(myPars)
             my_dpi_GG_mom = dpi_GG_moment(myPars)
-            # print(f"my_dpi_BB_mom: {my_dpi_BB_mom}, my_dpi_GG_mom: {my_dpi_GG_mom}")
-            if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
-            # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
-            # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+            # if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+            if ((not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol))
                 and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol):
                 print("Calibrating w0_sigma")
                 w0_weights, my_w0_sigma_mom, state_sols, sims = calib_w0_sigma(myPars, calib_path, w0_sigma_tol, w0_sigma_mom_targ, w0_sigma_min, w0_sigma_max)
+                my_eps_gg_mom = eps_gg_moment(myPars)
                 my_dpi_BB_mom = dpi_BB_moment(myPars)
                 my_dpi_GG_mom = dpi_GG_moment(myPars)
                 my_w0_mu_mom = w0_mu_moment(myPars)
-                # print(f"my_dpi_BB_mom: {my_dpi_BB_mom}, my_dpi_GG_mom: {my_dpi_GG_mom}")
-                if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
-                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
-                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+                # if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+                if ((not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol))
                     and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol):
                     print("Calibrating w1")
                     w1_calib, my_w1_mom, state_sols, sims = calib_w1(myPars, calib_path, w1_tol, w1_mom_targ, w1_min, w1_max)
+                    my_eps_gg_mom = eps_gg_moment(myPars)
                     my_dpi_BB_mom = dpi_BB_moment(myPars)
                     my_dpi_GG_mom = dpi_GG_moment(myPars)
                     my_w0_mu_mom = w0_mu_moment(myPars)
                     my_w0_sigma_mom = w0_sigma_moment(myPars)
-                    # print(f"my_dpi_BB_mom: {my_dpi_BB_mom}, my_dpi_GG_mom: {my_dpi_GG_mom}")
-                    if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
-                    # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
-                    # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+                    # if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+                    if ((not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol))
                         and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                         and np.abs(my_w1_mom - w1_mom_targ) < w1_tol):
                         print("Calibrating w2")
                         w2_calib, my_w2_mom, state_sols, sims = calib_w2(myPars, calib_path, w2_tol, w2_mom_targ, w2_min, w2_max)
+                        my_eps_gg_mom = eps_gg_moment(myPars)
                         my_dpi_BB_mom = dpi_BB_moment(myPars)
                         my_dpi_GG_mom = dpi_GG_moment(myPars)
                         my_w0_mu_mom = w0_mu_moment(myPars)
                         my_w0_sigma_mom = w0_sigma_moment(myPars)
                         my_w1_mom = w1_moment(myPars)
-                        if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
-                        # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
-                        # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+                        # if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+                        if ((not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol))
                             and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                             and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol):
                             if do_wH_calib:
                                 print("Calibrating wH")
                                 wH_calib, my_wH_mom, state_sols, sims = calib_wH(myPars, calib_path, wH_tol, wH_mom_targ, wH_min, wH_max)                        
+                            my_eps_gg_mom = eps_gg_moment(myPars)
                             my_dpi_BB_mom = dpi_BB_moment(myPars)
                             my_dpi_GG_mom = dpi_GG_moment(myPars)
                             my_w0_mu_mom = w0_mu_moment(myPars)
                             my_w0_sigma_mom = w0_sigma_moment(myPars)
                             my_w1_mom = w1_moment(myPars)
                             my_w2_mom = w2_moment(myPars)
-                            if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
-                            # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
-                            # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+                            # if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+                            if ((not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol))
                                 and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                                 and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                                 and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol)):
                                 print("Calibrating alpha")
                                 alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, calib_path, alpha_tol, alpha_mom_targ)
+                                my_eps_gg_mom = eps_gg_moment(myPars)
                                 my_dpi_BB_mom = dpi_BB_moment(myPars)
                                 my_dpi_GG_mom = dpi_GG_moment(myPars)
                                 my_w0_mu_mom = w0_mu_moment(myPars)
@@ -892,10 +878,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
                                 my_w1_mom = w1_moment(myPars)
                                 my_w2_mom = w2_moment(myPars)
                                 my_wH_mom = wH_moment(myPars)
-
-                                if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
-                                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
-                                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+                                # if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+                                if ((not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol))
                                     and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                                     and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                                     and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
@@ -905,6 +889,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
                                     else:
                                         lab_sims = sims['lab']
                                         my_phi_H_mom = phi_H_moment(myPars, lab_sims)
+                                    my_eps_gg_mom = eps_gg_moment(myPars)
                                     my_dpi_BB_mom = dpi_BB_moment(myPars)
                                     my_dpi_GG_mom = dpi_GG_moment(myPars)
                                     my_w0_mu_mom = w0_mu_moment(myPars)
@@ -913,11 +898,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, do_wH_calib: bool = True, do_dpi_c
                                     my_w2_mom = w2_moment(myPars)
                                     my_wH_mom = wH_moment(myPars)
                                     my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
-                                    my_eps_gg_mom = eps_gg_moment(myPars)
-                                
-                                if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
-                                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol))
-                                # if((not do_dpi_calib or (np.abs(my_dpi_BB_mom - dpi_BB_mom_targ) < dpi_BB_tol and np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol))
+                                # if((not do_dpi_calib or (np.abs(my_dpi_GG_mom - dpi_GG_mom_targ) < dpi_GG_tol ))
+                                if ((not do_eps_gg_calib or (np.abs(my_eps_gg_mom - eps_gg_mom_targ) < eps_gg_tol))
                                     and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                                     and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                                     and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol
