@@ -736,7 +736,6 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
     # set up return arrays
     state_sols = {}
     sims = {}
-    moms_dict = {}
     my_eps_bb_mom = -999.999
     my_eps_gg_mom = -999.999
     my_w0_mu_mom = -999.999
@@ -745,6 +744,9 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
     my_w2_mom = -999.999
     my_wH_mom = -999.999
     my_alpha_mom = -999.999
+    # could do this with a dictionary, where i update the model_moms as i calibrate each parameter
+    # moms_dict = {'alpha': my_alpha_mom, 'w0_mu': my_w0_mu_mom, 'w0_sigma': my_w0_sigma_mom, 
+    #              'w1': my_w1_mom, 'w2': my_w2_mom, 'wH': my_wH_mom, 'eps_gg': my_eps_gg_mom, 'eps_bb': my_eps_bb_mom}
 
     for i in range(myPars.max_calib_iters):
         #print()
@@ -753,6 +755,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
         if do_eps_bb_calib and do_eps_gg_calib:
             my_eps_bb_mom = eps_bb_moment(myPars, myShocks)
             my_eps_gg_mom = eps_gg_moment(myPars, myShocks)
+            # moms_dict['eps_bb'] = eps_bb_moment(myPars, myShocks)
+            # moms_dict['eps_gg'] = eps_gg_moment(myPars, myShocks)
             if np.abs(my_eps_bb_mom - eps_bb_mom_targ) > eps_bb_tol or np.abs(my_eps_gg_mom - eps_gg_mom_targ) > eps_gg_tol:
                 print("Calibrating epsilon_bb and epsilon_gg")
                 calib_eps_bb, calib_eps_gg, my_eps_bb_mom, my_eps_gg_mom, state_sols, sims = calib_all_eps(myPars, calib_path, 
