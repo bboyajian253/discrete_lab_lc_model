@@ -70,26 +70,25 @@ def run_model(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, solve:
         start_time = time.perf_counter()
         max_iters = myPars.max_iters
         if get_targets: 
-            # alpha_lab_targ, w0_mu_targ, w0_sigma_targ, w1_targ, w2_targ, wH_targ, phi_H_targ, dpi_BB_targ, dpi_GG_targ, eps_gg_targ, eps_bb_targ = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
-            calib_targ_vals_dict = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
+            targ_moms_dict = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
             print("Calibrating with targets: ")
-            for key, value in calib_targ_vals_dict.items():
+            for key, value in targ_moms_dict.items():
                 print(f"{key} target: {value}")
 
-            myPars, myShocks, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks, 
+            myPars, myShocks, state_sols, sim_lc, model_moms_dict = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks, 
                                                                 do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, 
                                                                 do_eps_gg_calib=do_eps_gg_calib, do_eps_bb_calib=do_eps_bb_calib,
-                                                                **calib_targ_vals_dict)
+                                                                **targ_moms_dict)
         else: # otherwise use default argument targets
-            myPars, myShocks, state_sols, sim_lc = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks,
+            myPars, myShocks, state_sols, sim_lc, model_moms_dict = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks,
                                                                do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, 
                                                                do_eps_gg_calib=do_eps_gg_calib, do_eps_bb_calib=do_eps_bb_calib)
 
-        calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
-                                    'w0_mu': calibration.w0_moments(myPars, myShocks)[0], 'w0_sigma': calibration.w0_moments(myPars, myShocks)[1],
-                                    'w1': calibration.w1_moment(myPars, myShocks), 'w2': calibration.w2_moment(myPars, myShocks),
-                                    'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc['lab']),
-                                    'eps_gg': calibration.eps_gg_moment(myPars, myShocks), 'eps_bb': calibration.eps_bb_moment(myPars, myShocks)}
+        # calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
+        #                             'w0_mu': calibration.w0_moments(myPars, myShocks)[0], 'w0_sigma': calibration.w0_moments(myPars, myShocks)[1],
+        #                             'w1': calibration.w1_moment(myPars, myShocks), 'w2': calibration.w2_moment(myPars, myShocks),
+        #                             'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc['lab']),
+        #                             'eps_gg': calibration.eps_gg_moment(myPars, myShocks), 'eps_bb': calibration.eps_bb_moment(myPars, myShocks)}
 
         for label in sim_lc.keys():
             np.save(output_path + f'sim{label}.npy', sim_lc[label])
@@ -103,7 +102,7 @@ def run_model(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, solve:
 
     #if output, output the results
     if output_flag:
-        output(myPars, state_sols, sim_lc, calib_targ_vals_dict, calib_model_vals_dict, tex, get_targets, 
+        output(myPars, state_sols, sim_lc, targ_moms_dict, model_moms_dict, tex, get_targets, 
                data_moms_folder_path = data_moms_folder_path, outpath = output_path)
     
     return [state_sols, sim_lc]

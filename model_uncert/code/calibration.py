@@ -706,7 +706,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
         calib_path: str = None,
 
         **targ_args: Dict[str, float] 
-        )-> (Tuple[Pars, Dict[str, np.ndarray], Dict[str, np.ndarray]]):
+        )-> (Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, np.ndarray]]):
     """
     calibrates all the parameters of the model
     takes arguments that represent the targets and tolerances for the calibration
@@ -736,6 +736,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
     # set up return arrays
     state_sols = {}
     sims = {}
+    moms_dict = {}
     my_eps_bb_mom = -999.999
     my_eps_gg_mom = -999.999
     my_w0_mu_mom = -999.999
@@ -874,8 +875,6 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                                 print("********** wH calibration was skipped **********")
                             if not do_phi_H_calib:
                                 print("********** phi_H calibration was skipped **********")
-                            else:
-                                print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
                             if not do_eps_gg_calib:
                                 print("********** epsilon_gg calibration was skipped ********")
                             else:
@@ -890,7 +889,12 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                             print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
                             print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
                             print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
-                            return myPars, myShocks, state_sols, sims
+                            print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
+                            moms_dict = {'alpha': my_alpha_mom, 'w0_mu': my_w0_mu_mom, 'w0_sigma': my_w0_sigma_mom, 
+                                            'w1': my_w1_mom, 'w2': my_w2_mom, 'wH': my_wH_mom, 'phi_H': my_phi_H_mom,
+                                            'eps_gg': my_eps_gg_mom, 'eps_bb': my_eps_bb_mom}
+
+                            return myPars, myShocks, state_sols, sims, moms_dict
 
     # calibration does not converge
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
@@ -898,8 +902,6 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
         print("********** wH calibration was skipped **********")
     if not do_phi_H_calib:
         print("********** phi_H calibration was skipped **********")
-    else:
-        print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
     if not do_eps_gg_calib:
         print("********** epsilon_gg calibration was skipped ********")
     else:
@@ -914,7 +916,12 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
     print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
     print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
     print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
-    return myPars, myShocks, state_sols, sims
+    print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
+    moms_dict = {'alpha': my_alpha_mom, 'w0_mu': my_w0_mu_mom, 'w0_sigma': my_w0_sigma_mom, 
+                    'w1': my_w1_mom, 'w2': my_w2_mom, 'wH': my_wH_mom, 'phi_H': my_phi_H_mom,
+                    'eps_gg': my_eps_gg_mom, 'eps_bb': my_eps_bb_mom}
+
+    return myPars, myShocks, state_sols, sims, moms_dict
 
 if __name__ == "__main__":
     start_time = time.perf_counter()
