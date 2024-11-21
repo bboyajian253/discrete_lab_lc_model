@@ -1260,7 +1260,7 @@ def cubic(j : int, params : np.ndarray) -> float:
 #run if main
 if __name__ == "__main__":
     print("running my_toolbox.py")
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
     input_path = main_path + "input/"
     file_path = input_path + "MH_trans.csv"
 

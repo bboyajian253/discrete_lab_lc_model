@@ -3,7 +3,7 @@ cls
 
 global curdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model"  /* main folder directory */ 
 global dodir    "$curdir/My Code/MH_Model/do_files" /*do file folder directory */
-global master_outdir   "$curdir/My Code/MH_Model/my_code/model_uncert/input" /*output file folder directory */
+global master_outdir   "$curdir/My Code/MH_Model/model_uncert/input" /*output file folder directory */
 global datadir  "$curdir/data" //"C:\Users\Ben\3YP_Data_Work\Data"
 
 // for the health transition moments

@@ -425,7 +425,7 @@ def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str =
 
 if __name__ == "__main__":
     start_time = time.perf_counter()
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
     
     # my_lab_fe_grid = np.array([10.0, 20.0, 30.0, 40.0])
     my_lab_fe_grid = np.array([10.0, 20.0, 30.0])

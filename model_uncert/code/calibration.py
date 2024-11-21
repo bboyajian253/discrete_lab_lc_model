@@ -506,7 +506,7 @@ def get_phi_H_targ(myPars: Pars, target_folder_path: str)-> float:
     reads phi_H target moment from myPars.path + '/input/MH_hours_moments.csv'
     '''
     # data_moments_path = myPars.path + '/input/MH_labor_moments.csv'
-    tc_calib_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/input/time_cost_counter/"
+    tc_calib_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/input/time_cost_counter/"
     # data_moments_path = target_folder_path + '/MH_hours_moments.csv'
     data_moments_path = tc_calib_path + 'MH_hours_moments.csv'
     data_mom_col_ind = 0
@@ -919,7 +919,7 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
 if __name__ == "__main__":
     start_time = time.perf_counter()
 
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
 
     my_lab_fe_grid = np.array([5.0, 10.0, 15.0, 20.0])
     my_lab_fe_grid = np.log(my_lab_fe_grid)

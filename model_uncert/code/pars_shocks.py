@@ -403,7 +403,7 @@ if __name__ == "__main__":
     print("Running pars_shocks.py")
     start_time = time.time()
 
-    path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
     input_path = path + "/input/50p_age_moms/"
     trans_path = input_path + "MH_trans_uncond_age.csv"
     

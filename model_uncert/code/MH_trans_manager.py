@@ -53,7 +53,7 @@ def calc_full_MH_trans(myPars: Pars, trans_reshaped: np.ndarray) -> np.ndarray:
     return ret_mat
 
 if __name__ == "__main__":
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
     moms_path = main_path + "/input/50p_age_moms/"
     trans_path = moms_path + "MH_trans_uncond_age.csv"
 

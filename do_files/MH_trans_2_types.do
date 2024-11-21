@@ -4,7 +4,7 @@ clear
 
 // global curdir   "C:/Users/Ben/3YP_Data_Work"  /* main folder directory */ 
 // global dodir    "$curdir/Do_Files" /*do file folder directory */
-// global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/input/MH_trans/" /*output file folder directory */
+// global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/input/MH_trans/" /*output file folder directory */
 // global datadir  "$curdir/Data"
 // local outdir = 
 

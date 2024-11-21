@@ -59,7 +59,7 @@ main_model_moms
     defines global directories and runs the following .do files in order:
     global curdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model"
     global dodir    "$curdir/My Code/MH_Model/do_files"
-    global master_outdir   "$curdir/My Code/MH_Model/my_code/model_uncert/input"
+    global master_outdir   "$curdir/My Code/MH_Model/model_uncert/input"
     global datadir  "$curdir/data"
     // for the health transition moments
     global outdir "$master_outdir/MH_trans"
@@ -74,7 +74,7 @@ gen_MH_trans_2_types.do
     takes UKHLS_sample_trans.dta
     Generates the mental health transition probabilities for the model unconditionally, conditonal on both permanent types and age
     saves the following .csv files in 
-    global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/input/MH_trans/" 
+    global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/input/MH_trans/" 
     -MH_trans_uncond.csv
     -MH_trans_uncond_age.csv
     -MH_trans_by_MH_clust_50p.csv
@@ -88,7 +88,7 @@ validate_H_types.do
     validates the health types by regressing mental health on the health types and other controls
     exports the resulting R^2 to MH_type_reg_r2.csv
     saves the following .csv files in 
-    global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/input/MH_trans/"
+    global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/input/MH_trans/"
     -MH_type_reg_r2.csv
     doesnt save any .dta files
 
@@ -97,7 +97,7 @@ gen_moments_k2.do
     gens aggregate moments for model calibration and graphs 
     gens mental health transitions for the model using k-means clustering unconditonally and by age
     saves the following .csv files in 
-    global outdir "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/input/k-means/" 
+    global outdir "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/input/k-means/" 
     -"MH_wage_moments.csv"
     -labor_moments.csv
     -wage_moments.csv
@@ -114,7 +114,7 @@ gen_inequality_moments.do
     gen variance and percentile and inequality moments for model validation
     gens mental health and earnings correlation moments
     saves the following .csv files in 
-    global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/input/k-means/"
+    global outdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/input/k-means/"
     -var_earn_moments.csv
     -earn_percentiles.csv
     -cum_earn_percentiles.csv

@@ -151,6 +151,6 @@ def pars_to_dict(pars_instance: Pars) -> Dict:
 # run if main function
 if __name__ == "__main__":
 
-    path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/my_code/model_uncert/"
+    path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
     myPars = Pars(path, J=51)
 
