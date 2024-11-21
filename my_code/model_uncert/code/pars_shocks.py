@@ -45,6 +45,7 @@ pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed e
                 ('delta_pi_BB', float64), #diff in prob of bad health persistence between the two types
                 ('delta_pi_GG', float64), #diff in prob of good health persistence between the two types
                 ('epsilon_gg', float64), # adjustment to the probability of good health persistence
+                ('epsilon_bb', float64), # adjustment to the probability of bad health persistence
                 ('state_space_shape', UniTuple(int64, 5)), #the shape/dimensions of the full state space with time/age J
                 ('state_space_shape_no_j', UniTuple(int64, 4)),
                 ('state_space_no_j_size', int64), #size of the state space with out time/age J
@@ -107,6 +108,7 @@ class Pars() :
             delta_pi_BB = 0.0, #diff in prob of bad health persistence between the two types
             delta_pi_GG = 0.0, #diff in prob of good health persistence between the two types
             epsilon_gg = 0.0, # adjustment to the probability of good health persistence
+            epsilon_bb = 0.0, # adjustment to the probability of bad health persistence
 
             lab_min = 0.00,
             lab_max = 1.0,
@@ -161,6 +163,7 @@ class Pars() :
         self.delta_pi_BB = delta_pi_BB
         self.delta_pi_GG = delta_pi_GG
         self.epsilon_gg = epsilon_gg
+        self.epsilon_bb = epsilon_bb
 
         if delta_pi_BB > 0.0 or delta_pi_GG > 0.0:
             self.H_trans = gen_MH_trans(H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.delta_pi_BB, self.delta_pi_GG)
@@ -221,9 +224,6 @@ class Pars() :
     def set_H_trans_uncond(self, H_trans_uncond: np.ndarray):
         self.H_trans_uncond = H_trans_uncond
         self.update_H_trans()
-
-
-
 
 
 @njit
@@ -309,7 +309,8 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
                     if j > 0:
                         shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
                         prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
-                        health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] + prev_health_state_ind * myPars.epsilon_gg # since prev_health_state_ind is 0 or 1
+                        adj = prev_health_state_ind * myPars.epsilon_gg + (1 - prev_health_state_ind) * myPars.epsilon_bb # since prev_health_state_ind is 0 or 1
+                        health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] + adj
                         # leave this here in case get dpi stuff to work later
                         # if prev_health_state_ind == GOOD:
                         #     health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]

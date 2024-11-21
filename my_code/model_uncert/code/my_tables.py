@@ -34,6 +34,10 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
     dpi_BB_mod_val = model_moments['dpi_BB']
     dpi_GG_targ_val = targ_moments['dpi_GG']
     dpi_GG_mod_val = model_moments['dpi_GG']
+    eps_bb_targ_val = targ_moments['eps_bb']
+    eps_bb_mod_val = model_moments['eps_bb']
+    eps_gg_targ_val = targ_moments['eps_gg']
+    eps_gg_mod_val = model_moments['eps_gg']
 
     tab = [
         "\\documentclass[border=3mm,preview]{standalone}",
@@ -51,6 +55,8 @@ def print_endog_params_to_tex(myPars: Pars, targ_moments: Dict[str, float], mode
         f"$w_{{1}}$ & Linear wage coeff. & {round(myPars.wage_coeff_grid[1,1], 4)} & Wage growth & {round(w1_targ_val,2)}\\% & {round(w1_mod_val, 2)}\\% \\\\ \n", 
         f"$w_{{2}}$ & Quad. wage coeff. & {round(myPars.wage_coeff_grid[1,2], 4)} & Wage decay & {round(w2_targ_val,2)}\\% & {round(w2_mod_val,2)}\\% \\\\ \n", 
         f"$w_{{H}}$ & Health wage coeff. & {round(myPars.wH_coeff, 4)} & Healthy wage premium & {round(wH_targ_val,2)}\\% & {round(wH_mod_val,2)}\\% \\\\ \n", 
+        f"$\\varepsilon_{{gg}}$ & $\\pi^{{GG}}$ adjust. & {round(myPars.epsilon_gg, 4)} & Mean share bad MH & {round(eps_gg_targ_val, 2)} & {round(eps_gg_mod_val, 2)} \\\\ \n",
+        f"$\\varepsilon_{{bb}}$ & $\\pi^{{BB}}$ adjust. & {round(myPars.epsilon_bb, 4)} & Autocorr MH Lag=1 & {round(eps_bb_targ_val, 2)} & {round(eps_bb_mod_val, 2)} \\\\ \n",
         "\\hline \n",
         "\\end{tabular}\n",
         "\\end{document}\n"
