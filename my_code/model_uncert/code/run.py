@@ -89,7 +89,6 @@ def run_model(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, solve:
                                     'w0_mu': calibration.w0_moments(myPars, myShocks)[0], 'w0_sigma': calibration.w0_moments(myPars, myShocks)[1],
                                     'w1': calibration.w1_moment(myPars, myShocks), 'w2': calibration.w2_moment(myPars, myShocks),
                                     'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc['lab']),
-                                    'dpi_BB': calibration.dpi_BB_moment(myPars), 'dpi_GG': calibration.dpi_GG_moment(myPars),
                                     'eps_gg': calibration.eps_gg_moment(myPars, myShocks), 'eps_bb': calibration.eps_bb_moment(myPars, myShocks)}
 
         for label in sim_lc.keys():

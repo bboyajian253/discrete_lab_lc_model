@@ -515,200 +515,6 @@ def get_phi_H_targ(myPars: Pars, target_folder_path: str)-> float:
     # return mean_log_lab_diff[0]
     return mean_lab_diff[0]/100
 
-def calib_delta_pi_BB(myPars: Pars, main_path: str, tol:float, target:float, dpi_BB_min:float, dpi_BB_max:float)-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    '''
-    calibrates the delta_pi_BB parameter of the model to match the target autocorrelation of health
-    takes the following arguments:
-    myPars: the parameters of the model
-    main_path: the path to the main directory
-    tol: the tolerance for the calibration
-    target: the target autocorrelation of health
-    dpi_BB_min: the minimum value of the delta_pi_BB parameter
-    dpi_BB_max: the maximum value of the delta_pi_BB parameter
-    returns a tuple with the calibrated delta_pi_BB, the autocorrelation of health, the state solutions and the simulations
-    '''
-    # io.print_params_to_csv(myPars, path = main_path, file_name = "pre_delta_pi_BB_calib_params.csv")
-    dpi_BB_moment = -999.999
-    state_sols = {}
-    sim_lc = {}
-
-    # define the lambda function to find the zero of
-    get_dpi_BB_diff = lambda new_dpi_BB: dpi_BB_mom_giv_dpi_BB(myPars, new_dpi_BB) - target
-    calibrated_dpi_BB = tb.bisection_search(get_dpi_BB_diff, dpi_BB_min, dpi_BB_max, tol, myPars.max_iters, myPars.print_screen)
-    myPars.set_delta_pi_BB(calibrated_dpi_BB)
-
-    # solve, simulate model for the calibrated delta_pi_BB
-    dpi_BB_moment = dpi_BB_mom_giv_dpi_BB(myPars, calibrated_dpi_BB)
-    # io.print_params_to_csv(myPars, path = main_path, file_name = "delta_pi_BB_calib_params.csv")
-    shocks = Shocks(myPars)
-    state_sols = solver.solve_lc(myPars, main_path)
-    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    if myPars.print_screen >= 1:
-        print(f"Calibration exited: delta_pi_BB = {calibrated_dpi_BB}, autocorrelation of health = {dpi_BB_moment}, target autocorrelation of health = {target}")
-    
-    return calibrated_dpi_BB, dpi_BB_moment, state_sols, sim_lc
-
-@njit
-def dpi_BB_mom_giv_dpi_BB(myPars: Pars, new_dpi_BB:float)-> float:
-    '''
-    gens an H_hist given a new dpi_BB and returns the dpi_BB moment
-    updates the dpi_BB in myPars
-    '''
-    myPars.set_delta_pi_BB(new_dpi_BB)
-    return dpi_BB_moment(myPars)
-
-@njit
-def dpi_BB_moment(myPars: Pars)-> float:
-    '''
-    returns the autocorrelation of the healh with its first lag
-    '''
-    shocks = Shocks(myPars)
-    H_hist = shocks.H_hist[:, :, :, :myPars.J]
-    # H_hist_ac = tb.lagged_corr(H_hist, max_lag=10)
-    H_hist_ac = tb.lagged_corr_jit(H_hist, max_lag=10) 
-    # print(f"H_hist_ac[1]: {H_hist_ac[1]}")
-    return H_hist_ac[1]
-    # return H_hist_ac[10]
-
-def get_delta_pi_BB_targ(myPars: Pars, target_folder_path: str)-> float:
-    '''
-    reads delta_pi_BB target moment from target_folder_path + '/autocorr_matrix.csv'
-    '''
-    data_moms_path = target_folder_path + '/autocorr_matrix.csv'
-    autocorr_mat_pd = pd.read_csv(data_moms_path)
-    MH_autocorr = autocorr_mat_pd['MH']
-    MH_a1 = MH_autocorr.iloc[1]
-    return MH_a1
-    # MH_a10 = MH_autocorr.iloc[10]
-    # return MH_a10
-
-def calib_delta_pi_GG(myPars: Pars, main_path: str, tol:float, target:float, dpi_GG_min:float, dpi_GG_max:float
-                        )-> Tuple[float, float, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
-    '''
-    calibrates the delta_pi_GG parameter of the model to match the target autocorrelation of health
-    takes the following arguments:
-    myPars: the parameters of the model
-    main_path: the path to the main directory
-    tol: the tolerance for the calibration
-    target: the target autocorrelation of health
-    dpi_GG_min: the minimum value of the delta_pi_GG parameter
-    dpi_GG_max: the maximum value of the delta_pi_GG parameter
-    returns a tuple with the calibrated delta_pi_GG, the autocorrelation of health, the state solutions and the simulations
-    '''
-    dpi_GG_moment = -999.999
-    state_sols = {}
-    sim_lc = {}
-
-    # define the lambda function to find the zero of
-    get_dpi_GG_diff = lambda new_dpi_GG: dpi_GG_mom_giv_dpi_GG(myPars, new_dpi_GG) - target
-    calibrated_dpi_GG = tb.bisection_search(get_dpi_GG_diff, dpi_GG_min, dpi_GG_max, tol, myPars.max_iters, myPars.print_screen)
-    myPars.set_delta_pi_GG(calibrated_dpi_GG)
-
-    # solve, simulate model for the calibrated delta_pi_GG
-    dpi_GG_moment = dpi_GG_mom_giv_dpi_GG(myPars, calibrated_dpi_GG)
-    shocks = Shocks(myPars)
-    state_sols = solver.solve_lc(myPars, main_path)
-    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    if myPars.print_screen >= 1:
-        print(f"Calibration exited: delta_pi_GG = {calibrated_dpi_GG}, autocorrelation of health = {dpi_GG_moment}, target autocorrelation of health = {target}")
-    
-    return calibrated_dpi_GG, dpi_GG_moment, state_sols, sim_lc
-
-@njit
-def dpi_GG_mom_giv_dpi_GG(myPars: Pars, new_dpi_GG:float)-> float:
-    myPars.set_delta_pi_GG(new_dpi_GG)
-    return dpi_GG_moment(myPars)
-@njit
-def dpi_GG_moment(myPars: Pars)-> float:
-    '''
-    returns the autocorrelation of health with its 10th lag
-    '''
-    shocks = Shocks(myPars)
-    H_hist = shocks.H_hist[:, :, :, :myPars.J]
-    # H_hist_ac = tb.lagged_corr(H_hist, max_lag=10)
-    H_hist_ac = tb.lagged_corr_jit(H_hist, max_lag=10)
-
-    # print(f"H_hist_ac[10]: {H_hist_ac[10]}")
-    return H_hist_ac[10]
-
-def get_delta_pi_GG_targ(myPars: Pars, target_folder_path: str)-> float:
-    '''
-    reads delta_pi_GG target moment from target_folder_path + '/autocorr_matrix.csv'
-    '''
-    data_moms_path = target_folder_path + '/autocorr_matrix.csv'
-    autocorr_mat_pd = pd.read_csv(data_moms_path)
-    MH_autocorr = autocorr_mat_pd['MH']
-    MH_a10 = MH_autocorr.iloc[10]
-    return MH_a10
-
-# @njit
-def calib_all_delta_pi(myPars: Pars,  main_path:str, dpi_BB_tol:float, dpi_GG_tol:float, dpi_BB_target:float, dpi_GG_target:float,
-                  dpi_BB_min:float, dpi_BB_max:float, dpi_GG_min:float, dpi_GG_max:float, 
-                  dpi_GG_max_iter:int = None, dpi_BB_max_iter:int = None
-                  )->Tuple[float, float, float, float, Dict[str, float], Dict[str, float]]: 
-    """
-     Calibrates the delta_pi_BB and delta_pi_GG parameters simulatenously (i.e.fully nested bisection search)
-     like most of the calibration functions, myPars is updated excessively, could be optimized
-    """
-    # shocks = Shocks(myPars)
-    myPars, shocks = calib_all_dpi_jit(myPars, main_path, dpi_BB_tol, dpi_GG_tol, dpi_BB_target, dpi_GG_target, 
-                                       dpi_BB_min, dpi_BB_max, dpi_GG_min, dpi_GG_max, dpi_GG_max_iter, dpi_BB_max_iter)
-
-    state_sols = solver.solve_lc(myPars, main_path)
-    sim_lc = simulate.sim_lc(myPars, shocks, state_sols)
-    return myPars.delta_pi_BB, myPars.delta_pi_GG, dpi_BB_moment(myPars), dpi_GG_moment(myPars), state_sols, sim_lc
-
-@njit
-def calib_all_dpi_jit(myPars: Pars,  main_path:str, dpi_BB_tol:float, dpi_GG_tol:float, dpi_BB_target:float, dpi_GG_target:float,
-                  dpi_BB_min:float, dpi_BB_max:float, dpi_GG_min:float, dpi_GG_max:float, 
-                  dpi_GG_max_iter:int = None, dpi_BB_max_iter:int = None
-                  )->Tuple[Pars, Shocks]: 
-    """
-     Calibrates the delta_pi_BB and delta_pi_GG parameters simulatenously (i.e.fully nested bisection search)
-     like most of the calibration functions, myPars is updated excessively, could be optimized
-    """
-
-    if not dpi_BB_max_iter:
-        # dpi_BB_max_iter = myPars.max_iters
-        dpi_BB_max_iter = 30
-    if not dpi_GG_max_iter:
-        # dpi_GG_max_iter = myPars.max_calib_iters
-        dpi_GG_max_iter = 30
-
-    dpi_BB_mom = -999
-    dpi_GG_mom = -999
-                  
-    dpi_BB_err = lambda new_dpi_BB: dpi_BB_mom_giv_dpi_BB(myPars, new_dpi_BB) - dpi_BB_target
-    dpi_GG_err = lambda new_dpi_GG: dpi_GG_mom_giv_dpi_GG(myPars, new_dpi_GG) - dpi_GG_target
-
-    BB_min = dpi_BB_min
-    BB_max = dpi_BB_max
-    BB_iters = 0
-    BB_err = 1 + dpi_BB_tol
-    while (abs(dpi_GG_err(myPars.delta_pi_GG)) > dpi_GG_tol or abs(dpi_BB_err(myPars.delta_pi_BB)) > dpi_BB_tol) and BB_iters < dpi_BB_max_iter:
-        GG_min = dpi_GG_min
-        GG_max = dpi_GG_max
-        GG_iters = 0
-        GG_err = 1 + dpi_GG_tol
-        while abs(GG_err) > dpi_GG_tol and GG_iters < dpi_GG_max_iter:
-            GG_mid_pt = (GG_max + GG_min) / 2
-            GG_err = dpi_GG_err(GG_mid_pt)
-            if GG_err > 0:
-                GG_max = GG_mid_pt
-            else:
-                GG_min = GG_mid_pt
-            GG_iters += 1
-        
-        BB_mid_pt = (BB_max + BB_min) / 2
-        BB_err = dpi_BB_err(BB_mid_pt)
-        if BB_err > 0:
-            BB_max = BB_mid_pt
-        else:
-            BB_min = BB_mid_pt
-        BB_iters += 1
-
-    shocks = Shocks(myPars)
-    return myPars, shocks
 
 def calib_epsilon_gg(myPars: Pars, myShocks:Shocks, main_path:str, tol:float, target:float, eps_gg_min:float, eps_gg_max:float)-> Tuple[float, float, Dict[str, np.array], Dict[str, np.array]]:
     eps_gg_moment = -999
@@ -861,7 +667,6 @@ def calib_all_eps(myPars:Pars, main_path:str,
     eps_bb_mom = eps_bb_moment(myPars, myShocks)
     state_sols = solver.solve_lc(myPars, main_path)
     sim_lc = simulate.sim_lc(myPars, myShocks, state_sols)
-    print(f'eps_bb error: {eps_bb_mom - eps_bb_target}, eps_gg error: {eps_gg_mom - eps_gg_target}')
     return calib_eps_bb, calib_eps_gg, eps_bb_mom, eps_gg_mom, state_sols, sim_lc
 
 def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Dict[str, float]:
@@ -879,12 +684,10 @@ def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Dict[str, fl
     w2_targ = get_w2_targ(myPars, target_folder_path)
     wH_targ = get_wH_targ(myPars, target_folder_path)
     phi_H_targ = get_phi_H_targ(myPars, target_folder_path)
-    dpi_BB_targ = get_delta_pi_BB_targ(myPars, target_folder_path)
-    dpi_GG_targ = get_delta_pi_GG_targ(myPars, target_folder_path)
     eps_gg_targ = get_eps_gg_targ(myPars, target_folder_path)
     eps_bb_targ = get_eps_bb_targ(myPars, target_folder_path)
     targ_dict = {'alpha': alpha_targ, 'w0_mu': w0_mean_targ, 'w0_sigma': w0_sd_targ, 'w1': w1_targ, 'w2': w2_targ, 'wH': wH_targ, 
-                 'phi_H': phi_H_targ, 'dpi_BB': dpi_BB_targ, 'dpi_GG': dpi_GG_targ, 'eps_gg': eps_gg_targ, 'eps_bb': eps_bb_targ}
+                 'phi_H': phi_H_targ, 'eps_gg': eps_gg_targ, 'eps_bb': eps_bb_targ}
     return targ_dict
 
 def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, 
@@ -943,7 +746,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
     my_alpha_mom = -999.999
 
     for i in range(myPars.max_calib_iters):
-        print(f"\n ***** Calibration iteration {i} *****")
+        #print()
+        print(f"***** Calibration iteration {i} *****")
         # calibrate epsilon_bb (eps_bb)
         if do_eps_bb_calib and do_eps_gg_calib:
             my_eps_bb_mom = eps_bb_moment(myPars, myShocks)
@@ -1066,11 +870,6 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                             and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol
                             and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
                             print(f"Calibration converged after {i+1} iterations")
-                            if not do_dpi_calib:
-                                print("********** delta_pi_BB and delta_pi_GG calibration was skipped **********")
-                            # else:
-                            #     print(f"delta_pi_BB = {myPars.delta_pi_BB}, delta_pi_BB mom = {my_dpi_BB_mom}, delta_pi_BB mom targ = {dpi_BB_mom_targ}")
-                            #     print(f"delta_pi_GG = {myPars.delta_pi_GG}, delta_pi_GG mom = {my_dpi_GG_mom}, delta_pi_GG mom targ = {dpi_GG_mom_targ}")
                             if not do_wH_calib:
                                 print("********** wH calibration was skipped **********")
                             if not do_phi_H_calib:
@@ -1095,11 +894,6 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
 
     # calibration does not converge
     print(f"Calibration did not converge after {myPars.max_calib_iters} iterations")
-    if not do_dpi_calib:
-        print("********** delta_pi_BB and delta_pi_GG calibration was skipped **********")
-    # else:
-    #     print(f"delta_pi_BB = {myPars.delta_pi_BB}, delta_pi_BB mom = {my_dpi_BB_mom}, delta_pi_BB mom targ = {dpi_BB_mom_targ}")
-    #     print(f"delta_pi_GG = {myPars.delta_pi_GG}, delta_pi_GG mom = {my_dpi_GG_mom}, delta_pi_GG mom targ = {dpi_GG_mom_targ}")
     if not do_wH_calib:
         print("********** wH calibration was skipped **********")
     if not do_phi_H_calib:
