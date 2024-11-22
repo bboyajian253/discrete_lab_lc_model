@@ -523,7 +523,8 @@ def calib_epsilon_gg(myPars: Pars, myShocks:Shocks, main_path:str, tol:float, ta
     # define the objective function
     get_eps_diff = lambda new_eps: eps_gg_mom_giv_eps(myPars,  new_eps) - target
     calibrated_eps = tb.bisection_search(get_eps_diff, eps_gg_min, eps_gg_max, tol, myPars.max_iters, myPars.print_screen)
-    myPars.epsilon_gg = calibrated_eps
+    # myPars.epsilon_gg = calibrated_eps
+    myPars.set_eps_gg(calibrated_eps)
 
     # solve, simulate model for the calibrated epsilon_gg
     eps_moment = eps_gg_mom_giv_eps(myPars, calibrated_eps)
@@ -537,7 +538,8 @@ def calib_epsilon_gg(myPars: Pars, myShocks:Shocks, main_path:str, tol:float, ta
 
 @njit
 def eps_gg_mom_giv_eps(myPars: Pars, new_eps: float)->float:
-    myPars.epsilon_gg = new_eps
+    # myPars.epsilon_gg = new_eps
+    myPars.set_eps_gg(new_eps)
     myShocks = Shocks(myPars)
     return eps_gg_moment(myPars, myShocks)
 @njit
@@ -567,7 +569,8 @@ def calib_epsilon_bb(myPars: Pars, main_path:str, tol:float, target:float, eps_b
     # define the objective function
     get_eps_diff = lambda new_eps: eps_bb_mom_giv_eps(myPars, new_eps) - target
     calibrated_eps = tb.bisection_search(get_eps_diff, eps_bb_min, eps_bb_max, tol, myPars.max_iters, myPars.print_screen)
-    myPars.epsilon_bb = calibrated_eps
+    # myPars.epsilon_bb = calibrated_eps
+    myPars.set_eps_bb(calibrated_eps)
 
     # solve the model
     eps_moment = eps_bb_mom_giv_eps(myPars, calibrated_eps)
@@ -590,7 +593,8 @@ def get_eps_bb_targ(myPars: Pars, target_folder_path: str)-> float:
 
 @njit
 def eps_bb_mom_giv_eps(myPars: Pars, new_eps: float)->float:
-    myPars.epsilon_bb = new_eps
+    # myPars.epsilon_bb = new_eps
+    myPars.set_eps_bb(new_eps)
     myShocks = Shocks(myPars)
     return eps_bb_moment(myPars, myShocks)
 
@@ -634,16 +638,16 @@ def calib_all_eps_numba(myPars:Pars, main_path:str,
             else:
                 gg_min = gg_mid_pt
             gg_iters += 1
-            gg_err = eps_gg_err(myPars.epsilon_gg)
+            # gg_err = eps_gg_err(myPars.epsilon_gg)
         # calibrate epsilon_bb
         bb_mid_pt = (bb_min + bb_max)/2
         bb_err = eps_bb_err(bb_mid_pt)
-        if bb_err < 0:
+        if bb_err > 0:
             bb_max = bb_mid_pt
         else:
             bb_min = bb_mid_pt
         bb_iters += 1
-        bb_err = eps_bb_err(myPars.epsilon_bb)
+        # bb_err = eps_bb_err(myPars.epsilon_bb)
         gg_err = eps_gg_err(myPars.epsilon_gg)
 
     calib_eps_bb = myPars.epsilon_bb
@@ -762,6 +766,9 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                                                                                                             eps_bb_tol, eps_gg_tol, eps_bb_mom_targ, eps_gg_mom_targ,
                                                                                                             eps_bb_min, eps_bb_max, eps_gg_min, eps_gg_max)
                 myShocks = Shocks(myPars)
+                # print(f"eps_bb error: {np.abs(my_eps_bb_mom - eps_bb_mom_targ)}")
+                # print(f"eps_gg error: {np.abs(my_eps_gg_mom - eps_gg_mom_targ)}")
+                # exit()
         else:
             if do_eps_bb_calib:
                 my_eps_bb_mom = eps_bb_moment(myPars, myShocks)

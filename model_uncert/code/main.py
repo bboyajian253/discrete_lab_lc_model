@@ -54,12 +54,14 @@ def pars_factory(main_path: str, H_trans_uncond_path: str = None, H_trans_path: 
     # Health transition matrix
     if H_trans_path is None and H_trans_uncond_path is None:
         print("Using default health transition matrix")
+        # exit()
     else:
         if H_trans_uncond_path is not None:
-            H_trans_uncond = trans_manager.MH_trans_to_np(myPars, H_trans_uncond_path)
+            # H_trans_uncond = trans_manager.MH_trans_to_np(myPars, H_trans_uncond_path)
+            H_trans_uncond = io.read_and_shape_H_trans_full(myPars, H_trans_uncond_path)
             myPars.H_trans_uncond = H_trans_uncond
         if H_trans_path is None: 
-            # if we want to use H_trans_uncond adjusted by delta_pi if not = 0
+            # if we want to use H_trans_uncond adjusted by eps_bb and eps_gg if not = 0
             myPars.update_H_trans()
         else: # H_trans_path is not None
             H_trans = io.read_and_shape_H_trans_full(myPars, H_trans_path) 
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     type_path_50p = input_path + "MH_clust_50p_age_pop_shares.csv"
 
     myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, output_flag = True,
-                                                H_trans_uncond_path = trans_path_uncond, H_trans_path = trans_path_50p, 
+                                                H_trans_uncond_path = trans_path_50p, H_trans_path = None, 
                                                 H_type_pop_share_path = type_path_50p,
                                                 do_eps_gg_calib=True, do_eps_bb_calib=True)
 

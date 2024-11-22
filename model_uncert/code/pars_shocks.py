@@ -40,7 +40,7 @@ pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed e
                 ('H_beg_pop_weights_by_H_type', float64[:, :]), #weights for the permanent health type grid
                 ('H_grid', float64[:]), # stores the health grid
                 ('H_grid_size', int64), # total number of points on the health grid
-                ('H_trans_uncond', float64[:, :, :]), #matrix of unconditional health transition probabilities
+                ('H_trans_uncond', float64[:, :, :, :]), #matrix of unconditional health transition probabilities
                 ('H_trans', float64[:, :, :, :]), #matrix of health transition probabilities
                 ('delta_pi_BB', float64), #diff in prob of bad health persistence between the two types
                 ('delta_pi_GG', float64), #diff in prob of good health persistence between the two types
@@ -103,7 +103,8 @@ class Pars() :
             H_type_perm_weights = np.array([0.5,0.5]), #weights for the permanent health type grid
             H_beg_pop_weights_by_H_type = np.array([[0.5, 0.5], [0.5, 0.5]]), #weights for the permanent health type grid
             H_grid = np.array([0.0,1.0]),
-            H_trans_uncond = np.repeat(np.array([[0.9, 0.1], [0.7, 0.3]])[np.newaxis, :, :], 51, axis=0).reshape(51,2,2),
+            # H_trans_uncond = np.repeat(np.array([[0.9, 0.1], [0.7, 0.3]])[np.newaxis, :, :], 51, axis=0).reshape(51,2,2),
+            H_trans_uncond = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
             H_trans = np.repeat(np.array([[[0.9, 0.1], [0.7, 0.3]],[[0.4, 0.6], [0.2, 0.8]]])[:, np.newaxis, :,:], 51, axis=0).reshape(2,51,2,2),
             delta_pi_BB = 0.0, #diff in prob of bad health persistence between the two types
             delta_pi_GG = 0.0, #diff in prob of good health persistence between the two types
@@ -164,11 +165,12 @@ class Pars() :
         self.delta_pi_GG = delta_pi_GG
         self.epsilon_gg = epsilon_gg
         self.epsilon_bb = epsilon_bb
+        self.H_trans = gen_MH_trans(H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.epsilon_bb, self.epsilon_gg)
 
-        if delta_pi_BB > 0.0 or delta_pi_GG > 0.0:
-            self.H_trans = gen_MH_trans(H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.delta_pi_BB, self.delta_pi_GG)
-        else: 
-            self.H_trans = H_trans
+        # if self.epsilon_bb > 0.0 or self.epsilon_gg > 0.0:
+            # self.H_trans = gen_MH_trans(H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.epsilon_bb, self.epsilon_gg)
+        # else: 
+            # self.H_trans = H_trans
 
         self.interp_eval_points = np.zeros(1)
 
@@ -212,13 +214,13 @@ class Pars() :
     def update_H_trans(self)-> np.ndarray:
         self.H_trans = gen_MH_trans(self.H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.epsilon_bb, self.epsilon_gg)
         return self.H_trans
-
-    def set_delta_pi_BB(self, delta_pi_BB: float):
-        self.delta_pi_BB = delta_pi_BB
+    
+    def set_eps_bb(self, eps_bb: float):
+        self.epsilon_bb = eps_bb
         self.update_H_trans()
     
-    def set_delta_pi_GG(self, delta_pi_GG: float):
-        self.delta_pi_GG = delta_pi_GG
+    def set_eps_gg(self, eps_gg: float):
+        self.epsilon_gg = eps_gg
         self.update_H_trans()
     
     def set_H_trans_uncond(self, H_trans_uncond: np.ndarray):
@@ -231,22 +233,20 @@ def gen_MH_trans(MH_trans_uncond:np.ndarray, H_type_perm_grid_size:int, J:int, H
     """
     Calculate full health transition matrix from reshaped matrix with shape (J, H_grid_size, H_grid_size)
     """
+    BAD, GOOD = 0, 1
     ret_mat = np.zeros((H_type_perm_grid_size, J, H_grid_size, H_grid_size))
-    mat_BB = MH_trans_uncond[:, 0, 0]
-    mat_GG = MH_trans_uncond[:, 1, 1]
+    mat_bb = MH_trans_uncond[..., BAD, BAD]
+    mat_gg = MH_trans_uncond[..., GOOD, GOOD]
 
+    adj_mat_bb = mat_bb + eps_bb
+    adj_mat_gg = mat_gg + eps_gg
+    adj_mat_bg = 1 - adj_mat_bb
+    adj_mat_gb = 1 - adj_mat_gg
 
-    # low type
-    ret_mat[0, :, 0, 0] = mat_BB_low_typ
-    ret_mat[0, :, 0, 1] = 1 - mat_BB_low_typ 
-    ret_mat[0, :, 1, 0] = 1 - mat_GG_low_typ 
-    ret_mat[0, :, 1, 1] = mat_GG_low_typ
-
-    # high type
-    ret_mat[1, :, 0, 0] = mat_BB_high_typ
-    ret_mat[1, :, 0, 1] = 1 - mat_BB_high_typ
-    ret_mat[1, :, 1, 0] = 1 - mat_GG_high_typ
-    ret_mat[1, :, 1, 1] = mat_GG_high_typ
+    ret_mat[..., BAD, BAD] = adj_mat_bb
+    ret_mat[..., BAD, GOOD] = adj_mat_bg
+    ret_mat[..., GOOD, BAD] = adj_mat_gb
+    ret_mat[..., GOOD, GOOD] = adj_mat_gg
 
     return ret_mat
 
@@ -301,14 +301,9 @@ def gen_H_hist(myPars: Pars, H_shocks: np.ndarray) -> np.ndarray:
                     if j > 0:
                         shock = H_shocks[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]       
                         prev_health_state_ind = hist[lab_fe_ind, H_type_perm_ind, sim_ind, j-1]
-                        adj = prev_health_state_ind * myPars.epsilon_gg + (1 - prev_health_state_ind) * myPars.epsilon_bb # since prev_health_state_ind is 0 or 1
-                        health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] + adj
-                        # leave this here in case get dpi stuff to work later
-                        # if prev_health_state_ind == GOOD:
-                        #     health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
-                        #     # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] * xgg_j_old 
-                        # else:
-                        #     health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD]
+                        # adj = prev_health_state_ind * myPars.epsilon_gg + (1 - prev_health_state_ind) * myPars.epsilon_bb # since prev_health_state_ind is 0 or 1
+                        # health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] + adj
+                        health_recovery_prob = myPars.H_trans[H_type_perm_ind, j-1, prev_health_state_ind, GOOD] 
                         if shock <= health_recovery_prob:
                                 hist[lab_fe_ind, H_type_perm_ind, sim_ind, j] = GOOD
                     else:
