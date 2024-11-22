@@ -111,13 +111,17 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
 # run if main condition
 if __name__ == "__main__":
     import plot_inequality as plot_ineq
+    import os
+    print("Current working directory:", os.getcwd())
+
     #run stuff here
     start_time = time.perf_counter()
     print("Running main")
 
     of_name = None
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
-    input_path = main_path + "input/50p_age_moms/"
+
+    main_path = os.path.realpath(__file__ + "/../../") + "/"
+    input_path = main_path + "/input/50p_age_moms/"
     trans_path_uncond = input_path + "MH_trans_uncond_age.csv"
 
     trans_path_50p = input_path + "MH_trans_by_MH_clust_age.csv"

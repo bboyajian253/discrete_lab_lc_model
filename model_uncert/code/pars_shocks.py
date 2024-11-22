@@ -402,8 +402,10 @@ def gen_omega_j_old(myPars:Pars, H_hist_j:np.ndarray, state:int) -> float:
 if __name__ == "__main__":
     print("Running pars_shocks.py")
     start_time = time.time()
+    # import os 
+    # path = os.path.realpath(__file__ + "/../../")
 
-    path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
+    path = "../cont_lab_lc_model/"
     input_path = path + "/input/50p_age_moms/"
     trans_path = input_path + "MH_trans_uncond_age.csv"
     

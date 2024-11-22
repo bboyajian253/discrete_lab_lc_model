@@ -99,7 +99,7 @@ def add_end_table(old_file_path: str, new_file_path: str = None) -> None:
 
 
 if __name__ == "__main__":
-    quant_out_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/do_files/UKHLS_quants_output/"
+    quant_out_path = "../do_files/UKHLS_quants_output/"
     
     old_name = "reg_results_specEdMH.tex"
     new_name = "reg_results_specEdMH_standalone.tex"

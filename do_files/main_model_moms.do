@@ -1,9 +1,9 @@
 clear all
 cls
-
-global curdir   "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model"  /* main folder directory */ 
-global dodir    "$curdir/My Code/MH_Model/do_files" /*do file folder directory */
-global master_outdir   "$curdir/My Code/MH_Model/model_uncert/input" /*output file folder directory */
+// C:\Users\Ben\My Drive\PhD\PhD Year 4\MH_labor\cont_lab_lc_model\do_files
+global curdir   "C:/Users/Ben/My Drive/PhD/PhD Year 4/MH_labor"  /* main folder directory */ 
+global dodir    "$curdir/cont_lab_lc_model/do_files" /*do file folder directory */
+global master_outdir   "$curdir/cont_lab_lc_model/model_uncert/input" /*output file folder directory */
 global datadir  "$curdir/data" //"C:\Users\Ben\3YP_Data_Work\Data"
 
 // for the health transition moments
@@ -16,16 +16,16 @@ global datadir  "$curdir/data" //"C:\Users\Ben\3YP_Data_Work\Data"
 // for the other moments
 global outdir "$master_outdir/50p_age_moms"
 
-// do "$dodir/lt_earn_stats.do"  
+do "$dodir/lt_earn_stats.do"  
 
 do "$dodir/moments_giv_H_type.do" //generate the moments for the model with given binary permanent health types
 
-// do "$dodir/MP_health_age.do"  
+do "$dodir/MP_health_age.do"  
 
-// do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
+do "$dodir/earnings_var_perc.do" //generate the earnings inequality moments 
 
-// do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
+do "$dodir/autocorr.do" //generate the autocorrelations of health and earnings
 
-// do "$dodir/earnings_and_health.do" //generate the earnings by health moments
+do "$dodir/earnings_and_health.do" //generate the earnings by health moments
 
 di "*****got to the end of main_model_moms.do*****"

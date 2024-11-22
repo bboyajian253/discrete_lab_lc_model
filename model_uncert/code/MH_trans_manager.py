@@ -53,23 +53,4 @@ def calc_full_MH_trans(myPars: Pars, trans_reshaped: np.ndarray) -> np.ndarray:
     return ret_mat
 
 if __name__ == "__main__":
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
-    moms_path = main_path + "/input/50p_age_moms/"
-    trans_path = moms_path + "MH_trans_uncond_age.csv"
-
-    myPars = Pars(path = main_path)
-
-    trans_np = MH_trans_to_np(myPars, trans_path)
-    print(f"trans_np.shape: {trans_np.shape}")
-    # print(trans_np)
-    full_trans = calc_full_MH_trans(myPars, trans_np)
-    print(f"full_trans.shape: {full_trans.shape}")
-    # print(full_trans)
-
-    for j in range(myPars.J+1):
-        print("Low type trans")
-        print(full_trans[0, j, :, :])
-        print("OG trans")
-        print(trans_np[j, :, :])
-        print("High type trans")
-        print(full_trans[1, j, :, :])
+    pass

@@ -503,12 +503,11 @@ def phi_H_moment(myPars: Pars, lab_sims: np.ndarray)-> float:
     
 def get_phi_H_targ(myPars: Pars, target_folder_path: str)-> float:
     '''
-    reads phi_H target moment from myPars.path + '/input/MH_hours_moments.csv'
+    reads phi_H target moment from target_folderZJpath+ '/MH_hours_moments.csv'
     '''
-    # data_moments_path = myPars.path + '/input/MH_labor_moments.csv'
-    tc_calib_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/input/time_cost_counter/"
+    # data_moments_path = myPars.path + '/input/MH_hours_moments.csv'
     # data_moments_path = target_folder_path + '/MH_hours_moments.csv'
-    data_moments_path = tc_calib_path + 'MH_hours_moments.csv'
+    data_moments_path = target_folder_path + '/MH_hours_moments.csv'
     data_mom_col_ind = 0
     # mean_log_lab_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
     mean_lab_diff = tb.read_specific_column_from_csv(data_moments_path, data_mom_col_ind)
@@ -929,31 +928,3 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
 
 if __name__ == "__main__":
     start_time = time.perf_counter()
-
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
-
-    my_lab_fe_grid = np.array([5.0, 10.0, 15.0, 20.0])
-    my_lab_fe_grid = np.log(my_lab_fe_grid)
-    lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
-    quad_wage_coeffs = [-0.000, -0.02, -0.02, -0.02] 
-    cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
-
-    num_FE_types = len(my_lab_fe_grid)
-    w_coeff_grid = np.zeros([num_FE_types, 4])
-
-    w_coeff_grid[0, :] = [my_lab_fe_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
-    w_coeff_grid[1, :] = [my_lab_fe_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
-    w_coeff_grid[2, :] = [my_lab_fe_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-    w_coeff_grid[3, :] = [my_lab_fe_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
-
-    print("intial wage coeff grid")
-    print(w_coeff_grid)
-    my_lab_fe_weights = tb.gen_even_row_weights(w_coeff_grid)
-
-    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]),
-                nu_grid_size=1, alpha = 0.45, sim_draws=1000, lab_fe_grid = my_lab_fe_grid, lab_fe_weights = my_lab_fe_weights,
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 10, sigma_util = 0.9999,
-                print_screen=0)
-
-
-    tb.print_exec_time("Calibration main ran in", start_time)   

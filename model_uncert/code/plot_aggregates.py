@@ -425,33 +425,3 @@ def plot_H_trans_uncond(myPars: Pars, path: str = None, plot_and_csv_name: str =
 
 if __name__ == "__main__":
     start_time = time.perf_counter()
-    main_path = "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/model_uncert/"
-    
-    # my_lab_fe_grid = np.array([10.0, 20.0, 30.0, 40.0])
-    my_lab_fe_grid = np.array([10.0, 20.0, 30.0])
-    lin_wage_coeffs = [0.0, 1.0, 1.0, 1.0]
-    quad_wage_coeffs = [-0.000, -0.020, -0.020, -0.020] 
-    cub_wage_coeffs = [0.0, 0.0, 0.0, 0.0]
-
-    num_FE_types = len(my_lab_fe_grid)
-    w_coeff_grid = np.zeros([num_FE_types, 4])
-    
-    w_coeff_grid[0, :] = [my_lab_fe_grid[0], lin_wage_coeffs[0], quad_wage_coeffs[0], cub_wage_coeffs[0]]
-    w_coeff_grid[1, :] = [my_lab_fe_grid[1], lin_wage_coeffs[1], quad_wage_coeffs[1], cub_wage_coeffs[1]]
-    w_coeff_grid[2, :] = [my_lab_fe_grid[2], lin_wage_coeffs[2], quad_wage_coeffs[2], cub_wage_coeffs[2]]
-    #w_coeff_grid[3, :] = [my_lab_fe_grid[3], lin_wage_coeffs[3], quad_wage_coeffs[3], cub_wage_coeffs[3]]
-
-    print("intial wage coeff grid")
-    print(w_coeff_grid)
-
-    myPars = Pars(main_path, J=51, a_grid_size=501, a_min= -500.0, a_max = 500.0, lab_fe_grid = my_lab_fe_grid,
-                H_grid=np.array([0.0, 1.0]), nu_grid_size=1, alpha = 0.45, sim_draws=1,
-                wage_coeff_grid = w_coeff_grid,
-                print_screen=3)
-    
-    trans_path = main_path + 'input/MH_trans_by_MH_clust_age.csv'
-    myPars.H_trans = io.read_and_shape_H_trans_full(myPars, path = trans_path)
-    # print(f"myPars.H_trans = {myPars.H_trans}")
-    plot_H_trans_H_type(myPars)
-    
-    

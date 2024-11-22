@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  21 NOV 2024 16:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2021.11.18)  21 NOV 2024 18:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**"C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/m
-odel_uncert/output/parameters_w0_calib.tex"
+**"C:/Users/Ben/My Drive/PhD/PhD Year 4/MH_labor/cont_lab_lc_model/model_uncert
+/output/parameters_w0_calib.tex"
 
-(c:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/mod
-el_uncert/output/parameters_w0_calib.tex
+(c:/Users/Ben/My Drive/PhD/PhD Year 4/MH_labor/cont_lab_lc_model/model_uncert/o
+utput/parameters_w0_calib.tex
 LaTeX2e <2021-11-15>
 L3 programming layer <2021-11-12>
 (c:/texlive/2021/texmf-dist/tex/latex/standalone/standalone.cls
@@ -76,8 +76,8 @@ File: l3backend-pdftex.def 2021-10-18 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count195
 \l__pdf_internal_box=\box51
 )
-(C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/mod
-el_uncert/output//parameters_w0_calib.aux)
+(C:\Users\Ben\My Drive\PhD\PhD Year 4\MH_labor\cont_lab_lc_model\model_uncert/o
+utput//parameters_w0_calib.aux)
 \openout1 = `parameters_w0_calib.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 1.
@@ -105,24 +105,23 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 3.
 Preview: Tightpage -559403 -559403 559403 559403
 [1{c:/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-(C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My Code/MH_Model/mod
-el_uncert/output//parameters_w0_calib.aux) ) 
+(C:\Users\Ben\My Drive\PhD\PhD Year 4\MH_labor\cont_lab_lc_model\model_uncert/o
+utput//parameters_w0_calib.aux) ) 
 Here is how much of TeX's memory you used:
  1174 strings out of 478371
- 22753 string characters out of 5852527
+ 22632 string characters out of 5852527
  317165 words of memory out of 5000000
  19314 multiletter control sequences out of 15000+600000
  405253 words of font info for 33 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,10n,71p,357b,170s stack positions out of 5000i,500n,10000p,200000b,80000s
-<c:/texlive/2021/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmmi6.pfb><c:/texlive/2021/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmmi9.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmr5.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pf
-b><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb>
-Output written on "C:/Users/Ben/My Drive/PhD/PhD Year 3/3rd Year Paper/Model/My
- Code/MH_Model/model_uncert/output//parameters_w0_calib.pdf" (1 page, 51178 byt
-es).
+ 55i,10n,71p,346b,170s stack positions out of 5000i,500n,10000p,200000b,80000s
+<c:/texlive/2021/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmmi6.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmmi9.pfb><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pf
+b><c:/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb><c:/texli
+ve/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb>
+Output written on "C:\Users\Ben\My Drive\PhD\PhD Year 4\MH_labor\cont_lab_lc_mo
+del\model_uncert/output//parameters_w0_calib.pdf" (1 page, 51178 bytes).
 PDF statistics:
  33 PDF objects out of 1000 (max. 8388607)
  19 compressed objects within 1 object stream
