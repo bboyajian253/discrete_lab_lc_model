@@ -13,7 +13,7 @@ from typing import Tuple, Dict
 # My code
 import pars_shocks 
 from pars_shocks import Pars, Shocks
-import model_uncert as model
+import model
 import my_toolbox as tb
 import solver
 import simulate as simulate

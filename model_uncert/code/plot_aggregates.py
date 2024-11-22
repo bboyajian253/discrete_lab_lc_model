@@ -20,7 +20,7 @@ import os
 
 # My code
 from pars_shocks import Pars, Shocks
-import model_uncert as model
+import model
 import my_toolbox as tb
 import solver
 import simulate

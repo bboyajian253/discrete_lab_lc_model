@@ -20,7 +20,7 @@ import pandas as pd
 # My code
 import my_toolbox as tb
 import solver
-import model_uncert as model
+import model
 import pars_shocks as ps
 from pars_shocks import Pars, Shocks
 import simulate

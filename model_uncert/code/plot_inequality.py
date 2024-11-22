@@ -15,7 +15,7 @@ from typing import Tuple, Dict
 
 # my code
 from pars_shocks import Pars
-import model_uncert as model
+import model
 import my_toolbox as tb
 
 def plot_var_log_sim(myPars: Pars, sim: np.ndarray, y_axis_lab: str, y_lim: np.ndarray = None, outpath: str = None, 

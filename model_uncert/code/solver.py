@@ -15,7 +15,7 @@ from math import inf
 from typing import Tuple
 from interpolation.splines import eval_linear
 # My code
-import model_uncert as model
+import model
 from pars_shocks import Pars
 import my_toolbox as tb
 
@@ -39,10 +39,11 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
         print("state_sols shape", state_sols['c'].shape)
     
     mat_c = inf * np.ones(myPars.state_space_shape_no_j) #this is a very big number
+    mat_VF = -inf * np.ones(myPars.state_space_shape_no_j) #this is a very small number
     for j in reversed(range(myPars.J)): #could maybe make this inner loop a seperate function and jit and parallelize it with prange
         mat_c_prime = mat_c
         last_per = (j >= myPars.J - 1) # might change with retirement and death
-        per_sol_list = solve_per_j( myPars, j, last_per, mat_c_prime)
+        per_sol_list = solve_per_j(myPars, j, last_per, mat_c_prime)
         for var,sol in zip(state_sols.keys(), per_sol_list):
             state_sols[var][:, :, :, :, j] = sol
         mat_c = per_sol_list[0] #this means we must always return the consumption first in the solve_per_j function
@@ -88,7 +89,6 @@ def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray)-
     mat_c_ap, mat_lab_ap, mat_a_prime_ap = solve_per_j_iter(myPars, j, shell_a_prime, mat_c_prime, last_per)
     mat_c, mat_lab, mat_a_prime = transform_ap_to_a(myPars, shell_a, mat_c_ap, mat_lab_ap, mat_a_prime_ap, last_per)
     return [mat_c, mat_lab, mat_a_prime]
-
 #@njit(parallel=True)
 @njit
 def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prime: np.ndarray, last_per: bool)-> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -106,25 +106,31 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
         # Get state solutions
         if last_per: 
             lab = model.lab_star(myPars, 0, a_prime, H, curr_wage)
+            # lab = 0
             a = a_prime
             c = a * (1 + myPars.r) + lab * curr_wage
+            #c = a*(1+myPars.r) 
             c =  max(myPars.c_min, c)
+            # VF = model.util(c, 1)
+
         else:
-            c_prime0 = mat_c_prime[a_prime_ind, lab_fe_ind, 0, H_type_perm_ind]
-            c_prime1 = mat_c_prime[a_prime_ind, lab_fe_ind, 1, H_type_perm_ind]
-            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, lab_fe_ind, H_ind, H_type_perm_ind, c_prime0, c_prime1)
+            c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, a_prime_ind, lab_fe_ind, H_ind, H_type_perm_ind, mat_c_prime)
+            # c, lab, a, VF = solve_j_indiv(myPars, a_prime, j, lab_fe_ind, H_ind, H_type_perm_ind, cont_val)
         # Store the state specific solutions 
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a 
+        # mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple], mat_VF[ind_tuple] = c, lab, a, VF 
         
     return mat_c_ap, mat_lab_ap, mat_a_ap
 
 @njit
-def solve_j_indiv( myPars: Pars, a_prime:float, curr_wage:float, j: int, lab_fe_ind: int, H_ind: int, 
-                  H_type_perm_ind: int, c_prime0:float, c_prime1:float)-> Tuple[float, float, float]:
+def solve_j_indiv( myPars: Pars, a_prime:float, curr_wage:float, j: int, a_prime_ind:int, lab_fe_ind: int, H_ind: int, 
+                  H_type_perm_ind: int, mat_c_prime:np.ndarray)-> Tuple[float, float, float]:
     """
     Solve the individual period problem for a given state
     returns c, lab, a
     """
+    c_prime0 = mat_c_prime[a_prime_ind, lab_fe_ind, 0, H_type_perm_ind]
+    c_prime1 = mat_c_prime[a_prime_ind, lab_fe_ind, 1, H_type_perm_ind]
     c = model.infer_c(myPars, curr_wage, j, lab_fe_ind, H_ind, H_type_perm_ind, c_prime0, c_prime1)
     lab, a = model.solve_lab_a(myPars, c, a_prime, curr_wage, H_ind)
     return c, lab, a

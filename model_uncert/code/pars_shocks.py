@@ -210,7 +210,7 @@ class Pars() :
             self.wage_coeff_grid[i,2] = w2
 
     def update_H_trans(self)-> np.ndarray:
-        self.H_trans = gen_MH_trans(self.H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.delta_pi_BB, self.delta_pi_GG)
+        self.H_trans = gen_MH_trans(self.H_trans_uncond, self.H_type_perm_grid_size, self.J, self.H_grid_size, self.epsilon_bb, self.epsilon_gg)
         return self.H_trans
 
     def set_delta_pi_BB(self, delta_pi_BB: float):
@@ -227,7 +227,7 @@ class Pars() :
 
 
 @njit
-def gen_MH_trans(MH_trans_uncond:np.ndarray, H_type_perm_grid_size:int, J:int, H_grid_size: int, delta_pi_BB:float, delta_pi_GG:float) -> np.ndarray:
+def gen_MH_trans(MH_trans_uncond:np.ndarray, H_type_perm_grid_size:int, J:int, H_grid_size: int, eps_bb:float, eps_gg:float) -> np.ndarray:
     """
     Calculate full health transition matrix from reshaped matrix with shape (J, H_grid_size, H_grid_size)
     """
@@ -235,14 +235,6 @@ def gen_MH_trans(MH_trans_uncond:np.ndarray, H_type_perm_grid_size:int, J:int, H
     mat_BB = MH_trans_uncond[:, 0, 0]
     mat_GG = MH_trans_uncond[:, 1, 1]
 
-    mat_BB_low_typ = mat_BB * (1 + delta_pi_BB) # *xb_j
-    mat_BB_high_typ = mat_BB * (1 - delta_pi_BB) # *xb_j
-    mat_GG_low_typ = mat_GG * (1 - delta_pi_GG) # *xg_j
-    mat_GG_high_typ = mat_GG * (1 + delta_pi_GG) # *xg_j
-    # mat_BB_low_typ = mat_BB + delta_pi_BB # *xb_j
-    # mat_BB_high_typ = mat_BB - delta_pi_BB # *xb_j
-    # mat_GG_low_typ = mat_GG - delta_pi_GG # *xg_j
-    # mat_GG_high_typ = mat_GG + delta_pi_GG # *xg_j
 
     # low type
     ret_mat[0, :, 0, 0] = mat_BB_low_typ

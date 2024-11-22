@@ -19,7 +19,7 @@ from typing import List, Dict
 
 # My code
 from pars_shocks import Pars, Shocks
-import model_uncert as model
+import model
 
 #@njit(parallel=True) # to paralleliize swap this decorator for the one below
 @njit
