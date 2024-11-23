@@ -19,6 +19,15 @@ from math import log
 from pars_shocks import Pars, Shocks
 import my_toolbox as tb
 
+@njit
+def util(myPars: Pars, c:float, leis:float) -> float:
+    """
+    utility function given leisure and consumption
+    """
+    sig = myPars.sigma_util
+    alpha = myPars.alpha
+    return (1/(1-sig)) * ((c**alpha) * (leis**(1-alpha))) ** (1-sig)
+
 
 @njit
 def leis_giv_lab(myPars: Pars, labor:float, health:float) -> float:
@@ -77,7 +86,7 @@ def util_giv_leis(myPars: Pars, c:float, leis:float) -> float:
 
 #derivative of utility function with respect to consumption given consumption and leisure
 @njit
-def util_c_giv_leis(myPars: Pars, c:float, leis:float) -> float:
+def util_c(myPars: Pars, c:float, leis:float) -> float:
     """
     derivative of utility function with respect to consumption given consumption and leisure
     """
@@ -91,7 +100,7 @@ def mb_lab(myPars: Pars, c:float, wage:float, labor:float, health:float) -> floa
     marginal benefit of labor
     """
     leis = leis_giv_lab(myPars, labor, health)
-    return wage * util_c_giv_leis(myPars, c, leis)
+    return wage * util_c(myPars, c, leis)
 
 @njit
 def mc_lab(myPars: Pars, c:float, labor:float, health:float) -> float:
@@ -109,15 +118,15 @@ def util_leis_giv_c(myPars: Pars, leis:float, c:float) -> float:
     return (1-myPars.alpha)*c**(myPars.alpha)*leis**(-myPars.alpha)/(c**myPars.alpha*leis**(1-myPars.alpha))**myPars.sigma_util
 
 @njit
-def util_c(myPars: Pars, c:float, wage:float) -> float:
+def util_c_giv_w(myPars: Pars, c:float, wage:float) -> float:
     """
     deriveative of utility function with respect to consumption given consumption and health
     """
     leis = leis_giv_c(myPars, c, wage) #this can also be done explicitly in one function
-    return util_c_giv_leis(myPars, c, leis)
+    return util_c(myPars, c, leis)
 
 @njit
-def util_c_inv(myPars: Pars, u:float, wage:float) ->float:
+def util_c_inv_giv_w(myPars: Pars, u:float, wage:float) ->float:
     """
     given a marginal utility u and a current wage return the consumption that yields that utility
     inverse of the derivative of the utility function with respect to consumption
@@ -130,6 +139,70 @@ def util_c_inv(myPars: Pars, u:float, wage:float) ->float:
     return c
 
 @njit
+def euler_rhs(myPars:Pars, c_prime0:float, c_prime1:float, lab_prime0:float, lab_prime1:float, H_type_perm_ind:int, j:int, H_ind:int) -> float:
+    """
+    calculate the expectation on the right hand side of the euler equation
+    """
+    BAD, GOOD = 0, 1
+    leis_bad = leis_giv_lab(myPars, lab_prime0, BAD)
+    uc_bad = util_c(myPars, c_prime0, leis_bad)
+    prob_bad = myPars.H_trans[H_type_perm_ind, j, H_ind, BAD]
+    leis_good = leis_giv_lab(myPars, lab_prime1, GOOD)
+    uc_good = util_c(myPars, c_prime1, leis_good)
+    prob_good = myPars.H_trans[H_type_perm_ind, j, H_ind, GOOD]
+    expect = (prob_bad * uc_bad) + (prob_good * uc_good)
+    return myPars.beta * (1 + myPars.r) * expect
+
+@njit
+def expect_VF(myPars: Pars, VF_prime0:float, VF_prime1:float, H_type_perm_ind:int, j: int, H_ind: int) -> float:
+    """
+    calculate the expectation of the value function
+    """
+    BAD, GOOD = 0, 1
+    prob_bad = myPars.H_trans[H_type_perm_ind, j, H_ind, BAD]
+    prob_good = myPars.H_trans[H_type_perm_ind, j, H_ind, GOOD]
+    expect = (prob_bad * VF_prime0) + (prob_good * VF_prime1)
+    return expect
+
+@njit
+def make_choices(myPars: Pars, euler_rhs:float, cont_val:float, a_prime:float, curr_wage:float, H_ind:int):
+    """
+    make the consumption and labor choices given the euler equation and the continuation value
+    """
+    NO_WORK, WORK = 0, 1
+    leis_no_work = leis_giv_lab(myPars, NO_WORK, H_ind)
+    c_no_work = util_c_inv(myPars, euler_rhs, leis_no_work)
+    a_no_work = (c_no_work + a_prime)/ (1 + myPars.r)
+    per_util_no_work = util(myPars, c_no_work, leis_no_work) 
+    VF_no_work = per_util_no_work + myPars.beta * cont_val
+
+    leis_work = leis_giv_lab(myPars, WORK, H_ind)
+    c_work = util_c_inv(myPars, euler_rhs, leis_work)
+    a_work = (c_work + a_prime - curr_wage)/ (1 + myPars.r)
+    per_util_work = util(myPars, c_work, leis_work)
+    VF_work = per_util_work + myPars.beta * cont_val
+
+    if VF_work > VF_no_work:
+        return c_work, WORK, a_work, VF_work
+    else:
+        return c_no_work, NO_WORK, a_no_work, VF_no_work
+    
+
+@njit
+def util_c_inv(myPars: Pars, u:float, leis:float) -> float:
+    """
+    given a marginal utility u and a current leisure level return the consumption that yields that utility
+    inverse of the derivative of the utility function with respect to consumption
+    """
+    alpha = myPars.alpha
+    sigma = myPars.sigma_util
+    leis_exp = -((1-alpha) * (1-sigma))
+    outer_exp = 1/(alpha - 1 - (alpha*sigma))
+    const = u/alpha
+    c = (const*(leis**leis_exp))**outer_exp
+    return c
+
+@njit
 def infer_c(myPars: Pars, curr_wage:float, age: int, lab_fe_ind: int, health_ind: int, H_type_perm_ind: int, c_prime0:float, c_prime1:float ) -> float: 
     """
     infer what current consumption should be given future consumption, curr wage, and the curr state space
@@ -139,10 +212,10 @@ def infer_c(myPars: Pars, curr_wage:float, age: int, lab_fe_ind: int, health_ind
     fut_wage1 = wage(myPars, age+1, lab_fe_ind, 1)
     prob0 = myPars.H_trans[H_type_perm_ind, age, health_ind, 0]
     prob1 = myPars.H_trans[H_type_perm_ind, age, health_ind, 1]
-    expect_util_c_prime = (prob0 * util_c(myPars, c_prime0, fut_wage0)) + (prob1 * util_c(myPars, c_prime1, fut_wage1))
+    expect_util_c_prime = (prob0 * util_c_giv_w(myPars, c_prime0, fut_wage0)) + (prob1 * util_c_giv_w(myPars, c_prime1, fut_wage1))
     expect = expect_util_c_prime
     rhs = myPars.beta *(1 + myPars.r) * expect
-    c = util_c_inv(myPars, rhs, curr_wage)
+    c = util_c_inv_giv_w(myPars, rhs, curr_wage)
     return max(myPars.c_min, c)  
 
 @njit
@@ -166,7 +239,7 @@ def invert_lab (myPars : Pars, c:float, curr_wage:float, health:float) -> float:
     """
     invert the foc to get labor given consumption and wage
     """
-    rhs = (curr_wage/myPars.phi_n) * util_c(myPars, c, curr_wage)
+    rhs = (curr_wage/myPars.phi_n) * util_c_giv_w(myPars, c, curr_wage)
     leis = util_leis_inv(myPars, rhs, c)
     lab = lab_giv_leis(myPars, leis, health)
     return lab

@@ -393,7 +393,7 @@ state_space_shape_no_j,"(301, 10, 2, 2)"
 state_space_no_j_size,12040
 state_space_shape_sims,"(10, 2, 1000, 52)"
 lab_min,0.0
-lab_max,0.8888888888888888
+lab_max,1.0
 c_min,0.0001
 leis_min,0.0
 leis_max,1.0

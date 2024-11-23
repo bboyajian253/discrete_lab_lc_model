@@ -52,6 +52,8 @@ pars_spec = [   ('lab_fe_grid', float64[:]), # a list of values for that fixed e
                 ('state_space_shape_sims', UniTuple(int64, 4)), #the shape/dimensions of the period state space for simulations
                 ('lab_min', float64 ), #minimum possible choice for labor, cannot pick less than 0 hours
                 ('lab_max', float64), # max possible for labor choice
+                ('lab_grid', float64[:]), #grid of labor choices
+                ('lab_grid_size', int64), #size of the labor grid
                 ('c_min', float64 ), #minimum possible choice for consumption, cannot pick less than 0
                 ('leis_min', float64), #min possible choice for leisure
                 ('leis_max', float64), #max possible choice for leisure 
@@ -113,6 +115,7 @@ class Pars() :
 
             lab_min = 0.00,
             lab_max = 1.0,
+            lab_grid_size = 2,
             c_min = 0.0001,
             leis_min = 0.0,
             leis_max = 1.0,    
@@ -179,7 +182,9 @@ class Pars() :
         self.leis_min,self.leis_max = leis_min, leis_max
 
         self.lab_min = lab_min
-        self.lab_max = leis_max / self.phi_n
+        self.lab_max = lab_max
+        self.lab_grid_size = lab_grid_size
+        self.lab_grid = np.linspace(lab_min, lab_max, lab_grid_size)
 
         self.start_age = start_age
         self.end_age = start_age + J + 1

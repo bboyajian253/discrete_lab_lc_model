@@ -42,11 +42,16 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
     mat_VF = -inf * np.ones(myPars.state_space_shape_no_j) #this is a very small number
     for j in reversed(range(myPars.J)): #could maybe make this inner loop a seperate function and jit and parallelize it with prange
         mat_c_prime = mat_c
+        # mat_lab_prime = mat_lab
+        # mat_VF_prime = mat_VF
         last_per = (j >= myPars.J - 1) # might change with retirement and death
         per_sol_list = solve_per_j(myPars, j, last_per, mat_c_prime)
+        # per_sol_list = solve_per_j(myPars, j, last_per, mat_c_prime, mat_lab_prime, mat_VF_prime)
         for var,sol in zip(state_sols.keys(), per_sol_list):
             state_sols[var][:, :, :, :, j] = sol
         mat_c = per_sol_list[0] #this means we must always return the consumption first in the solve_per_j function
+        # mat_lab = per_sol_list[1]
+        # mat_VF = per_sol_list[3]
         
         if myPars.print_screen >= 3:
             print(f'solved period {j} of {myPars.J}')
@@ -76,6 +81,7 @@ def solve_lc(myPars: Pars, path: str = None )-> dict:
     
 @njit
 def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray)-> list:
+# def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray, mat_lab_prime: np.ndarray, mat_VF_prime: np.ndarray)-> list:
     """
     solve for c, lab, and a_prime for a given period j
     Solve the individual period problem given the parameters and the period sates
@@ -87,23 +93,30 @@ def solve_per_j( myPars: Pars, j: int, last_per: bool, mat_c_prime: np.ndarray)-
     shell_a = np.zeros(shell_shape)
 
     mat_c_ap, mat_lab_ap, mat_a_prime_ap = solve_per_j_iter(myPars, j, shell_a_prime, mat_c_prime, last_per)
+    # mat_c_ap, mat_lab_ap, mat_a_prime_ap, mat_VF_ap = solve_per_j_iter(myPars, j, shell_a_prime, mat_c_prime, mat_lab_prime, mat_VF_prime, last_per)
     mat_c, mat_lab, mat_a_prime = transform_ap_to_a(myPars, shell_a, mat_c_ap, mat_lab_ap, mat_a_prime_ap, last_per)
+    # mat_c, mat_lab, mat_a_prime, mat_VF = transform_ap_to_a(myPars, shell_a, mat_c_ap, mat_lab_ap, mat_a_prime_ap, mat_VF_ap, last_per)
     return [mat_c, mat_lab, mat_a_prime]
+    # return [mat_c, mat_lab, mat_a_prime, mat_VF]
 #@njit(parallel=True)
 @njit
 def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prime: np.ndarray, last_per: bool)-> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+# def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prime: np.ndarray, mat_lab_prime: np.ndarray, mat_VF_prime: np.ndarray, last_per: bool
+# )-> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Iterate over individual states within a period j and solve the state specific problem
+    Iterate over all individual states within a period j and solve the state specific problem
     """
     mat_c_ap, mat_lab_ap, mat_a_ap = np.copy(shell_a_prime), np.copy(shell_a_prime), np.copy(shell_a_prime)
+    # mat_c_ap, mat_lab_ap, mat_a_ap, mat_VF_ap = np.copy(shell_a_prime), np.copy(shell_a_prime), np.copy(shell_a_prime), np.copy(shell_a_prime)
     
     for state in prange(myPars.state_space_no_j_size): #can be parellized with prange messes up order of any printings in the loop
         # Get state indices and values
         a_prime_ind, lab_fe_ind, H_ind, H_type_perm_ind = tb.D4toD1(state, myPars.a_grid_size, myPars.lab_fe_grid_size, myPars.H_grid_size, myPars.H_type_perm_grid_size)
         a_prime, lab_fe, H, H_type_perm= myPars.a_grid[a_prime_ind], myPars.lab_fe_grid[lab_fe_ind], myPars.H_grid[H_ind], myPars.H_type_perm_grid[H_type_perm_ind]
         ind_tuple = (a_prime_ind, lab_fe_ind, H_ind, H_type_perm_ind)
-        curr_wage = model.wage(myPars, j, lab_fe_ind, H_ind) # Get current wage ***AND FUTURE WAGE IF WAGE VARIES?***
-        # Get state solutions
+        curr_wage = model.wage(myPars, j, lab_fe_ind, H_ind) 
+
+        # Solve state solutions
         if last_per: 
             lab = model.lab_star(myPars, 0, a_prime, H, curr_wage)
             # lab = 0
@@ -111,26 +124,42 @@ def solve_per_j_iter(myPars: Pars, j: int, shell_a_prime: np.ndarray, mat_c_prim
             c = a * (1 + myPars.r) + lab * curr_wage
             #c = a*(1+myPars.r) 
             c =  max(myPars.c_min, c)
-            # VF = model.util(c, 1)
+            # VF = model.util(myPars, c, 1)
 
         else:
             c, lab, a = solve_j_indiv(myPars, a_prime, curr_wage, j, a_prime_ind, lab_fe_ind, H_ind, H_type_perm_ind, mat_c_prime)
-            # c, lab, a, VF = solve_j_indiv(myPars, a_prime, j, lab_fe_ind, H_ind, H_type_perm_ind, cont_val)
-        # Store the state specific solutions 
+            # c, lab, a, VF = solve_j_indiv(myPars, a_prime, j, a_prime_ind, lab_fe_ind, H_ind, H_type_perm_ind, mat_c_prime, mat_lab_prime, mat_VF_prime)
+
+        # Store the state solutions 
         mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple] = c, lab, a 
-        # mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple], mat_VF[ind_tuple] = c, lab, a, VF 
+        # mat_c_ap[ind_tuple], mat_lab_ap[ind_tuple], mat_a_ap[ind_tuple], mat_VF_ap[ind_tuple] = c, lab, a, VF 
         
     return mat_c_ap, mat_lab_ap, mat_a_ap
+    # return mat_c_ap, mat_lab_ap, mat_a_ap, mat_VF_ap
 
 @njit
 def solve_j_indiv( myPars: Pars, a_prime:float, curr_wage:float, j: int, a_prime_ind:int, lab_fe_ind: int, H_ind: int, 
                   H_type_perm_ind: int, mat_c_prime:np.ndarray)-> Tuple[float, float, float]:
+# def solve_j_indiv( myPars: Pars, a_prime:float, j: int, a_prime_ind:int, lab_fe_ind: int, H_ind: int, H_type_perm_ind: int,
+#                   mat_c_prime:np.ndarray, mat_lab_prime:np.ndarray, mat_VF_prime:np.ndarray)-> Tuple[float, float, float, float]:
     """
     Solve the individual period problem for a given state
-    returns c, lab, a
+    returns c, lab, a, VF
     """
-    c_prime0 = mat_c_prime[a_prime_ind, lab_fe_ind, 0, H_type_perm_ind]
-    c_prime1 = mat_c_prime[a_prime_ind, lab_fe_ind, 1, H_type_perm_ind]
+    BAD, GOOD = 0, 1
+    c_prime0 = mat_c_prime[a_prime_ind, lab_fe_ind, BAD, H_type_perm_ind]
+    c_prime1 = mat_c_prime[a_prime_ind, lab_fe_ind, GOOD, H_type_perm_ind]
+    # lab_prime0 = mat_lab_prime[a_prime_ind, lab_fe_ind, BAD, H_type_perm_ind]
+    # lab_prime1 = mat_lab_prime[a_prime_ind, lab_fe_ind, GOOD, H_type_perm_ind]
+    # euler_rhs = model.euler_rhs(myPars, c_prime0, c_prime1, lab_prime0, lab_prime1, H_type_perm_ind, j, H_ind)
+
+    # VF_prime0 = mat_VF_prime[a_prime_ind, lab_fe_ind, BAD, H_type_perm_ind]
+    # VF_prime1 = mat_VF_prime[a_prime_ind, lab_fe_ind, GOOD, H_type_perm_ind]
+    # expect_VF = model.expect_VF(myPars, VF_prime0, VF_prime1, H_type_perm_ind, j, H_ind)
+
+    # c, lab, a, VF = model.make_choices(myPars, euler_rhs, expect_VF, a_prime, curr_wage, H_ind)
+    # return c, lab, a, VF
+
     c = model.infer_c(myPars, curr_wage, j, lab_fe_ind, H_ind, H_type_perm_ind, c_prime0, c_prime1)
     lab, a = model.solve_lab_a(myPars, c, a_prime, curr_wage, H_ind)
     return c, lab, a
@@ -142,6 +171,7 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, la
     """
   
     mat_ap_a, mat_c_a, mat_lab_a = np.copy(shell_a), np.copy(shell_a), np.copy(shell_a)
+    # mat_VF_a = np.copy(shell_a)
     evals = np.copy(myPars.a_grid)
     evals = evals.reshape(myPars.a_grid_size, 1)
     state_size_no_aj =  myPars.lab_fe_grid_size * myPars.H_grid_size * myPars.H_type_perm_grid_size 
@@ -151,11 +181,15 @@ def transform_ap_to_a(myPars : Pars, shell_a, mat_c_ap, mat_lab_ap, mat_a_ap, la
         points = (mat_a_ap[:, lab_fe_ind, H_ind, H_type_perm_ind],)
         mat_c_a[:, lab_fe_ind, H_ind, H_type_perm_ind] = eval_linear(points, mat_c_ap[:, lab_fe_ind, H_ind, H_type_perm_ind], evals)
         mat_lab_a[:, lab_fe_ind, H_ind, H_type_perm_ind] = eval_linear(points, mat_lab_ap[:, lab_fe_ind, H_ind, H_type_perm_ind], evals)
+        # mat_lab_a[:, lab_fe_ind, H_ind, H_type_perm_ind] = mat_lab_ap[:, lab_fe_ind, H_ind, H_type_perm_ind] # this is the raw labor from the state solutions should be 0 or 1 (so no interpolation)
+        # mat_VF_a[:, lab_fe_ind, H_ind, H_type_perm_ind] = eval_linear(points, mat_VF_ap[:, lab_fe_ind, H_ind, H_type_perm_ind], evals)
 
         if not last_per: # default value is zero from shell_a, which is correct for last period
             mat_ap_a[:, lab_fe_ind, H_ind, H_type_perm_ind] = eval_linear(points, myPars.a_grid, evals)
 
     sol_a = [mat_c_a, mat_lab_a, mat_ap_a]
+    # sol_a = [mat_c_a, mat_lab_a, mat_ap_a, mat_VF_a]
+
     return sol_a
 
 

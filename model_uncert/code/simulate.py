@@ -38,6 +38,7 @@ def sim_lc_numba(myPars : Pars, myShocks: Shocks, sim_vals_list: List[np.ndarray
                     # interp the value of c, labor, and a_prime from the state solutions
                     c = interp(myPars.a_grid, c_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
                     lab = interp(myPars.a_grid, lab_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
+                    #lab = lab_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j] # this is the values of labor from the state solutions should be 0 or 1
                     a_prime = interp(myPars.a_grid, a_prime_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
                     wage = model.wage(myPars, j, lab_fe_ind, curr_h_ind)
                     lab_earnings = wage * lab * 100 * 4 # times 100 since labor is between 0 and 1, 4 is the number of weeks in a month 
