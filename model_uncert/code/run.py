@@ -29,7 +29,7 @@ import io_manager as io
 # Run the model
 def run_model(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, solve: bool = True,
               calib : bool = True, do_wH_calib: bool = True, do_dpi_calib: bool = True, 
-              do_eps_gg_calib: bool = True, do_eps_bb_calib: bool = False,
+              do_eps_gg_calib: bool = True, do_eps_bb_calib: bool = False, do_alpha_calib: bool = True,
               do_phi_H_calib: bool = False, get_targets: bool = True, sim_no_calib  : bool = False, 
               output_flag: bool = True, tex: bool = True, output_path: str = None, data_moms_folder_path: str = None)-> List[Dict[str, np.ndarray]]:
     """
@@ -54,13 +54,16 @@ def run_model(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, solve:
         tb.print_exec_time("Solver ran in", start_time)
     
     #always load state specific solutions
-    sol_labels = ['c', 'lab', 'a_prime']
+    sol_labels = ['c', 'lab', 'a_prime', 'VF']
     state_sols = {}
     for label in sol_labels:
         state_sols[label] = np.load(output_path + label + '_lc.npy')
 
     #if no_calibrate_but_sim, simulate without calibrating
     if sim_no_calib:
+        # CHEATING: just want to see if the simulation works
+        targ_moms_dict = calibration.get_all_targets(myPars, target_folder_path=data_moms_folder_path)
+        model_moms_dict = {}
         start_time = time.perf_counter()
         sim_lc = simulate.sim_lc(myPars, myShocks, state_sols)
         for label in sim_lc.keys():
@@ -77,25 +80,19 @@ def run_model(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, solve:
 
             myPars, myShocks, state_sols, sim_lc, model_moms_dict = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks, 
                                                                 do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, 
-                                                                do_eps_gg_calib=do_eps_gg_calib, do_eps_bb_calib=do_eps_bb_calib,
+                                                                do_eps_gg_calib=do_eps_gg_calib, do_eps_bb_calib=do_eps_bb_calib, do_alpha_calib=do_alpha_calib,
                                                                 **targ_moms_dict)
         else: # otherwise use default argument targets
             myPars, myShocks, state_sols, sim_lc, model_moms_dict = calibration.calib_all(myPars, myShocks, modify_shocks = modify_shocks,
                                                                do_wH_calib = do_wH_calib, do_dpi_calib = do_dpi_calib, do_phi_H_calib = do_phi_H_calib, 
-                                                               do_eps_gg_calib=do_eps_gg_calib, do_eps_bb_calib=do_eps_bb_calib)
-
-        # calib_model_vals_dict = {   'alpha': calibration.alpha_moment_giv_sims(myPars, sim_lc), 
-        #                             'w0_mu': calibration.w0_moments(myPars, myShocks)[0], 'w0_sigma': calibration.w0_moments(myPars, myShocks)[1],
-        #                             'w1': calibration.w1_moment(myPars, myShocks), 'w2': calibration.w2_moment(myPars, myShocks),
-        #                             'wH': calibration.wH_moment(myPars, myShocks), 'phi_H': calibration.phi_H_moment(myPars, sim_lc['lab']),
-        #                             'eps_gg': calibration.eps_gg_moment(myPars, myShocks), 'eps_bb': calibration.eps_bb_moment(myPars, myShocks)}
+                                                               do_eps_gg_calib=do_eps_gg_calib, do_eps_bb_calib=do_eps_bb_calib, do_alpha_calib=do_alpha_calib)
 
         for label in sim_lc.keys():
             np.save(output_path + f'sim{label}.npy', sim_lc[label])
         tb.print_exec_time("Calibration ran in", start_time)
 
     #always load simulated life cycles
-    sim_labels = ['c', 'lab', 'a', 'wage', 'lab_earnings']
+    sim_labels = ['c', 'lab', 'a', 'wage', 'lab_earnings', 'VF']
     sim_lc = {}
     for label in sim_labels:
         sim_lc[label] = np.load(output_path + f'sim{label}.npy')
@@ -114,20 +111,20 @@ def output(myPars: Pars, state_sols: Dict[str, np.ndarray], sim_lc: Dict[str, np
     if not os.path.exists(outpath):
         os.makedirs(outpath)
     io.print_params_to_csv(myPars, outpath)
-    if tex:
-        tables.print_exog_params_to_tex(myPars, outpath)
-        tables.print_endog_params_to_tex(myPars, targ_moments, model_moments, outpath)
-        tables.print_w0_calib_to_tex(myPars, targ_moments, model_moments, outpath)
-        # calibration.print_H_trans_to_tex(myPars, path)
-    if get_targets:
-        lab_mom_path = data_moms_folder_path + 'labor_moments.csv'
-        plot_aggregates.plot_lab_aggs_and_moms(myPars, sim_lc, data_moms_path=lab_mom_path, outpath = outpath)
-        emp_mom_path = data_moms_folder_path + 'emp_rate_moments.csv'
-        plot_aggregates.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, outpath = outpath)
-        wage_mom_path = data_moms_folder_path + 'wage_moments.csv'
-        plot_aggregates.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, outpath = outpath)
-        earn_mom_path = data_moms_folder_path + 'earnings_moments.csv'
-        plot_aggregates.plot_earnings_aggs_and_moms(myPars, sim_lc, data_moms_path=earn_mom_path, outpath = outpath)
+    if get_targets and model_moments != {}:
+        if tex:
+            tables.print_exog_params_to_tex(myPars, outpath)
+            tables.print_endog_params_to_tex(myPars, targ_moments, model_moments, outpath)
+            tables.print_w0_calib_to_tex(myPars, targ_moments, model_moments, outpath)
+            # calibration.print_H_trans_to_tex(myPars, path)
+    lab_mom_path = data_moms_folder_path + 'labor_moments.csv'
+    plot_aggregates.plot_lab_aggs_and_moms(myPars, sim_lc, data_moms_path=lab_mom_path, outpath = outpath)
+    emp_mom_path = data_moms_folder_path + 'emp_rate_moments.csv'
+    plot_aggregates.plot_emp_aggs_and_moms(myPars, sim_lc, data_moms_path=emp_mom_path, outpath = outpath)
+    wage_mom_path = data_moms_folder_path + 'wage_moments.csv'
+    plot_aggregates.plot_wage_aggs_and_moms(myPars, data_moms_path=wage_mom_path, outpath = outpath)
+    earn_mom_path = data_moms_folder_path + 'earnings_moments.csv'
+    plot_aggregates.plot_earnings_aggs_and_moms(myPars, sim_lc, data_moms_path=earn_mom_path, outpath = outpath)
     plot_lc.plot_lc_profiles(myPars, sim_lc, outpath)
 
 # run if main function

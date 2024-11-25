@@ -38,8 +38,8 @@ def pars_factory(main_path: str, H_trans_uncond_path: str = None, H_trans_path: 
 
     # Initialize parameters
     myPars = Pars(main_path, J=51, a_grid_size=301, a_min= -100.0, a_max = 100.0, H_grid=np.array([0.0, 1.0]), 
-                alpha = 0.45, sim_draws=num_sims, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
-                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 0.9999,
+                alpha = 0.25, sim_draws=num_sims, lab_fe_grid = my_lab_fe_grid, lab_fe_weights =  tb.gen_even_row_weights(w_coeff_grid),
+                wage_coeff_grid = w_coeff_grid, max_iters = 100, max_calib_iters = 100, sigma_util = 3.0,
                 print_screen=0)
 
     # Get and set some parameters 
@@ -74,7 +74,7 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
             my_lab_fe_grid: np.ndarray = None, output_flag: bool = True, num_sims: int = 1000, 
             calib_flag: bool = True, sim_no_calib: bool = False,
             do_wH_calib: bool = True, do_dpi_calib: bool = False, do_phi_H_calib: bool = False, 
-            do_eps_gg_calib: bool = True, do_eps_bb_calib: bool = False
+            do_eps_gg_calib: bool = True, do_eps_bb_calib: bool = False, do_alpha_calib: bool = True
             ) -> Tuple[Pars, Shocks, Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
     run the model with the given parameters and return myPars, myShocks, sols, sims
@@ -103,7 +103,7 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
     sols, sims =run.run_model(myPars, myShocks, solve = True, calib = calib_flag, sim_no_calib = sim_no_calib,  
                                 get_targets = True, output_flag = output_flag, tex = True,  
                                 do_wH_calib = do_wH_calib,  do_dpi_calib=do_dpi_calib, do_phi_H_calib = do_phi_H_calib, 
-                                do_eps_gg_calib = do_eps_gg_calib, do_eps_bb_calib = do_eps_bb_calib,
+                                do_eps_gg_calib = do_eps_gg_calib, do_eps_bb_calib = do_eps_bb_calib, do_alpha_calib = do_alpha_calib,
                                 output_path = outpath, data_moms_folder_path = data_moms_path)
     if myShocks is None:
         myShocks = Shocks(myPars)
@@ -114,7 +114,7 @@ def main_io(main_path: str, myPars: Pars = None, myShocks: Shocks = None, out_fo
 if __name__ == "__main__":
     import plot_inequality as plot_ineq
     import os
-    print("Current working directory:", os.getcwd())
+    # print("Current working directory:", os.getcwd())
 
     #run stuff here
     start_time = time.perf_counter()
@@ -132,6 +132,12 @@ if __name__ == "__main__":
     myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, output_flag = True,
                                                 H_trans_uncond_path = trans_path_50p, H_trans_path = None, 
                                                 H_type_pop_share_path = type_path_50p,
-                                                do_eps_gg_calib=True, do_eps_bb_calib=True)
+                                                do_eps_gg_calib=False, do_eps_bb_calib=False)
+
+    # myPars, myShocks, sols, sims = main_io(main_path, out_folder_name = of_name, output_flag = False,
+    #                                             H_trans_uncond_path = trans_path_50p, H_trans_path = None, 
+    #                                             H_type_pop_share_path = type_path_50p, sim_no_calib = True, calib_flag=False)
+    print('Solution lab mean: ', np.mean(sols['lab'])) 
+    print('Simulation lab mean: ', np.mean(sims['lab'][..., :-1]))
 
     tb.print_exec_time("Main.py executed in", start_time) 

@@ -18,6 +18,7 @@ from math import log
 # My code
 from pars_shocks import Pars, Shocks
 import my_toolbox as tb
+from typing import Tuple, Dict
 
 @njit
 def util(myPars: Pars, c:float, leis:float) -> float:
@@ -144,12 +145,15 @@ def euler_rhs(myPars:Pars, c_prime0:float, c_prime1:float, lab_prime0:float, lab
     calculate the expectation on the right hand side of the euler equation
     """
     BAD, GOOD = 0, 1
+
     leis_bad = leis_giv_lab(myPars, lab_prime0, BAD)
     uc_bad = util_c(myPars, c_prime0, leis_bad)
     prob_bad = myPars.H_trans[H_type_perm_ind, j, H_ind, BAD]
+
     leis_good = leis_giv_lab(myPars, lab_prime1, GOOD)
     uc_good = util_c(myPars, c_prime1, leis_good)
     prob_good = myPars.H_trans[H_type_perm_ind, j, H_ind, GOOD]
+
     expect = (prob_bad * uc_bad) + (prob_good * uc_good)
     return myPars.beta * (1 + myPars.r) * expect
 
@@ -175,18 +179,53 @@ def make_choices(myPars: Pars, euler_rhs:float, cont_val:float, a_prime:float, c
     a_no_work = (c_no_work + a_prime)/ (1 + myPars.r)
     per_util_no_work = util(myPars, c_no_work, leis_no_work) 
     VF_no_work = per_util_no_work + myPars.beta * cont_val
+    # print('VF_no_work: ', VF_no_work)
 
     leis_work = leis_giv_lab(myPars, WORK, H_ind)
     c_work = util_c_inv(myPars, euler_rhs, leis_work)
     a_work = (c_work + a_prime - curr_wage)/ (1 + myPars.r)
     per_util_work = util(myPars, c_work, leis_work)
     VF_work = per_util_work + myPars.beta * cont_val
+    # print('VF_work: ', VF_work)
 
     if VF_work > VF_no_work:
+        print("****THANK GOD****")
+        print('VF_work: ', VF_work)
+        print('VF_no_work: ', VF_no_work)
         return c_work, WORK, a_work, VF_work
     else:
         return c_no_work, NO_WORK, a_no_work, VF_no_work
     
+@njit
+def get_disc_options(myPars: Pars, euler_rhs:float, cont_val:float, a_prime:float, curr_wage:float, H_ind:int
+                 ) -> Tuple[float, float, float, float, float, float]:
+    """
+    make the consumption and labor choices given the euler equation and the continuation value
+    """
+    NO_WORK, WORK = 0, 1
+    leis_no_work = leis_giv_lab(myPars, NO_WORK, H_ind)
+    c_no_work = util_c_inv(myPars, euler_rhs, leis_no_work)
+    a_no_work = (c_no_work + a_prime)/ (1 + myPars.r)
+    per_util_no_work = util(myPars, c_no_work, leis_no_work) 
+    VF_no_work = per_util_no_work + myPars.beta * cont_val
+    # print('VF_no_work: ', VF_no_work)
+
+    leis_work = leis_giv_lab(myPars, WORK, H_ind)
+    c_work = util_c_inv(myPars, euler_rhs, leis_work)
+    a_work = (c_work + a_prime - curr_wage)/ (1 + myPars.r)
+    per_util_work = util(myPars, c_work, leis_work)
+    VF_work = per_util_work + myPars.beta * cont_val
+    # print('VF_work: ', VF_work)
+
+    # if VF_work > VF_no_work:
+    #     print("****THANK GOD****")
+    #     print('VF_work: ', VF_work)
+    #     print('VF_no_work: ', VF_no_work)
+    #     return c_work, WORK, a_work, VF_work
+    # else:
+    #     return c_no_work, NO_WORK, a_no_work, VF_no_work
+
+    return c_no_work, c_work, a_no_work, a_work, VF_no_work, VF_work
 
 @njit
 def util_c_inv(myPars: Pars, u:float, leis:float) -> float:
@@ -284,7 +323,7 @@ def wage(myPars: Pars,  age: int, lab_fe_ind: int, h_ind: int) -> float:
     age_comp = tb.cubic(age, myPars.wage_coeff_grid[lab_fe_ind])
     health_comp = myPars.H_grid[h_ind] * myPars.wH_coeff
     my_wage = age_comp + health_comp
-    my_wage = np.exp(my_wage)
+    my_wage = np.exp(my_wage) # *myPars.phi_n*100 #since employment is between 0 and 1, this is the weekly wages
     return max(myPars.wage_min, my_wage)
 
 @njit

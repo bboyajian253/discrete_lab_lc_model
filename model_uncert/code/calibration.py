@@ -404,7 +404,9 @@ def alpha_moment_giv_lab_sim(myPars: Pars, lab_sim_lc: np.ndarray)-> float:
     sims: the simulations of the model
     returns the mean labor worked
     """
-    labor_sims = lab_sim_lc[:, :, :, :myPars.J]
+    age55_ind = np.where(myPars.age_grid == 55)[0][0]
+    # labor_sims = lab_sim_lc[:, :, :, :myPars.J]
+    labor_sims = lab_sim_lc[:, :, :, :age55_ind]
     weighted_labor_sims = model.gen_weighted_sim(myPars, labor_sims) 
     mean_lab_by_age = tb.sum_last_axis_numba(weighted_labor_sims)
     mean_lab = np.mean(mean_lab_by_age)
@@ -695,7 +697,7 @@ def get_all_targets(myPars: Pars, target_folder_path: str = None)-> Dict[str, fl
 
 def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True, 
         do_wH_calib: bool = True, do_dpi_calib: bool = True, do_phi_H_calib: bool = False, 
-        do_eps_gg_calib: bool = True, do_eps_bb_calib: bool = False,  
+        do_eps_gg_calib: bool = True, do_eps_bb_calib: bool = False, do_alpha_calib: bool = True,
 
         w0_mu_min:float = 0.0, w0_mu_max:float = 30.0, w0_sigma_min:float = 0.001, w0_sigma_max = 1.0, 
         w1_min:float = 0.0, w1_max:float = 10.0, w2_min = -1.0, w2_max = 0.0, wH_min = -5.0, wH_max = 5.0, 
@@ -846,8 +848,11 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                         and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                         and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
                         and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol)):
-                        print("Calibrating alpha")
-                        alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, myShocks, calib_path, alpha_tol, alpha_mom_targ)
+                        if do_alpha_calib:
+                            print("Calibrating alpha")
+                            alpha_calib, my_alpha_mom, state_sols, sims, shocks = calib_alpha(myPars, myShocks, calib_path, alpha_tol, alpha_mom_targ)
+                        else:
+                            my_alpha_mom = alpha_moment_giv_sims(myPars, sims)
                         my_eps_bb_mom = eps_bb_moment(myPars, myShocks)
                         my_eps_gg_mom = eps_gg_moment(myPars, myShocks)
                         my_w0_mu_mom = w0_mu_moment(myPars, myShocks)
@@ -859,13 +864,14 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                             and (not do_eps_bb_calib or (np.abs(my_eps_bb_mom - eps_bb_mom_targ) < eps_bb_tol))
                             and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                             and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
-                            and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol):
+                            and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
+                            and (not do_alpha_calib or np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol)):
                             if do_phi_H_calib:
                                 print("Calibrating phi_H")
                                 phi_H_calib, my_phi_H_mom, state_sols, sims = calib_phi_H(myPars, calib_path, phi_H_tol, phi_H_mom_targ, phi_H_min, phi_H_max)
-                            else:
-                                lab_sims = sims['lab']
-                                my_phi_H_mom = phi_H_moment(myPars, lab_sims)
+                            # else:
+                            #     lab_sims = sims['lab']
+                            #     my_phi_H_mom = phi_H_moment(myPars, lab_sims)
                             my_eps_bb_mom = eps_bb_moment(myPars, myShocks)
                             my_eps_gg_mom = eps_gg_moment(myPars, myShocks)
                             my_w0_mu_mom = w0_mu_moment(myPars, myShocks)
@@ -878,13 +884,16 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                             and (not do_eps_bb_calib or (np.abs(my_eps_bb_mom - eps_bb_mom_targ) < eps_bb_tol))
                             and np.abs(my_w0_mu_mom - w0_mu_mom_targ) < w0_mu_tol and np.abs(my_w0_sigma_mom - w0_sigma_mom_targ) < w0_sigma_tol 
                             and np.abs(my_w1_mom - w1_mom_targ) < w1_tol and np.abs(my_w2_mom - w2_mom_targ) < w2_tol 
-                            and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) and np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol
-                            and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
+                            and (not do_wH_calib or np.abs(my_wH_mom - wH_mom_targ) < wH_tol) 
+                            and (not do_alpha_calib or np.abs(my_alpha_mom - alpha_mom_targ) < alpha_tol)):
+                            # and (not do_phi_H_calib or np.abs(my_phi_H_mom - phi_H_mom_targ) < phi_H_tol)):
                             print(f"Calibration converged after {i+1} iterations")
                             if not do_wH_calib:
                                 print("********** wH calibration was skipped **********")
                             if not do_phi_H_calib:
                                 print("********** phi_H calibration was skipped **********")
+                            else:
+                                print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
                             if not do_eps_gg_calib:
                                 print("********** epsilon_gg calibration was skipped ********")
                             else:
@@ -899,9 +908,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
                             print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
                             print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
                             print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
-                            print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
                             moms_dict = {'alpha': my_alpha_mom, 'w0_mu': my_w0_mu_mom, 'w0_sigma': my_w0_sigma_mom, 
-                                            'w1': my_w1_mom, 'w2': my_w2_mom, 'wH': my_wH_mom, 'phi_H': my_phi_H_mom,
+                                            'w1': my_w1_mom, 'w2': my_w2_mom, 'wH': my_wH_mom, 
                                             'eps_gg': my_eps_gg_mom, 'eps_bb': my_eps_bb_mom}
 
                             return myPars, myShocks, state_sols, sims, moms_dict
@@ -912,6 +920,8 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
         print("********** wH calibration was skipped **********")
     if not do_phi_H_calib:
         print("********** phi_H calibration was skipped **********")
+    else:
+        print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
     if not do_eps_gg_calib:
         print("********** epsilon_gg calibration was skipped ********")
     else:
@@ -926,10 +936,9 @@ def calib_all(myPars: Pars, myShocks: Shocks, modify_shocks: bool = True,
     print(f"w2 = {myPars.wage_coeff_grid[1,2]}, w2 moment = {my_w2_mom}, w2 mom targ = {w2_mom_targ}")
     print(f"wH = {myPars.wH_coeff}, wH moment = {my_wH_mom}, wH mom targ = {wH_mom_targ}")
     print(f"alpha = {myPars.alpha}, alpha moment = {my_alpha_mom}, alpha mom targ = {alpha_mom_targ}")
-    print(f"phi_H = {myPars.phi_H}, phi_H moment = {my_phi_H_mom}, phi_H mom targ = {phi_H_mom_targ}")
     moms_dict = {'alpha': my_alpha_mom, 'w0_mu': my_w0_mu_mom, 'w0_sigma': my_w0_sigma_mom, 
-                    'w1': my_w1_mom, 'w2': my_w2_mom, 'wH': my_wH_mom, 'phi_H': my_phi_H_mom,
-                    'eps_gg': my_eps_gg_mom, 'eps_bb': my_eps_bb_mom}
+                'w1': my_w1_mom, 'w2': my_w2_mom, 'wH': my_wH_mom, 'phi_H': my_phi_H_mom,
+                'eps_gg': my_eps_gg_mom, 'eps_bb': my_eps_bb_mom}
 
     return myPars, myShocks, state_sols, sims, moms_dict
 

@@ -86,11 +86,14 @@ class Pars() :
             lab_fe_tauch_sigma = 1.0,
             # utility parameters
             beta = 0.95, # discount factor
-            alpha = 0.70, #.5, # cobb douglass returns to consumption
-            sigma_util = 3, # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
+            # alpha = 0.45, #.5, # cobb douglass returns to consumption
+            alpha = 0.99, # cobb douglass returns to consumption
+            # sigma_util = 0.999, # governs degree of non-seperability between c,l \\sigma>1 implies c,l frisch subs
+            sigma_util = 3.0, # this util function deos not approach log and is not truly crra
 
             # time costs and health costs
-            phi_n = 1.125, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision was originally 1.125
+            # phi_n = 1.125, # 40 hours + 5 commuting is the time cost to a discrete work/not work decision was originally 1.125
+            phi_n = 0.35, # avg hours worked by the employed age 25-55 in sample
             phi_H = 0.0, # time cost to being in bad health, for now pretend there are only two states was originally 0.10
 
             # interest rate and maybe taxes later

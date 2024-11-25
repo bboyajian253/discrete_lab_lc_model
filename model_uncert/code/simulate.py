@@ -24,9 +24,10 @@ import model
 #@njit(parallel=True) # to paralleliize swap this decorator for the one below
 @njit
 def sim_lc_numba(myPars : Pars, myShocks: Shocks, sim_vals_list: List[np.ndarray], state_sols_list: List[np.ndarray]) -> List[np.ndarray]:
-    [sim_c, sim_lab, sim_a, sim_wage, sim_lab_earnings]  = sim_vals_list
-    [c_lc, lab_lc, a_prime_lc] = state_sols_list
+    [sim_c, sim_lab, sim_a, sim_wage, sim_lab_earnings, sim_VF]  = sim_vals_list
+    [c_lc, lab_lc, a_prime_lc, VF_lc] = state_sols_list
 
+    # a_ind = 0
     for j in prange(myPars.J):
         for lab_fe_ind in prange(myPars.lab_fe_grid_size):
             for H_type_perm_ind in prange(myPars.H_type_perm_grid_size):
@@ -37,27 +38,35 @@ def sim_lc_numba(myPars : Pars, myShocks: Shocks, sim_vals_list: List[np.ndarray
 
                     # interp the value of c, labor, and a_prime from the state solutions
                     c = interp(myPars.a_grid, c_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
+
                     lab = interp(myPars.a_grid, lab_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
-                    #lab = lab_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j] # this is the values of labor from the state solutions should be 0 or 1
+                    lab = 1.0 if lab > 0.5 else 0.0
+                    # print('lab: ', lab)
+                    # a_ind = np.searchsorted(myPars.a_grid, a) # this is the index of the a from the previous period in the a grid
+                    # lab = lab_lc[a_ind, lab_fe_ind, curr_h_ind, H_type_perm_ind, j] # this is the values of labor from the state solutions should be 0 or 1
+
                     a_prime = interp(myPars.a_grid, a_prime_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals)
                     wage = model.wage(myPars, j, lab_fe_ind, curr_h_ind)
-                    lab_earnings = wage * lab * 100 * 4 # times 100 since labor is between 0 and 1, 4 is the number of weeks in a month 
-                    # will  need  adjustment for taxes, etc. eventually, may need a function in model.py like recover_wage
+                    lab_earnings = wage * lab * 4 * 100 # times 100 since labor is between 0 and 1, 4 is the number of weeks in a month 
+                    VF = interp(myPars.a_grid, VF_lc[:, lab_fe_ind, curr_h_ind, H_type_perm_ind, j], evals) # this is the value function from the state solutions
+
                     # store the values of c, labor, and a_prime in the simulation arrays
                     sim_c[lab_fe_ind, H_type_perm_ind, sim_ind, j] = c
                     sim_lab[lab_fe_ind, H_type_perm_ind, sim_ind, j] = lab
                     sim_a[lab_fe_ind, H_type_perm_ind, sim_ind, j + 1] = a_prime
                     sim_wage[lab_fe_ind, H_type_perm_ind, sim_ind, j] = wage
                     sim_lab_earnings[lab_fe_ind, H_type_perm_ind, sim_ind, j] = lab_earnings
+                    sim_VF[lab_fe_ind, H_type_perm_ind, sim_ind, j] = VF
 
-    return [sim_c, sim_lab, sim_a, sim_wage, sim_lab_earnings]
+
+    return [sim_c, sim_lab, sim_a, sim_wage, sim_lab_earnings, sim_VF]
 
 
 def sim_lc(myPars : Pars, myShocks : Shocks, state_sols: Dict[str, np.ndarray])-> Dict[str, np.ndarray]:
     """
     simulate life-cycle profiles given state solutions (and shock processes if they exist)
     """
-    vlist = ['c', 'lab', 'a', 'wage', 'lab_earnings'] # **NOTE** DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN sim_lc_numba
+    vlist = ['c', 'lab', 'a', 'wage', 'lab_earnings', 'VF'] # **NOTE** DO NOT CHANGE ORDER OF vlist W/O CHANGING ORDER IN sim_lc_numba
     
     #dict where each v in vlist is a key that stores an np.ndarray of -9999s with shape myPars.state_space_shape_sims 
     sim = {v: -9999 * np.ones(myPars.state_space_shape_sims) for v in vlist}
